@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .logo { font-size: 24px; font-weight: 800; color: #0d9488; margin-bottom: 30px; }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 20px; color: #0f172a; }
+        p { margin-bottom: 20px; }
+        .error-box { background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; padding: 20px; margin: 20px 0; font-family: monospace; font-size: 14px; color: #b91c1c; }
+        .btn { display: inline-block; padding: 14px 28px; background-color: #0f172a; color: #ffffff !important; text-decoration: none; border-radius: 12px; font-weight: 600; margin-top: 20px; }
+        .footer { margin-top: 40px; font-size: 12px; color: #64748b; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Seeqme AI</div>
+        <h1>Deployment Issue Detected</h1>
+        <p>Hi {{.FullName}},</p>
+        <p>We encountered a technical issue while attempting to publish your portfolio: <strong>{{.PortfolioTitle}}</strong>.</p>
+        <p>Our autonomous deployment engine reported the following error:</p>
+        <div class="error-box">
+            {{.ErrorMessage}}
+        </div>
+        <p>Don't worry—your progress has been saved. You can try redeploying your portfolio from the builder or dashboard.</p>
+        <a href="{{.DashboardURL}}" class="btn">Return to Dashboard</a>
+        <p>If this issue persists, please contact our technical support team.</p>
+        <p>Best regards,<br>The Seeqme Engineering Team</p>
+        <div class="footer">
+            &copy; 2026 Seeqme AI. All rights reserved.<br>
+            Sent to {{.UserEmail}}
+        </div>
+    </div>
+</body>
+</html>

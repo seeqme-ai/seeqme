@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claim Your Professional Edge</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc;
+        color: #334155;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.03);
+    }
+
+    .hero {
+        padding: 48px 40px 32px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .logo {
+        height: 32px;
+        margin-bottom: 24px;
+    }
+
+    .logo-dark {
+        display: none;
+    }
+
+    h1 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+    }
+
+    .highlight {
+        color: #0f766e;
+    }
+
+    .content {
+        padding: 40px;
+        text-align: center;
+    }
+
+    p {
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 28px;
+        color: #475569;
+    }
+
+    .seo-card {
+        background-color: #f0fdfa;
+        border: 1px solid #ccfbf1;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 32px;
+        text-align: left;
+    }
+
+    .seo-card h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f766e;
+        margin: 0 0 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .seo-card p {
+        font-size: 14px;
+        margin: 0;
+        color: #115e59;
+    }
+
+    .button {
+        display: inline-block;
+        background-color: #0f766e;
+        color: #ffffff !important;
+        padding: 16px 32px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+    }
+
+    .footer {
+        padding: 32px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .footer p {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #020617;
+            color: #cbd5e1;
+        }
+
+        .container {
+            background-color: #020617;
+            border-color: #1e293b;
+            box-shadow: none;
+        }
+
+        .hero,
+        .footer {
+            background-color: #0f172a;
+            border-color: #1e293b;
+        }
+
+        h1 {
+            color: #f8fafc;
+        }
+
+        p {
+            color: #94a3b8;
+        }
+
+        .seo-card {
+            background-color: #042f2e;
+            border-color: #115e59;
+        }
+
+        .seo-card h2 {
+            color: #2dd4bf;
+        }
+
+        .seo-card p {
+            color: #99f6e4;
+        }
+
+        .button {
+            background-color: #14b8a6;
+            color: #020617 !important;
+        }
+
+        .highlight {
+            color: #14b8a6;
+        }
+
+        .footer p {
+            color: #64748b;
+        }
+
+        .logo-light {
+            display: none !important;
+        }
+
+        .logo-dark {
+            display: inline-block !important;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="hero">
+        <img
+            src="https://seeqme.com/seeqme-logo-black.png"
+            alt="SeeqMe"
+            class="logo logo-light"
+        />
+        <img
+            src="https://seeqme.com/seeqme-logo-white.png"
+            alt="SeeqMe"
+            class="logo logo-dark"
+        />
+        <h1>Ready to <span class="highlight">Go Live?</span></h1>
+    </div>
+
+    <div class="content">
+        <p>
+            Hi {{.FullName}}, we noticed your professional portfolio 
+            <strong>{{.PortfolioTitle}}</strong> is sitting in your drafts. 
+            You've done the hard part—don't let your digital identity stay hidden.
+        </p>
+
+        <div class="seo-card">
+            <h2>Why Deploy Now?</h2>
+            <p>Every day your portfolio is undeployed, you're missing out on critical Google indexing and organic visibility that could lead to your next big opportunity.</p>
+        </div>
+
+        <div style="margin: 32px 0;">
+            <a href="{{.DashboardURL}}" class="button">Resume & Deploy Now</a>
+        </div>
+
+        <p style="font-size: 14px; color: #64748b;">
+            It only takes 2 minutes to finalize your site and secure your place on the web.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{.Year}} SeeqMe. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

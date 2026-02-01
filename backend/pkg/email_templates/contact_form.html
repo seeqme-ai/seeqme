@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>New Contact Form Submission</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc;
+        color: #334155;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .hero {
+        padding: 36px 40px 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .logo {
+        height: 40px;
+        margin-bottom: 20px;
+    }
+
+    .logo-dark {
+        display: none;
+    }
+
+    h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .highlight {
+        color: #0f766e;
+    }
+
+    .content {
+        padding: 36px 40px;
+    }
+
+    p {
+        font-size: 15px;
+        line-height: 1.65;
+        margin-bottom: 20px;
+        color: #475569;
+    }
+    
+    .message-box {
+        background-color: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .footer {
+        padding: 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .footer p {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #020617;
+            color: #cbd5e1;
+        }
+
+        .container {
+            background-color: #020617;
+            border-color: #1e293b;
+            box-shadow: none;
+        }
+
+        .hero,
+        .footer {
+            background-color: #020617;
+            border-color: #1e293b;
+        }
+
+        h1 {
+            color: #e5e7eb;
+        }
+
+        p {
+            color: #cbd5e1;
+        }
+
+        .message-box {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        .footer p {
+            color: #64748b;
+        }
+
+        .logo-light {
+            display: none !important;
+        }
+
+        .logo-dark {
+            display: inline-block !important;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="hero">
+        <!-- Light logo -->
+        <img src="https://seeqme.com/seeqme-logo-black.png" alt="SeeqMe" class="logo logo-light" />
+        <!-- Dark logo -->
+        <img src="https://seeqme.com/seeqme-logo-white.png" alt="SeeqMe" class="logo logo-dark" />
+
+        <h1>New <span class="highlight">Contact Form</span> Submission</h1>
+    </div>
+
+    <div class="content">
+        <p>A new message has been submitted through the contact form.</p>
+        
+        <div class="message-box">
+            <p><strong>From:</strong> {{.Email}}</p>
+            <p><strong>Subject:</strong> {{.Subject}}</p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+            <p>{{.Message}}</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{.Year}} SeeqMe. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

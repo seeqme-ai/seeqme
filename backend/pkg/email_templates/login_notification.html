@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>New Login to Your SeeqMe Account</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc;
+        color: #334155;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .hero {
+        padding: 36px 40px 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Logo handling */
+    .logo {
+        height: 40px;
+        margin-bottom: 20px;
+    }
+
+    .logo-dark {
+        display: none;
+    }
+
+    h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .highlight {
+        color: #0f766e;
+    }
+
+    .content {
+        padding: 36px 40px;
+    }
+
+    p {
+        font-size: 15px;
+        line-height: 1.65;
+        margin-bottom: 22px;
+        color: #475569;
+    }
+
+    .security-card {
+        background-color: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px;
+        margin-bottom: 24px;
+    }
+
+    .detail-row {
+        margin-bottom: 14px;
+    }
+
+    .detail-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0f172a;
+        word-break: break-word;
+    }
+
+    .link {
+        color: #0f766e;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .footer {
+        padding: 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .footer p {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #020617;
+            color: #cbd5e1;
+        }
+
+        .container {
+            background-color: #020617;
+            border-color: #1e293b;
+            box-shadow: none;
+        }
+
+        .hero,
+        .footer {
+            background-color: #020617;
+            border-color: #1e293b;
+        }
+
+        h1 {
+            color: #e5e7eb;
+        }
+
+        p {
+            color: #cbd5e1;
+        }
+
+        .security-card {
+            background-color: #020617;
+            border-color: #1e293b;
+        }
+
+        .detail-label {
+            color: #94a3b8;
+        }
+
+        .detail-value {
+            color: #e5e7eb;
+        }
+
+        .link,
+        .highlight {
+            color: #14b8a6;
+        }
+
+        .footer p {
+            color: #64748b;
+        }
+
+        /* Switch logos */
+        .logo-light {
+            display: none !important;
+        }
+
+        .logo-dark {
+            display: inline-block !important;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="hero">
+        <!-- Light mode logo -->
+        <img
+            src="https://seeqme.com/seeqme-logo-black.png"
+            alt="SeeqMe"
+            class="logo logo-light"
+        />
+
+        <!-- Dark mode logo -->
+        <img
+            src="https://seeqme.com/seeqme-logo-white.png"
+            alt="SeeqMe"
+            class="logo logo-dark"
+        />
+
+        <h1>New <span class="highlight">Login</span> Detected</h1>
+    </div>
+
+    <div class="content">
+        <p>
+            Hi {{.FullName}}, we noticed a new login to your SeeqMe account.
+            Below are the details for your security:
+        </p>
+
+        <div class="security-card">
+            <div class="detail-row">
+                <span class="detail-label">When</span>
+                <span class="detail-value">{{.LoginTime}}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">IP Address</span>
+                <span class="detail-value">{{.IPAddress}}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Device / Browser</span>
+                <span class="detail-value">{{.UserAgent}}</span>
+            </div>
+        </div>
+
+        <p style="font-size: 14px;">
+            If this was you, no action is required.
+            If you don’t recognize this activity,
+            please <a href="{{.ResetPasswordLink}}" class="link">reset your password</a>
+            immediately.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{.Year}} SeeqMe. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

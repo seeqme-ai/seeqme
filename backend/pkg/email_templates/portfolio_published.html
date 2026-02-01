@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Portfolio is Live</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc;
+        color: #334155;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .hero {
+        padding: 36px 40px 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Logo handling */
+    .logo {
+        height: 40px;
+        margin-bottom: 20px;
+    }
+
+    .logo-dark {
+        display: none;
+    }
+
+    h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .highlight {
+        color: #0f766e;
+    }
+
+    .content {
+        padding: 36px 40px;
+        text-align: center;
+    }
+
+    p {
+        font-size: 15px;
+        line-height: 1.65;
+        margin-bottom: 24px;
+        color: #475569;
+    }
+
+    .button {
+        display: inline-block;
+        background-color: #0f766e;
+        color: #ffffff !important;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .footer {
+        padding: 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .footer p {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #020617;
+            color: #cbd5e1;
+        }
+
+        .container {
+            background-color: #020617;
+            border-color: #1e293b;
+            box-shadow: none;
+        }
+
+        .hero,
+        .footer {
+            background-color: #020617;
+            border-color: #1e293b;
+        }
+
+        h1 {
+            color: #e5e7eb;
+        }
+
+        p {
+            color: #cbd5e1;
+        }
+
+        .button {
+            background-color: #14b8a6;
+            color: #022c22 !important;
+        }
+
+        .highlight {
+            color: #14b8a6;
+        }
+
+        .footer p {
+            color: #64748b;
+        }
+
+        /* Switch logos */
+        .logo-light {
+            display: none !important;
+        }
+
+        .logo-dark {
+            display: inline-block !important;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="hero">
+        <!-- Light mode logo -->
+        <img
+            src="https://seeqme.com/seeqme-logo-black.png"
+            alt="SeeqMe"
+            class="logo logo-light"
+        />
+
+        <!-- Dark mode logo -->
+        <img
+            src="https://seeqme.com/seeqme-logo-white.png"
+            alt="SeeqMe"
+            class="logo logo-dark"
+        />
+
+        <h1>It’s <span class="highlight">Official</span></h1>
+    </div>
+
+    <div class="content">
+        <p>
+            Hi {{.FullName}}, your portfolio
+            <strong>{{.PortfolioTitle}}</strong> is now live.
+            You can share it using the link below.
+        </p>
+
+        <div style="margin: 28px 0;">
+            <a href="{{.PortfolioURL}}" class="button">View Portfolio</a>
+        </div>
+
+        <p style="font-size: 14px;">
+            Need to make changes? You can update your content and republish
+            anytime from your dashboard.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{.Year}} SeeqMe. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

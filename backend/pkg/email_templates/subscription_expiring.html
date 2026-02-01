@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Subscription Expiring Soon</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc;
+        color: #334155;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .hero {
+        padding: 36px 40px 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .logo {
+        height: 40px;
+        margin-bottom: 20px;
+    }
+
+    .logo-dark {
+        display: none;
+    }
+
+    h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .highlight {
+        color: #0f766e;
+    }
+
+    .content {
+        padding: 36px 40px;
+        text-align: center;
+    }
+
+    p {
+        font-size: 15px;
+        line-height: 1.65;
+        margin-bottom: 20px;
+        color: #475569;
+    }
+
+    .notice {
+        background-color: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 20px;
+        text-align: left;
+        margin-bottom: 28px;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .button {
+        display: inline-block;
+        background-color: #0f766e;
+        color: #ffffff !important;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .muted {
+        margin-top: 28px;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .footer {
+        padding: 28px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .footer p {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #020617;
+            color: #cbd5e1;
+        }
+
+        .container {
+            background-color: #020617;
+            border-color: #1e293b;
+            box-shadow: none;
+        }
+
+        .hero,
+        .footer {
+            background-color: #020617;
+            border-color: #1e293b;
+        }
+
+        h1 {
+            color: #e5e7eb;
+        }
+
+        p,
+        .notice {
+            color: #cbd5e1;
+            background-color: #020617;
+            border-color: #1e293b;
+        }
+
+        .highlight {
+            color: #14b8a6;
+        }
+
+        .button {
+            background-color: #14b8a6;
+            color: #022c22 !important;
+        }
+
+        .footer p,
+        .muted {
+            color: #64748b;
+        }
+
+        .logo-light {
+            display: none !important;
+        }
+
+        .logo-dark {
+            display: inline-block !important;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="hero">
+        <!-- Light logo -->
+        <img
+            src="https://seeqme.com/seeqme-logo-black.png"
+            alt="SeeqMe"
+            class="logo logo-light"
+        />
+
+        <!-- Dark logo -->
+        <img
+            src="https://seeqme.com/seeqme-logo-white.png"
+            alt="SeeqMe"
+            class="logo logo-dark"
+        />
+
+        <h1>Renewal <span class="highlight">Reminder</span></h1>
+    </div>
+
+    <div class="content">
+        <p>
+            Hi {{.FullName}}, your SeeqMe
+            <strong>{{.PlanName}}</strong> plan is set to expire on
+            <strong>{{.ExpiryDate}}</strong>.
+        </p>
+
+        <div class="notice">
+            To keep your custom domain and professional features active without
+            interruption, please make sure your payment details are up to date.
+        </div>
+
+        <a href="{{.RenewURL}}" class="button">Renew Subscription</a>
+
+        <p class="muted">
+            If auto-renew is enabled, we’ll handle this automatically on the
+            expiry date.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{.Year}} SeeqMe. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
