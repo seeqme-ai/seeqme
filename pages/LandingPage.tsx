@@ -127,7 +127,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      const { content } = await import('@/services/apiService').then(m => m.uploadService.extractCV(file));
+      const { uploadService } = await import('@/services/apiService');
+      const { content } = await uploadService.extractCV(file);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
