@@ -56,6 +56,7 @@ func main() {
 	// Apply the optional auth middleware globally.
 	// It will identify a user if a valid token is present, but won't fail otherwise.
 	r.Use(middleware.OptionalAuthMiddleware(cfg.JWTSecret))
+	r.Use(middleware.IdentityMiddleware())
 
 	// Add a custom recovery middleware to ensure CORS headers are kept
 	r.Use(func(c *gin.Context) {

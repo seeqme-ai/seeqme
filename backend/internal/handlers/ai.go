@@ -219,11 +219,6 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 		"createdAt":         primitive.NewDateTimeFromTime(time.Now()),
 	}
 
-	// Always store SubjectID as the identifier
-	if ok {
-		portfolioDoc["anonymousId"] = subID.(string)
-	}
-
 	if userID != nil {
 		userObjID, _ := primitive.ObjectIDFromHex(userID.(string))
 		portfolioDoc["userId"] = userObjID

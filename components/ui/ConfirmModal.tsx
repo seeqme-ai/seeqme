@@ -61,48 +61,62 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[440px] p-8 rounded-[32px] border-border bg-white shadow-2xl gap-0 overflow-hidden">
-                <DialogHeader className="space-y-4 text-left">
-                    <div className={cn(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center mb-2",
-                        getIconBg()
-                    )}>
-                        {getIcon()}
-                    </div>
-                    <DialogTitle className="text-2xl font-bold tracking-tight">
-                        {title}
-                    </DialogTitle>
-                    <DialogDescription className="text-muted-foreground text-base leading-relaxed">
-                        {description}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <DialogFooter className="mt-8 flex gap-3 sm:space-x-0">
-                    <Button
-                        variant="secondary"
+            <DialogContent className="sm:max-w-[480px] p-0 rounded-[32px] border-none bg-white shadow-[0_32px_128px_-16px_rgba(0,0,0,0.15)] gap-0 overflow-hidden outline-none">
+                <div className="relative p-10">
+                    <button
                         onClick={onClose}
-                        className="flex-1 rounded-2xl h-14 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold"
-                        disabled={isLoading}
+                        className="absolute right-6 top-6 p-2 text-muted-foreground/40 hover:text-foreground hover:bg-muted rounded-full transition-all"
                     >
-                        {cancelText}
-                    </Button>
-                    <Button
-                        onClick={onConfirm}
-                        disabled={isLoading}
-                        className={cn(
-                            "flex-1 rounded-2xl h-14 font-bold shadow-lg transition-all active:scale-[0.98]",
-                            isDestructive || variant === 'danger'
-                                ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-destructive/10"
-                                : "bg-teal-600 hover:bg-teal-700 text-white shadow-teal-600/10"
-                        )}
-                    >
-                        {isLoading ? (
-                            <Loader className="w-5 h-5 animate-spin" />
-                        ) : (
-                            confirmText
-                        )}
-                    </Button>
-                </DialogFooter>
+                        <X className="w-5 h-5" />
+                    </button>
+
+                    <DialogHeader className="space-y-6 text-left">
+                        <div className={cn(
+                            "w-16 h-16 rounded-[24px] flex items-center justify-center shadow-sm",
+                            getIconBg()
+                        )}>
+                            {getIcon()}
+                        </div>
+                        <div className="space-y-3">
+                            <DialogTitle className="text-3xl font-black tracking-tight leading-tight text-slate-950">
+                                {title}
+                            </DialogTitle>
+                            <DialogDescription className="text-slate-500 text-lg font-medium leading-relaxed">
+                                {description}
+                            </DialogDescription>
+                        </div>
+                    </DialogHeader>
+
+                    <DialogFooter className="mt-12 flex flex-col sm:flex-row gap-4 sm:space-x-0">
+                        <Button
+                            variant="ghost"
+                            onClick={onClose}
+                            className="flex-1 rounded-2xl h-16 text-slate-500 hover:text-slate-950 hover:bg-slate-100 font-bold text-sm uppercase tracking-widest transition-all"
+                            disabled={isLoading}
+                        >
+                            {cancelText}
+                        </Button>
+                        <Button
+                            onClick={onConfirm}
+                            disabled={isLoading}
+                            className={cn(
+                                "flex-[1.5] rounded-2xl h-16 font-black text-sm uppercase tracking-widest shadow-2xl transition-all active:scale-[0.98] group",
+                                isDestructive || variant === 'danger'
+                                    ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25"
+                                    : "bg-teal-500 hover:bg-teal-600 text-white shadow-teal-500/25"
+                            )}
+                        >
+                            {isLoading ? (
+                                <Loader className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <span>{confirmText}</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white/20 group-hover:bg-white/40 transition-colors" />
+                                </div>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </div>
             </DialogContent>
         </Dialog>
     )

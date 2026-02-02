@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ICONS } from '../constants';
 import { LogEntry } from '../types';
-import { Code2, Activity, Copy, Check } from 'lucide-react';
+import { Code2, Activity, Copy, Check, Shield } from 'lucide-react';
 
 interface TerminalProps {
   logs: LogEntry[];
@@ -9,9 +9,10 @@ interface TerminalProps {
   onToggle: () => void;
   code?: string;
   onCodeChange?: (newCode: string) => void;
+  isPaid?: boolean;
 }
 
-const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, onCodeChange }) => {
+const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, onCodeChange, isPaid = false }) => {
   const [mode, setMode] = useState<'logs' | 'code'>('logs');
   const [copied, setCopied] = useState(false);
 
@@ -92,17 +93,41 @@ const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, 
               <div className="h-4"></div>
             </div>
           ) : (
-            <div className="h-full flex flex-col bg-[#010816]">
+            <div className="h-full flex flex-col bg-[#010816] relative overflow-hidden">
               <div className="bg-[#051124] px-4 py-1 flex items-center gap-2 border-b border-white/5">
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">template.html</span>
               </div>
-              <textarea
-                value={code}
-                onChange={(e) => onCodeChange?.(e.target.value)}
-                className="flex-1 w-full bg-transparent text-teal-400/90 font-mono text-[12px] p-6 focus:outline-none resize-none custom-scrollbar selection:bg-teal-500/30"
-                spellCheck={false}
-                placeholder="<!-- Your portfolio source code here -->"
-              />
+
+              <div className={`flex-1 relative ${!isPaid ? 'overflow-hidden' : ''}`}>
+                <textarea
+                  value={code}
+                  onChange={(e) => isPaid && onCodeChange?.(e.target.value)}
+                  readOnly={!isPaid}
+                  className={`w-full h-full bg-transparent text-teal-400/90 font-mono text-[12px] p-6 focus:outline-none resize-none custom-scrollbar selection:bg-teal-500/30 transition-all duration-700 ${!isPaid ? 'blur-[8px] select-none pointer-events-none grayscale opacity-30 scale-[1.02]' : ''}`}
+                  spellCheck={false}
+                  placeholder="<!-- Your portfolio source code here -->"
+                />
+
+                {!isPaid && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/20 backdrop-blur-[2px] p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-teal-500/10 flex items-center justify-center mb-6 border border-teal-500/20 shadow-2xl">
+                      <Shield className="w-8 h-8 text-teal-500 animate-pulse" />
+                    </div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Source Code Gated</h3>
+                    <p className="text-slate-400 text-xs font-medium max-w-[280px] leading-relaxed mb-8">
+                Upgrade to view and directly edit the underlying code.
+                    </p>
+                    <a
+                      href="/plans"
+                      className="group relative flex items-center gap-3 bg-teal-500 text-slate-950 px-8 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-teal-400 transition-all shadow-[0_0_40px_rgba(20,184,166,0.3)] hover:scale-105 active:scale-95"
+                    >
+                      <ICONS.Zap className="w-3.5 h-3.5" />
+                      Upgrade to Seeqme Pro
+                      <div className="absolute inset-0 rounded-xl bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

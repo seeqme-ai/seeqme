@@ -1,5 +1,3 @@
-import { apiService } from './apiService';
-
 export interface LinkedInProfile {
   name: string;
   headline: string;
@@ -50,7 +48,7 @@ export const linkedinService = {
    * Validate LinkedIn URL
    */
   validateUrl: (url: string): boolean => {
-    const username = this.extractUsername(url);
+    const username = this?.extractUsername(url);
     return username !== null;
   },
 

@@ -7,8 +7,9 @@ import { PORTFOLIO_TEMPLATES } from '@/templates';
 import { useTemplate } from '@/context/template-context';
 import { linkedinService } from '@/services/linkedinService';
 import { useAuth } from '@/context/auth-context';
-import { ArrowUpRight, Loader, Zap, Mic, Upload, Linkedin, X, Code, Layers, Instagram, Menu } from 'lucide-react';
+import { ArrowUpRight, Loader, Zap, Mic, Upload, Linkedin, X, Code, Layers, Instagram, Menu, Search } from 'lucide-react';
 import HeroSection from '@/components/Hero';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 const MotionDiv = motion.div as any;
 
@@ -37,8 +38,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [linkedInUrl, setLinkedInUrl] = useState('');
-  const [displayLimit, setDisplayLimit] = useState(6);
+  const [displayLimit, setDisplayLimit] = useState(12);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +71,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   }, [selectedNiche, searchQuery, shuffledTemplates]);
 
   const displayedTemplates = useMemo(() => {
-    return filteredTemplates.slice(0, displayLimit);
+    if (filteredTemplates.length === 0) return [];
+    // Create an array filled with references to templates, looping over if necessary
+    return Array.from({ length: displayLimit }, (_, i) => filteredTemplates[i % filteredTemplates.length]);
   }, [filteredTemplates, displayLimit]);
 
   // Infinite Scroll Logic
@@ -77,7 +81,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     if (!loaderRef.current) return;
 
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && displayLimit < filteredTemplates.length && !isFetchingMore) {
+      // Allow loading more if we have templates to show
+      if (entries[0].isIntersecting && filteredTemplates.length > 0 && !isFetchingMore) {
         setIsFetchingMore(true);
         setTimeout(() => {
           setDisplayLimit(prev => prev + 6);
@@ -88,11 +93,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
     observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [filteredTemplates.length, displayLimit, isFetchingMore]);
+  }, [filteredTemplates.length, isFetchingMore]);
 
   // Reset limit when niche or search changes
   React.useEffect(() => {
-    setDisplayLimit(6);
+    setDisplayLimit(12);
   }, [selectedNiche, searchQuery]);
 
   const startVoice = () => {
@@ -143,6 +148,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       toast.success(`File analyzed: ${file.name}`);
     } catch (error: any) {
+      console.error(error);
       toast.error(error.message || 'Failed to analyze file');
       setSelectedFile(null);
     } finally {
@@ -151,8 +157,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   };
 
   const handleBuild = async () => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     if (!inputValue && !selectedFile && !linkedInUrl) {
-      toast.error("Please enter a prompt, upload a CV, or provide a LinkedIn URL.");
+      toast.error("Please enter a prompt or upload your CV");
       return;
     }
 
@@ -333,21 +344,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full place-items-center">
             {displayedTemplates.map((tpl, i) => (
               <MotionDiv
-                key={tpl.id}
+                key={`${tpl.id}-${i}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i % 3 * 0.1 }}
                 onClick={() => {
                   setSelectedTemplateId(tpl.id);
                   onGetStarted({ type: 'template', value: tpl.id, templateId: tpl.id });
                 }}
-                className="group relative cursor-pointer"
+                className="w-full max-w-[320px] shrink-0 group rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 hover:shadow-2xl hover:-translate-y-3 cursor-pointer"
               >
-                <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-3">
+                <div className="relative aspect-[4/5] overflow-hidden">
                   <img src={tpl.preview} alt={tpl.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
@@ -357,33 +368,38 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 flex justify-between items-start">
+                <div className="p-8 bg-white flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-bold uppercase tracking-tight">{tpl.name}</h3>
+                    <h3 className="text-lg font-bold uppercase tracking-tight text-slate-950">{tpl.name}</h3>
                     <span className="text-[9px] font-black text-teal-600 uppercase tracking-widest">{tpl.niche}</span>
                   </div>
-
                 </div>
               </MotionDiv>
             ))}
           </div>
 
-          {/* Infinite Scroll Loader Anchor */}
-          <div ref={loaderRef} className="w-full py-20 flex justify-center items-center">
-            {displayLimit < filteredTemplates.length && (
-              <div className="flex flex-col items-center gap-4">
-                <Loader className="text-teal-500 animate-spin" />
-              </div>
-            )}
+          <div ref={loaderRef} className="h-20 w-full flex justify-center items-center mt-12">
+            {isFetchingMore && <Loader className="w-8 h-8 animate-spin text-teal-600" />}
           </div>
         </div>
+
+        <ConfirmModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onConfirm={() => navigate('/auth/signup')}
+          title="Account Required"
+          description="Please log in or create an account to generate your site and continue."
+          confirmText="Log In / Sign Up"
+          cancelText="Cancel"
+          variant="info"
+        />
       </section>
 
       {/* Adding a CSS animation for the gradient text in the Hero */}
       <style>{`
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
         .animate-gradient-x {
           background-size: 200% 200%;

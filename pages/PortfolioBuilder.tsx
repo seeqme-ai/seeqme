@@ -1191,6 +1191,7 @@ const PortfolioBuilder: React.FC = () => {
         onToggle={() => setIsTerminalCollapsed(!isTerminalCollapsed)}
         code={data?.html || ''}
         onCodeChange={handleCodeUpdate}
+        isPaid={user?.subscription && user.subscription !== 'free'}
       />
 
       {/* Force re-render of Editor when data ID changes or structural content updates */}
