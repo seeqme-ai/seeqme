@@ -98,7 +98,7 @@ export const FOOTER_MULTI_COLUMN = (content: any) => `
         <h5 class="font-bold uppercase tracking-wider text-xs opacity-40">Follow</h5>
         <div class="flex gap-3">
           ${(content.socials || []).map((social: any) => `
-            <a href="${social.url}" target="_blank" class="w-10 h-10 rounded-lg bg-[var(--bg)] flex items-center justify-center hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all">
+            <a href="${social.url}" target="_blank" rel="noopener" class="w-10 h-10 rounded-lg bg-[var(--bg)] flex items-center justify-center hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all">
               <i class="fab fa-${social.platform.toLowerCase()}"></i>
             </a>
           `).join('')}
@@ -137,7 +137,7 @@ export const FOOTER_DARK_DETAILED = (content: any) => `
           <h4 class="text-3xl font-black italic tracking-tighter">${content.name || 'Company Name'}</h4>
           <p class="text-gray-500 leading-relaxed text-lg">${content.tagline || 'Engineering high-impact digital solutions for global industry leaders.'}</p>
           <div class="flex gap-4">
-             ${(content.socials || []).map((s: any) => `<a href="${s.url}" class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[var(--primary)] transition-all"><i class="fab fa-${s.platform.toLowerCase()}"></i></a>`).join('')}
+             ${(content.socials || []).map((s: any) => `<a href="${s.url}" target="_blank" rel="noopener" class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[var(--primary)] transition-all"><i class="fab fa-${s.platform.toLowerCase()}"></i></a>`).join('')}
           </div>
        </div>
        <div class="md:col-span-2 space-y-6">
@@ -174,7 +174,7 @@ export const FOOTER_SINGLE_LINE = (content: any) => `
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-[0.5em] opacity-40">
        <p>${content.name || 'Portfolio'} // ALL RIGHTS RESERVED</p>
        <div class="flex gap-8">
-          ${(content.socials || []).map((s: any) => `<a href="${s.url}" class="hover:text-[var(--primary)] transition-colors">${s.platform}</a>`).join('')}
+          ${(content.socials || []).map((s: any) => `<a href="${s.url}" target="_blank" rel="noopener" class="hover:text-[var(--primary)] transition-colors">${s.platform}</a>`).join('')}
        </div>
        <p>EDITION ${new Date().getFullYear()}</p>
     </div>
@@ -186,7 +186,7 @@ export const FOOTER_BRAND_FOCUS = (content: any) => `
     <h4 class="text-[15vw] font-black tracking-tighter leading-none opacity-5 uppercase select-none">${content.name || 'BRAND'}</h4>
     <div class="max-w-4xl mx-auto space-y-12">
        <div class="flex justify-center gap-12">
-          ${(content.socials || []).map((s: any) => `<a href="${s.url}" class="text-sm font-black uppercase tracking-widest hover:text-[var(--primary)] transition-colors">${s.platform}</a>`).join('')}
+          ${(content.socials || []).map((s: any) => `<a href="${s.url}" target="_blank" rel="noopener" class="text-sm font-black uppercase tracking-widest hover:text-[var(--primary)] transition-colors">${s.platform}</a>`).join('')}
        </div>
        <div class="h-px w-full bg-[var(--text)]/5"></div>
        <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">

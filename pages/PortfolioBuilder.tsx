@@ -789,7 +789,8 @@ const PortfolioBuilder: React.FC = () => {
           setUploadProgress(prev => Math.min(prev + 10, 90));
         }, 200);
 
-        const { content } = await import('@/services/apiService').then(m => m.uploadService.extractCV(file));
+        const { uploadService } = await import('@/services/apiService');
+        const { content } = await uploadService.extractCV(file);
 
         clearInterval(progressInterval);
         setUploadProgress(100);
@@ -1240,7 +1241,7 @@ const PortfolioBuilder: React.FC = () => {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-2xl font-semibold tracking-tight mb-1">Launch to Production</h2>
-                 
+
                 </div>
                 <button onClick={() => setIsDeployModalOpen(false)} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground mr-[-8px] mt-[-8px]">
                   <ICONS.X className="w-5 h-5" />
@@ -1333,7 +1334,7 @@ const PortfolioBuilder: React.FC = () => {
                   <div className="mt-4 flex items-center gap-2 px-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
                     <p className="text-[xs] text-muted-foreground font-medium">
-                     <span className="text-teal-600  font-semibold">
+                      <span className="text-teal-600  font-semibold">
                         {selectedDomainId === 'subdomain'
                           ? `${chosenSubdomain || '...'}.seeqme.com`
                           : availableDomains.find(d => d.id === selectedDomainId)?.domain

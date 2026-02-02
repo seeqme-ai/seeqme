@@ -81,14 +81,15 @@ export const MOCK_MANIFEST_CREATIVE: Manifest = {
                                     icon.classList.remove('fa-times');
                                     icon.classList.add('fa-bars');
                                 }));
-                                const allLinks = document.querySelectorAll('a[href^="#"]');
-                                allLinks.forEach(anchor => {
-                                    anchor.addEventListener('click', function (e) {
+                                // Event delegation for smooth scrolling
+                                document.body.addEventListener('click', function(e) {
+                                    const link = e.target.closest('a[href^="#"]');
+                                    if (link) {
                                         e.preventDefault();
-                                        const targetId = this.getAttribute('href').substring(1);
+                                        const targetId = link.getAttribute('href').substring(1);
                                         const target = document.getElementById(targetId);
                                         if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-                                    });
+                                    }
                                 });
                             }
                         })();
@@ -369,14 +370,15 @@ export const PHOTOGRAPHY_MINIMAL: Manifest = {
                                     icon.classList.remove('fa-times');
                                     icon.classList.add('fa-bars');
                                 }));
-                                const allLinks = document.querySelectorAll('a[href^="#"]');
-                                allLinks.forEach(anchor => {
-                                    anchor.addEventListener('click', function (e) {
+                                // Event delegation for smooth scrolling
+                                document.body.addEventListener('click', function(e) {
+                                    const link = e.target.closest('a[href^="#"]');
+                                    if (link) {
                                         e.preventDefault();
-                                        const targetId = this.getAttribute('href').substring(1);
+                                        const targetId = link.getAttribute('href').substring(1);
                                         const target = document.getElementById(targetId);
                                         if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-                                    });
+                                    }
                                 });
                             }
                         })();

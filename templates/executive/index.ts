@@ -85,14 +85,15 @@ export const MOCK_MANIFEST_EXECUTIVE: Manifest = {
                                     icon.classList.add('fa-bars');
                                     document.body.style.overflow = '';
                                 }));
-                                const allLinks = document.querySelectorAll('a[href^="#"]');
-                                allLinks.forEach(anchor => {
-                                    anchor.addEventListener('click', function (e) {
+                                // Event delegation for smooth scrolling
+                                document.body.addEventListener('click', function(e) {
+                                    const link = e.target.closest('a[href^="#"]');
+                                    if (link) {
                                         e.preventDefault();
-                                        const targetId = this.getAttribute('href').substring(1);
+                                        const targetId = link.getAttribute('href').substring(1);
                                         const target = document.getElementById(targetId);
                                         if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-                                    });
+                                    }
                                 });
                             }
                         })();
@@ -397,14 +398,15 @@ export const PRODUCT_STRATEGY_DARK: Manifest = {
                                     icon.classList.add('fa-bars');
                                     document.body.style.overflow = '';
                                 }));
-                                const allLinks = document.querySelectorAll('a[href^="#"]');
-                                allLinks.forEach(anchor => {
-                                    anchor.addEventListener('click', function (e) {
+                                // Event delegation for smooth scrolling
+                                document.body.addEventListener('click', function(e) {
+                                    const link = e.target.closest('a[href^="#"]');
+                                    if (link) {
                                         e.preventDefault();
-                                        const targetId = this.getAttribute('href').substring(1);
+                                        const targetId = link.getAttribute('href').substring(1);
                                         const target = document.getElementById(targetId);
                                         if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-                                    });
+                                    }
                                 });
                             }
                         })();
