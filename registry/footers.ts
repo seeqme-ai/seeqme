@@ -134,7 +134,7 @@ export const FOOTER_DARK_DETAILED = (content: any) => `
   <footer class="py-24 px-6 bg-[#0a0a0a] text-white border-t border-white/5">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-16 mb-20">
        <div class="md:col-span-4 space-y-8">
-          <h4 class="text-3xl font-black italic tracking-tighter">${content.name}</h4>
+          <h4 class="text-3xl font-black italic tracking-tighter">${content.name || 'Company Name'}</h4>
           <p class="text-gray-500 leading-relaxed text-lg">${content.tagline || 'Engineering high-impact digital solutions for global industry leaders.'}</p>
           <div class="flex gap-4">
              ${(content.socials || []).map((s: any) => `<a href="${s.url}" class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[var(--primary)] transition-all"><i class="fab fa-${s.platform.toLowerCase()}"></i></a>`).join('')}
@@ -159,7 +159,7 @@ export const FOOTER_DARK_DETAILED = (content: any) => `
        <div class="md:col-span-4 p-8 bg-zinc-900 rounded-3xl border border-white/5">
           <h5 class="text-lg font-black mb-4">Start a conversation</h5>
           <p class="text-sm text-gray-400 mb-6 font-medium">Ready to discuss your next project? Drop me a line.</p>
-          <a href="mailto:${content.email}" class="text-[var(--primary)] font-black uppercase tracking-widest text-xs underline decoration-2 underline-offset-8">Send Email ↗</a>
+          <a href="mailto:${content.email || 'hello@example.com'}" class="text-[var(--primary)] font-black uppercase tracking-widest text-xs underline decoration-2 underline-offset-8">Send Email ↗</a>
        </div>
     </div>
     <div class="max-w-7xl mx-auto pt-8 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-30">
@@ -172,7 +172,7 @@ export const FOOTER_DARK_DETAILED = (content: any) => `
 export const FOOTER_SINGLE_LINE = (content: any) => `
   <footer class="py-12 px-6 border-t border-[var(--text)]/5">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-[0.5em] opacity-40">
-       <p>${content.name} // ALL RIGHTS RESERVED</p>
+       <p>${content.name || 'Portfolio'} // ALL RIGHTS RESERVED</p>
        <div class="flex gap-8">
           ${(content.socials || []).map((s: any) => `<a href="${s.url}" class="hover:text-[var(--primary)] transition-colors">${s.platform}</a>`).join('')}
        </div>
@@ -183,15 +183,15 @@ export const FOOTER_SINGLE_LINE = (content: any) => `
 
 export const FOOTER_BRAND_FOCUS = (content: any) => `
   <footer class="py-32 px-6 text-center space-y-16">
-    <h4 class="text-[15vw] font-black tracking-tighter leading-none opacity-5 uppercase select-none">${content.name}</h4>
+    <h4 class="text-[15vw] font-black tracking-tighter leading-none opacity-5 uppercase select-none">${content.name || 'BRAND'}</h4>
     <div class="max-w-4xl mx-auto space-y-12">
        <div class="flex justify-center gap-12">
           ${(content.socials || []).map((s: any) => `<a href="${s.url}" class="text-sm font-black uppercase tracking-widest hover:text-[var(--primary)] transition-colors">${s.platform}</a>`).join('')}
        </div>
        <div class="h-px w-full bg-[var(--text)]/5"></div>
        <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
-          <p>© ${new Date().getFullYear()} ${content.name}</p>
-          <a href="mailto:${content.email}" class="hover:text-[var(--primary)] transition-colors">${content.email}</a>
+          <p>© ${new Date().getFullYear()} ${content.name || 'Brand'}</p>
+          <a href="mailto:${content.email || 'contact@brand.com'}" class="hover:text-[var(--primary)] transition-colors">${content.email || 'contact@brand.com'}</a>
           <p>Portfolio v1.0</p>
        </div>
     </div>

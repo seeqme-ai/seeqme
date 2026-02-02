@@ -3,13 +3,13 @@ export const HERO_MODERN_SPLIT = (content: any) => `
     <div class="max-w-7xl mx-auto px-6 w-full flex flex-col-reverse lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
       <div class="space-y-6 md:space-y-8 relative z-10 w-full text-center lg:text-left">
         <h1 class="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase break-words" data-field="hero-name">
-          ${content.name}
+          ${content.name || 'Your Name'}
         </h1>
         <p class="text-lg md:text-2xl font-medium opacity-80" data-field="hero-title">
-          ${content.title}
+          ${content.title || 'Your Title'}
         </p>
         <p class="text-base md:text-lg opacity-60 leading-relaxed max-w-xl mx-auto lg:mx-0" data-field="hero-bio">
-          ${content.bio}
+          ${content.bio || 'Brief bio about yourself and what you do.'}
         </p>
         <div class="pt-4">
           <a href="${content.cta?.link || '#'}" class="inline-block px-8 py-4 md:px-10 md:py-5 bg-[var(--primary)] text-[var(--bg)] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-transform shadow-lg shadow-[var(--primary)]/20" data-field="hero-ctaText">
@@ -32,13 +32,13 @@ export const HERO_CENTERED_MINIMAL = (content: any) => `
         <img src="${content.image}" class="w-full h-full object-cover rounded-full" data-field="hero-image" />
       </div>
       <h1 class="text-4xl md:text-7xl font-black tracking-tight" data-field="hero-name">
-        ${content.name}
+        ${content.name || 'Your Name'}
       </h1>
       <p class="text-xl md:text-2xl font-bold text-[var(--primary)] uppercase tracking-widest" data-field="hero-title">
-        ${content.title}
+        ${content.title || 'Your Title'}
       </p>
       <p class="text-lg md:text-xl opacity-60 max-w-2xl mx-auto leading-relaxed" data-field="hero-bio">
-         ${content.bio}
+         ${content.bio || 'Creative professional based in City, Country.'}
       </p>
       <div class="pt-8">
          <a href="${content.cta?.link || '#'}" class="px-8 py-4 border-2 border-[var(--primary)] text-[var(--primary)] font-bold uppercase tracking-widest rounded-full hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all" data-field="hero-ctaText">
@@ -58,15 +58,15 @@ export const HERO_CYBER_MONO = (content: any) => `
           PROTOCOL: SECURE_ID
         </div>
         <h1 class="text-4xl md:text-7xl font-black tracking-tighter uppercase" data-field="hero-name">
-           <span class="text-[var(--primary)]">></span> ${content.name}
+           <span class="text-[var(--primary)]">></span> ${content.name || 'USER_ID'}
         </h1>
         <div class="p-6 bg-[var(--surface)] border border-[var(--primary)]/20 rounded-lg backdrop-blur-sm">
            <pre class="text-xs md:text-sm leading-relaxed overflow-x-auto"><code class="text-[var(--text)]">
 {
-  "role": "${content.title}",
+  "role": "${content.title || 'Developer'}",
   "status": "Available",
   "location": "Distributed",
-  "bio": "${content.bio}"
+  "bio": "${content.bio || 'System ready.'}"
 }
            </code></pre>
         </div>
@@ -103,16 +103,16 @@ export const HERO_VISUALIST = (content: any) => `
     <div class="max-w-7xl mx-auto px-6 w-full relative z-10">
       <div class="max-w-3xl space-y-6 slide-up">
         <h1 class="text-6xl md:text-9xl font-black tracking-tighter leading-none text-[var(--heading)] drop-shadow-2xl" data-field="hero-name">
-           ${content.name}
+           ${content.name || 'Name'}
         </h1>
         <div class="flex items-center gap-6">
            <div class="h-px w-12 md:w-24 bg-[var(--primary)]"></div>
            <p class="text-xl md:text-2xl font-bold uppercase tracking-widest" data-field="hero-title">
-             ${content.title}
+             ${content.title || 'Visionary'}
            </p>
         </div>
         <p class="text-lg opacity-80 max-w-xl" data-field="hero-bio">
-           ${content.bio}
+           ${content.bio || 'Crafting visual stories.'}
         </p>
       </div>
     </div>
@@ -125,15 +125,15 @@ export const HERO_EXECUTIVE = (content: any) => `
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
         <div class="lg:col-span-2 space-y-6">
           <p class="text-[var(--primary)] text-sm font-black uppercase tracking-[0.3em]" data-field="hero-title-above">
-            ${content.title}
+            ${content.title || 'Executive'}
           </p>
           <h1 class="text-6xl md:text-[8vw] font-black tracking-tighter leading-[0.85] uppercase" data-field="hero-name">
-             ${content.name}
+             ${content.name || 'Leader'}
           </h1>
         </div>
         <div class="max-w-md space-y-8 lg:col-span-1">
            <p class="text-xl opacity-60 leading-relaxed italic" data-field="hero-bio">
-              "${content.bio}"
+              "${content.bio || 'Leading with purpose and precision.'}"
            </p>
            <a href="${content.cta?.link || '#'}" class="flex items-center gap-4 text-xl font-bold hover:text-[var(--primary)] transition-colors group" data-field="hero-ctaText">
               ${content.cta?.text || 'Request Consultation'}

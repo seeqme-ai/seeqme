@@ -12,7 +12,7 @@ export const HERO_AGENCY_VIBRANT = (content: any) => `
                 ${content.heading || 'I TURN<br/><span class="text-red-500">ATTENTION</span><br/>INTO REVENUE.'}
              </h1>
              <p class="text-lg md:text-xl text-gray-500 max-w-md mb-12 leading-relaxed font-medium" data-field="hero-bio">
-                ${content.bio}
+                ${content.bio || 'Digital alchemist transforming ideas into gold.'}
              </p>
              <div class="flex flex-col md:flex-row gap-6">
                 <a href="${content.ctaPrimaryLink || '#packages'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 bg-black text-white font-bold hover:bg-red-600 transition-colors uppercase tracking-wider text-sm text-center">
@@ -32,7 +32,7 @@ export const HERO_AGENCY_VIBRANT = (content: any) => `
              <img src="${content.image}" class="w-full h-full object-cover transition-transform duration-1000 hover:scale-105" data-field="hero-image" />
              <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent md:hidden"></div>
              <div class="absolute bottom-8 left-8 text-white z-10 md:hidden">
-                <div class="text-4xl font-black">${content.name}</div>
+                <div class="text-4xl font-black">${content.name || 'Agency'}</div>
              </div>
         </div>
     </section>
@@ -266,12 +266,12 @@ export const ABOUT_MINIMAL_BIO = (content: any) => `
             <img src="${content.image}" class="w-full h-auto rounded-lg shadow-xl rotate-2 hover:rotate-0 transition-transform duration-500" data-field="bio-image" />
          </div>
          <div class="md:w-1/2">
-            <h2 class="text-3xl font-serif italic mb-6" data-field="bio-heading">Hi, I'm ${content.name}.</h2>
+            <h2 class="text-3xl font-serif italic mb-6" data-field="bio-heading">Hi, I'm ${content.name || 'Alex'}.</h2>
             <p class="text-stone-600 mb-6 leading-relaxed" data-field="bio-p1">
-                ${content.bio1}
+                ${content.bio1 || "I execute on the details that others miss. With a background in precision engineering and a passion for minimal design, I build systems that scale."}
             </p>
             <p class="text-stone-600 mb-8 leading-relaxed" data-field="bio-p2">
-                ${content.bio2}
+                ${content.bio2 || "My work is defined by subtraction, not addition. I believe in the power of less."}
             </p>
              <div class="grid grid-cols-2 gap-4 text-center">
                 ${content.stats?.map((s: any) => `
@@ -323,9 +323,9 @@ export const TESTIMONIALS_MINIMAL_SINGLE = (content: any) => `
 
 export const CONTACT_MINIMAL_SIMPLE = (content: any) => `
     <section data-section="contact" class="py-24 px-6 bg-stone-900 text-white text-center" id="contact">
-        <h2 class="text-4xl font-serif italic mb-8" data-field="cta-heading">${content.ctaHeading}</h2>
+        <h2 class="text-4xl font-serif italic mb-8" data-field="cta-heading">${content.ctaHeading || content.title || 'Let\'s Connect'}</h2>
         <p class="text-stone-400 mb-12 max-w-lg mx-auto" data-field="cta-sub">
-            ${content.ctaSub}
+            ${content.ctaSub || content.subtitle || 'Ready to start your project?'}
         </p>
         <form class="max-w-md mx-auto space-y-4 text-left">
             <div>

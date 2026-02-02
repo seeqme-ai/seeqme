@@ -23,7 +23,7 @@ export const MODERN_TEMPLATES: Template[] = [
         id: "dark_sass",
         name: "Dark SaaS",
         niche: "Startup",
-        preview: "/temmplates/screenshots/dark_sass1.png",
+        preview: "/templates/screenshots/dark_sass1.png",
         structuredContent: DARK_SASS,
         html: "", css: ""
     },
@@ -79,7 +79,7 @@ export const MODERN_TEMPLATES: Template[] = [
         id: "photographer_gallery",
         name: "Photographer Gallery",
         niche: "Photography",
-        preview: "https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?w=1200",
+        preview: "/templates/screenshots/photographer_gallery1.png",
         structuredContent: PHOTOGRAPHER_GALLERY,
         html: "", css: ""
     },

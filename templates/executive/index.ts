@@ -587,7 +587,7 @@ export const EXECUTIVE_TEMPLATES: Template[] = [
         id: "executive_bold",
         name: "Executive Bold",
         niche: "Executive",
-        preview: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800",
+        preview: "/templates/screenshots/executive_bold1.png",
         structuredContent: MOCK_MANIFEST_EXECUTIVE,
         html: "",
         css: ""

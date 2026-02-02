@@ -47,9 +47,9 @@ export const ABOUT_IMAGE_WRAP = (content: any) => `
         <img src="${content.image}" class="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-2xl skew-y-2" data-field="about-image" />
       </div>
       <div class="lg:col-span-7 space-y-8">
-        <h2 class="text-5xl md:text-6xl font-black tracking-tighter uppercase" data-field="about-title">${content.title}</h2>
+        <h2 class="text-5xl md:text-6xl font-black tracking-tighter uppercase" data-field="about-title">${content.title || 'About Me'}</h2>
         <div class="text-xl opacity-60 leading-relaxed space-y-6" data-field="about-content">
-          ${content.content}
+          ${content.content || 'I am a creative professional dedicated to excellence in every project.'}
         </div>
         <div class="grid grid-cols-2 gap-8 pt-8 border-t border-[var(--text)]/10">
            ${(content.highlights || []).map((h: string) => `
@@ -70,11 +70,11 @@ export const ABOUT_GLASS_DECONSTRUCTED = (content: any) => `
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
         <div class="space-y-12">
           <div class="space-y-6">
-            <h2 class="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.8]">${content.title}</h2>
+            <h2 class="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.8]">${content.title || 'My Story'}</h2>
             <p class="text-2xl font-bold text-[var(--primary)] uppercase tracking-widest">${content.label || 'The Origin'}</p>
           </div>
           <div class="prose prose-2xl prose-invert opacity-70 leading-relaxed font-medium" data-field="about-content">
-            ${content.content}
+            ${content.content || 'From humble beginnings to global impact, this is the journey so far.'}
           </div>
         </div>
         <div class="relative">
@@ -303,12 +303,12 @@ export const ABOUT_SPLIT_COLUMNS = (content: any) => `
   <section data-section="about" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
       <div class="space-y-8">
-         <h2 class="text-6xl font-black uppercase leading-none italic">${content.title}</h2>
+         <h2 class="text-6xl font-black uppercase leading-none italic">${content.title || 'Philosophy'}</h2>
          <div class="h-1 w-20 bg-black"></div>
          <p class="text-2xl font-medium opacity-80 leading-relaxed">${content.tagline || 'Breaking boundaries through design and technology.'}</p>
       </div>
       <div class="space-y-8 text-xl opacity-60 leading-relaxed">
-         ${content.content}
+         ${content.content || 'I believe that good design is invisible. It just works.'}
          <div class="pt-8">
             <img src="${content.image}" class="w-full h-[400px] object-cover rounded-[3rem] shadow-2xl" />
          </div>
@@ -321,7 +321,7 @@ export const ABOUT_QUOTE_FOCUS = (content: any) => `
   <section data-section="about" class="py-32 px-6 bg-black text-white text-center">
     <div class="max-w-5xl mx-auto space-y-12">
        <span class="text-6xl font-serif italic text-teal-400 opacity-40">"</span>
-       <h2 class="text-4xl md:text-6xl font-bold leading-tight tracking-tight">${content.quote || content.title}</h2>
+       <h2 class="text-4xl md:text-6xl font-bold leading-tight tracking-tight">${content.quote || content.title || 'Design is intelligence made visible.'}</h2>
        <div class="h-px w-24 bg-white/20 mx-auto"></div>
        <p class="text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">${content.content}</p>
        <div class="flex items-center justify-center gap-4 pt-8">
@@ -347,8 +347,8 @@ export const ABOUT_VIDEO_INTRO = (content: any) => `
           </div>
        </div>
        <div class="lg:col-span-5 space-y-8">
-          <h2 class="text-5xl font-black uppercase tracking-tighter">${content.title}</h2>
-          <p class="text-xl opacity-60 leading-relaxed">${content.content}</p>
+          <h2 class="text-5xl font-black uppercase tracking-tighter">${content.title || 'Watch Intro'}</h2>
+          <p class="text-xl opacity-60 leading-relaxed">${content.content || 'Get a glimpse into my creative process and how I work.'}</p>
           <div class="flex gap-4">
              <div class="p-6 bg-[var(--surface)] rounded-2xl border border-white/5">
                 <p class="text-2xl font-black mb-1">5M+</p>
