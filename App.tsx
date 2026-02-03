@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/auth-context';
 import LandingPage from './pages/LandingPage';
@@ -60,6 +60,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const App: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -81,6 +91,7 @@ const App: React.FC = () => {
         isOpen={isSessionExpired}
         onClose={() => setIsSessionExpired(false)}
       />
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<MainLayout><LandingPage onGetStarted={handleGetStarted} /></MainLayout>} />
         <Route path="/contact" element={<MainLayout><ContactUs /></MainLayout>} />

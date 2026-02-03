@@ -95,25 +95,41 @@ func NewAIProvider(providerType string) (AIProvider, error) {
 		if apiKey == "" {
 			return nil, fmt.Errorf("OPENAI_API_KEY not set")
 		}
-		return &OpenAIProvider{APIKey: apiKey, Model: "gpt-4o"}, nil
+		model := cfg.AIModel
+		if model == "" {
+			model = "gpt-4o"
+		}
+		return &OpenAIProvider{APIKey: apiKey, Model: model}, nil
 	case "anthropic":
 		apiKey := cfg.AnthropicAPIKey
 		if apiKey == "" {
 			return nil, fmt.Errorf("ANTHROPIC_API_KEY not set")
 		}
-		return &AnthropicProvider{APIKey: apiKey, Model: "claude-3-5-sonnet-20241022"}, nil
+		model := cfg.AIModel
+		if model == "" {
+			model = "claude-3-5-sonnet-20241022"
+		}
+		return &AnthropicProvider{APIKey: apiKey, Model: model}, nil
 	case "gemini":
 		apiKey := cfg.GEMINIAPIKEY
 		if apiKey == "" {
 			return nil, fmt.Errorf("GEMINI_API_KEY not set")
 		}
-		return &GeminiProvider{APIKey: apiKey, Model: "gemini-2.5-flash"}, nil
+		model := cfg.AIModel
+		if model == "" {
+			model = "gemini-1.5-flash"
+		}
+		return &GeminiProvider{APIKey: apiKey, Model: model}, nil
 	case "deepseek":
 		apiKey := os.Getenv("DEEPSEEK_API_KEY")
 		if apiKey == "" {
 			return nil, fmt.Errorf("DEEPSEEK_API_KEY not set")
 		}
-		return &DeepSeekProvider{APIKey: apiKey, Model: "deepseek-chat"}, nil
+		model := cfg.AIModel
+		if model == "" {
+			model = "deepseek-chat"
+		}
+		return &DeepSeekProvider{APIKey: apiKey, Model: model}, nil
 	default:
 		return nil, fmt.Errorf("unknown provider: %s", providerType)
 	}

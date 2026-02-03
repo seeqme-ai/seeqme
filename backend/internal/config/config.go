@@ -44,7 +44,7 @@ type Config struct {
 	MapboxAPIKey        string
 	LinkedInEmail       string
 	LinkedInPassword    string
-	AnthropicAPIKey      string
+	AnthropicAPIKey     string
 }
 
 func Load() *Config {
@@ -82,8 +82,8 @@ func Load() *Config {
 		CloudinaryAPIKey:    getEnv("CLOUDINARY_API_KEY", ""),
 		CloudinaryAPISecret: getEnv("CLOUDINARY_API_SECRET", ""),
 		ResendApiKey:        getEnv("RESEND_API_KEY", ""),
-		AIProvider:          getEnv("AI_PROVIDER", "anthropic"),
-		AIModel:             getEnv("AI_MODEL", "claude-3-5-haiku-20241022"),
+		AIProvider:          getEnv("AI_PROVIDER", "gemini"),
+		AIModel:             getEnv("AI_MODEL", "gemini-1.5-flash"),
 		OPENAIAPIKEY:        getEnv("OPENAI_API_KEY", ""),
 		GEMINIAPIKEY:        getEnv("GEMINI_API_KEY", ""),
 		GoogleClientID:      getEnv("GOOGLE_CLIENT_ID", ""),
