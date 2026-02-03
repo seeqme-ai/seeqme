@@ -83,7 +83,7 @@ func Load() *Config {
 		CloudinaryAPISecret: getEnv("CLOUDINARY_API_SECRET", ""),
 		ResendApiKey:        getEnv("RESEND_API_KEY", ""),
 		AIProvider:          getEnv("AI_PROVIDER", "gemini"),
-		AIModel:             getEnv("AI_MODEL", "gemini-1.5-flash"),
+		AIModel:             getEnv("AI_MODEL", "gemini-2.5-flash"),
 		OPENAIAPIKEY:        getEnv("OPENAI_API_KEY", ""),
 		GEMINIAPIKEY:        getEnv("GEMINI_API_KEY", ""),
 		GoogleClientID:      getEnv("GOOGLE_CLIENT_ID", ""),

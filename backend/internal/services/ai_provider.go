@@ -117,7 +117,7 @@ func NewAIProvider(providerType string) (AIProvider, error) {
 		}
 		model := cfg.AIModel
 		if model == "" {
-			model = "gemini-1.5-flash"
+			model = "gemini-2.5-flash"
 		}
 		return &GeminiProvider{APIKey: apiKey, Model: model}, nil
 	case "deepseek":

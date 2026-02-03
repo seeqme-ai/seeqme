@@ -32,7 +32,7 @@ func (h *Handler) GetSystemConfig(c *gin.Context) {
 		defaultConfig := SystemConfig{
 			MaintenanceMode: false,
 			AllowSignups:    true,
-			AIModel:         "gemini-1.5-flash",
+			AIModel:         "gemini-2.5-flash",
 			UpdatedAt:       time.Now(),
 		}
 		c.JSON(http.StatusOK, defaultConfig)
