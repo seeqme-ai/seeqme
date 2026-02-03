@@ -390,7 +390,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           onClose={() => setIsAuthModalOpen(false)}
           onConfirm={() => navigate('/auth/signup')}
           title="Account Required"
-          description="Please log in or create an account to generate your site and continue."
+          description="Please log in or create an account to generate your portfolio"
           confirmText="Log In / Sign Up"
           cancelText="Cancel"
           variant="info"
