@@ -44,6 +44,7 @@ type Config struct {
 	MapboxAPIKey        string
 	LinkedInEmail       string
 	LinkedInPassword    string
+	AnthropicAPIKey      string
 }
 
 func Load() *Config {
@@ -100,6 +101,7 @@ func Load() *Config {
 		MapboxAPIKey:        getEnv("MAPBOX_API_KEY", ""),
 		LinkedInEmail:       getEnv("LINKEDIN_EMAIL", ""),
 		LinkedInPassword:    getEnv("LINKEDIN_PASSWORD", ""),
+		AnthropicAPIKey:     getEnv("ANTHROPIC_API_KEY", ""),
 	}
 
 	log.Printf("Loaded MongoURI: %s", config.MongoURI)

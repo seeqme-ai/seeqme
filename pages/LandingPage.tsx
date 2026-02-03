@@ -193,6 +193,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 [Niche: ${selectedNiche}]`;
 
     setSynthesisInput(fullInput);
+    setSelectedTemplateId('');
     navigate('/builder');
   };
 
@@ -354,6 +355,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 transition={{ delay: i % 3 * 0.1 }}
                 onClick={() => {
                   setSelectedTemplateId(tpl.id);
+                  setSynthesisInput('');
                   onGetStarted({ type: 'template', value: tpl.id, templateId: tpl.id });
                 }}
                 className="w-full max-w-[320px] shrink-0 group rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 hover:shadow-2xl hover:-translate-y-3 cursor-pointer"

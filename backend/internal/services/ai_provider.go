@@ -97,7 +97,7 @@ func NewAIProvider(providerType string) (AIProvider, error) {
 		}
 		return &OpenAIProvider{APIKey: apiKey, Model: "gpt-4o"}, nil
 	case "anthropic":
-		apiKey := os.Getenv("ANTHROPIC_API_KEY")
+		apiKey := cfg.AnthropicAPIKey
 		if apiKey == "" {
 			return nil, fmt.Errorf("ANTHROPIC_API_KEY not set")
 		}
