@@ -159,6 +159,14 @@ func (s *GitHubService) PushFiles(repoURL, repoName, srcDir, tempDir, userEmail 
 		return nil
 	}
 
+	// Configure author identity for this repository
+	email := userEmail
+	if email == "" {
+		email = "support@brandpodmedia.com"
+	}
+	exec.Command("git", "-C", tempDir, "config", "user.email", email).Run()
+	exec.Command("git", "-C", tempDir, "config", "user.name", "Seeqme AI Builder").Run()
+
 	// Commit
 	logAndStream("Committing changes...")
 	if out, err := exec.Command("git", "-C", tempDir, "commit", "-m", "Update generated site").CombinedOutput(); err != nil {
