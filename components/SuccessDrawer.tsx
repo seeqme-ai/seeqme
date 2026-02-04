@@ -113,7 +113,7 @@ const SuccessDrawer: React.FC<SuccessDrawerProps> = ({ isOpen, onClose, url, dom
 
                             <h2 className="text-2xl font-black tracking-tight mb-2 text-foreground">
                                 {status === 'deploying' ? (
-                                    <DynamicLoadingText />
+                                    logs.length > 0 ? logs[logs.length - 1] : <DynamicLoadingText />
                                 ) : isSuccess ? 'Congratulations! Your site is live.' : 'Deployment Failed'}
                             </h2>
                             <p className="text-sm text-muted-foreground font-medium mb-10">

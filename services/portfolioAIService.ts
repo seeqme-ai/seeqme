@@ -332,12 +332,24 @@ export async function refinePortfolio(currentData: PortfolioData, prompt: string
     // After content is edited, we regenerate the code
     const finalCode = await aiService.generateCode(updatedStructuredContent, currentData.id);
 
-    const normalizedSections = updatedStructuredContent.sections.map((section: any) => ({
+    // Normalize sections and ensure metadata is preserved
+    const normalizedSections = (updatedStructuredContent.sections || []).map((section: any) => ({
       ...section,
-      content: normalizeSectionContent(section.componentId, section.content)
+      type: section.type || inferTypeFromComponentId(section.componentId || section.component),
+      componentId: section.componentId || section.component,
+      content: normalizeSectionContent(section.componentId || section.component, section.content || section.props || section.data),
+      settings: section.settings || { isVisible: true, padding: 'medium' }
     }));
 
-    const sc = normalizeToManifest({ ...updatedStructuredContent, sections: normalizedSections }, currentData.layout);
+    // CRITICAL: If the AI returned a Manifest structure, we keep it but ensure sections are normalized
+    const sc = {
+      ...updatedStructuredContent,
+      sections: normalizedSections,
+      metadata: updatedStructuredContent.metadata || currentData.structuredContent?.metadata || {
+        version: '1.0',
+        generatedAt: new Date().toISOString()
+      }
+    };
 
     return {
       ...currentData,

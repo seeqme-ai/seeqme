@@ -75,6 +75,7 @@ const PortfolioBuilder: React.FC = () => {
 
   const [status, setStatus] = useState<BuildStatus>('idle');
   const [data, setData] = useState<PortfolioData | null>(null);
+  const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(true);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -95,7 +96,7 @@ const PortfolioBuilder: React.FC = () => {
   const [conflictModal, setConflictModal] = useState<{ isOpen: boolean; message: string; existingPortfolioId: string; subdomain: string } | null>(null);
   const [isDeletingExisting, setIsDeletingExisting] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
+ 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const layouts = Object.values(LayoutType);
 
@@ -374,18 +375,41 @@ const PortfolioBuilder: React.FC = () => {
   };
 
   const handleBuild = async (customInput?: string, files?: any[]) => {
-    const inputToUse = customInput || refinementPrompt;
-    setStatus('synthesizing');
-    setIsTerminalCollapsed(false);
-    addLog(`Creating your professional portfolio...`);
+    // If we are in the middle of a build, don't start another one
+    if (status === 'synthesizing' || status === 'generating') return;
 
-    const stepInterval = setInterval(() => {
-    }, 800); // Faster intervals for smoother progress
+    const inputToUse = customInput || synthesisInput;
+    if (!inputToUse && (!files || files.length === 0)) {
+      toast.error("Please provide a prompt or a file for the build.");
+      return;
+    }
+
+    setStatus('synthesizing');
+    setProgress(5);
+    setIsTerminalCollapsed(false);
+    addLog(`Creating your professional portfolio...`, 'info');
+
+    const progressSteps = [
+      { p: 15, m: "Initializing  core...", t: 1000 },
+      { p: 30, m: "Analyzing your professional profile...", t: 2500 },
+      { p: 45, m: "Synthesizing career narrative...", t: 4000 },
+      { p: 60, m: "Architecting visual structure...", t: 6000 },
+      { p: 75, m: "Optimizing layout and assets...", t: 8000 },
+      { p: 90, m: "Finalizing your digital presence...", t: 10000 }
+    ];
+
+    const timeouts: any[] = [];
+    progressSteps.forEach(step => {
+      const timeout = setTimeout(() => {
+        setProgress(step.p);
+        addLog(step.m, 'info');
+      }, step.t);
+      timeouts.push(timeout);
+    });
 
     try {
       const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
 
-      // Use the service directly to ensure we pass all parameters including files
       const result = await generatePortfolio({
         type: 'omni',
         value: inputToUse,
@@ -394,9 +418,8 @@ const PortfolioBuilder: React.FC = () => {
         sessionId: builderSessionId
       } as any);
 
-      console.log('[PortfolioBuilder] Service Result:', result);
-
-      clearInterval(stepInterval);
+      timeouts.forEach(clearTimeout);
+      setProgress(100);
 
       const aiHtml = result.html || '';
       const finalHtml = aiHtml || template?.html || '';
@@ -412,23 +435,21 @@ const PortfolioBuilder: React.FC = () => {
         js: result.js || ''
       };
 
-      console.log('[PortfolioBuilder] Final completeData:', completeData);
       setData(completeData);
       setStatus('ready');
       setSynthesisInput('');
       setSelectedTemplateId(null);
-      addLog("Build complete.", "success");
-      setIsTerminalCollapsed(true); // Auto-close terminal on success
+      addLog("Build complete! Your portfolio is ready.", "success");
+      setIsTerminalCollapsed(true);
 
     } catch (error: any) {
-      clearInterval(stepInterval);
-
-      console.log('Error Response:', error.response); // Debugging line
+      timeouts.forEach(clearTimeout);
+      setProgress(0);
 
       if (error.response && error.response.status === 402 && error.response.data && error.response.data.code === 'LIMIT_REACHED') {
         addLog(`ERR_LIMIT: ${error.response.data.error}`, "error");
         toast.error(error.response.data.error);
-        navigate('/plans'); // Redirect to plans page
+        navigate('/plans');
       } else {
         addLog(`ERR_SYNTHESIS: ${error?.message || error}`, "error");
         toast.error(error?.message || 'Failed to generate portfolio');
@@ -525,11 +546,32 @@ const PortfolioBuilder: React.FC = () => {
   };
 
   const submitRefinement = async (prompt: string, file: any) => {
-    if (!data) return;
-    setStatus('generating');
+    if (!data) {
+      // If no data, fall back to "Build" mode automatically
+      handleBuild(prompt, file ? [file] : undefined);
+      return;
+    }
 
-    const stepInterval = setInterval(() => {
-    }, 3000);
+    setStatus('generating');
+    setProgress(10);
+    setIsTerminalCollapsed(false);
+    addLog(`Initiating refinement: "${prompt}"`, 'info');
+
+    const progressSteps = [
+      { p: 25, m: "Analyzing layout structure...", t: 1500 },
+      { p: 50, m: "Synthesizing requested changes...", t: 4000 },
+      { p: 75, m: "Re-rendering visual components...", t: 7000 },
+      { p: 90, m: "Finalizing visual polish...", t: 10000 }
+    ];
+
+    const timeouts: any[] = [];
+    progressSteps.forEach(step => {
+      const timeout = setTimeout(() => {
+        setProgress(step.p);
+        addLog(step.m, 'info');
+      }, step.t);
+      timeouts.push(timeout);
+    });
 
     try {
       let finalPrompt = prompt;
@@ -544,17 +586,33 @@ const PortfolioBuilder: React.FC = () => {
       console.log('[PortfolioBuilder] Submitting refinement:', { prompt: finalPrompt, data });
       const updated = await refinePortfolio(data, finalPrompt, file ? [file] : undefined);
       console.log('[PortfolioBuilder] Refinement successful:', updated);
-      clearInterval(stepInterval);
+
+      timeouts.forEach(clearTimeout);
+      setProgress(100);
+
+      // Force update iframe after refinement
       setData({ ...updated, theme: currentTheme, layout: currentLayout });
+
+      // Clear inputs
       setRefinementPrompt('');
       setSelectedFile(null);
+
       setStatus('ready');
-      addLog("Portfolio updated.", "success");
+      addLog("Portfolio refinement successful.", "success");
+
+      // Pulse effect on iframe to show it updated
+      if (iframeRef.current) {
+        iframeRef.current.style.opacity = '0.5';
+        setTimeout(() => { if (iframeRef.current) iframeRef.current.style.opacity = '1'; }, 300);
+      }
+
     } catch (error: any) {
       console.error('[PortfolioBuilder] Refinement failed:', error);
-      clearInterval(stepInterval);
+      timeouts.forEach(clearTimeout);
+      setProgress(0);
       addLog(`ERR_REFINE: ${error?.message || error || 'Unknown AI error'}`, 'error');
       setStatus('ready');
+      toast.error(error?.message || 'Failed to refine portfolio');
     }
   };
 
@@ -651,81 +709,63 @@ const PortfolioBuilder: React.FC = () => {
         await deploymentService.deployPortfolio(portfolioId, undefined, selectedDomainId);
       }
 
-      addLog(`Deployment workflow initiated. Monitoring progress...`, 'info');
+      addLog(`Deployment workflow initiated. Connecting to live stream...`, 'info');
       toast.info(`Preparing deployment to ${subdomain}.seeqme.com...`);
       setIsSuccessDrawerOpen(true); // Open drawer immediately to show progress
 
-      // 3. Poll deployment status using REST API
-      const pollDeploymentStatus = async () => {
-        let attempts = 0;
-        const maxAttempts = 60; // 5 minutes max (5s intervals)
-        const pollInterval = 5000; // 5 seconds
+      // 3. Use WebSocket for real-time deployment updates
+      socketService.connect(undefined, user?.id);
+      socketService.subscribeToPortfolio(portfolioId);
 
-        const checkStatus = async () => {
-          if (!portfolioId) return;
-          try {
-            attempts++;
-            const statusData = await deploymentService.getDeploymentStatus(portfolioId);
+      socketService.setCallbacks(
+        // onLog - real-time deployment progress
+        (logData: any) => {
+          const message = logData.message || logData;
+          const logType = logData.type || 'info';
+          addLog(message, logType);
+        },
+        // onComplete - deployment finished successfully
+        (completeData: any) => {
+          const deployedUrl = completeData.url || `https://${subdomain}.seeqme.com`;
+          setStatus('completed');
+          setDeployedUrl(deployedUrl);
+          setIsSuccessDrawerOpen(true);
+          addLog(`✅ Deployed! Site live at ${deployedUrl}`, 'success');
+          toast.success('Portfolio deployed successfully!');
+          localStorage.removeItem('seeqme_portfolio_draft');
+          socketService.unsubscribeFromPortfolio(portfolioId);
+        },
+        // onFailure - deployment failed
+        (errorData: any) => {
+          setStatus('ready');
+          const errorMsg = errorData.error || errorData.message || 'Deployment failed';
+          addLog(`❌ Deployment failed: ${errorMsg}`, 'error');
+          toast.error(`Deployment failed: ${errorMsg}`);
+          socketService.unsubscribeFromPortfolio(portfolioId);
+        }
+      );
 
-            addLog(`Deployment status: ${statusData.status}`, 'info');
-            if (statusData.status === 'not_deployed') {
-              console.warn('Unexpected not_deployed status during active deployment');
-              addLog('Warning: Deployment tracking issue detected', 'warn');
-            }
-
+      // Fallback timeout in case WebSocket events don't arrive
+      setTimeout(() => {
+        if (status === 'deploying') {
+          addLog('Checking deployment status via fallback...', 'warn');
+          deploymentService.getDeploymentStatus(portfolioId).then((statusData) => {
             if (statusData.status === 'completed') {
               const deployedUrl = statusData.url || `https://${subdomain}.seeqme.com`;
-
-              addLog('Verifying global propagation...', 'info');
-
-              // 5-second delay for propagation
-              setTimeout(() => {
-                setStatus('completed');
-                setDeployedUrl(deployedUrl);
-                setIsSuccessDrawerOpen(true);
-                addLog(`✅ Deployed! Site live at ${deployedUrl}`, 'success');
-                toast.success('Portfolio deployed successfully!');
-                // Close conflicting modals or drawers if needed
-                localStorage.removeItem('seeqme_portfolio_draft');
-              }, 5000);
-
-              return; // Stop polling
+              setStatus('completed');
+              setDeployedUrl(deployedUrl);
+              addLog(`✅ Deployed! Site live at ${deployedUrl}`, 'success');
+              toast.success('Portfolio deployed successfully!');
             } else if (statusData.status === 'failed') {
               setStatus('ready');
-              const errorMsg = statusData.error || 'Deployment failed';
-              addLog(`❌ Deployment failed: ${errorMsg}`, 'error');
-              toast.error(`Deployment failed: ${errorMsg}`);
-              return; // Stop polling
-            } else if (attempts >= maxAttempts) {
-              setStatus('ready');
-              const manualCheckUrl = `https://${subdomain}.seeqme.com`;
-              addLog(`⏱️ Deployment timeout - check manually at ${manualCheckUrl}`, 'warn');
-              toast.warning('Deployment is taking longer than expected. Please check your site manually.');
-              setDeployedUrl(manualCheckUrl);
-              setIsSuccessDrawerOpen(true); // Show the drawer with a timeout message
-              return; // Stop polling
+              addLog(`❌ Deployment failed`, 'error');
+              toast.error('Deployment failed');
             }
-
-            // Continue polling
-            setTimeout(checkStatus, pollInterval);
-          } catch (error: any) {
-            console.error('Error polling deployment status:', error);
-            if (attempts >= maxAttempts) {
-              setStatus('ready');
-              toast.error('Failed to track deployment status');
-              return;
-            }
-            // Retry
-            setTimeout(checkStatus, pollInterval);
-          }
-        };
-
-        // Start polling
-        checkStatus();
-      };
-
-      // Start polling in background
-      pollDeploymentStatus();
+          }).catch(() => {
+            addLog('Could not verify deployment status. Check manually.', 'warn');
+          });
+        }
+      }, 120000); // 2 minute fallback
 
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
@@ -1165,8 +1205,8 @@ const PortfolioBuilder: React.FC = () => {
                   ? (refinementPrompt ? "Refining..." : "Remixing...")
                   : "Building..."
                 }
-                currentStep={0}
-                totalSteps={1}
+                currentStep={progress}
+                totalSteps={100}
               />
             ) : (
               <MotionDiv key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">

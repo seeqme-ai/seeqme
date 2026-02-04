@@ -8,7 +8,8 @@ import { DESIGN_SCHEMES } from '../registry/schemes';
  * Renders HTML by replacing {{key}} placeholders, handling loops (#each) and conditionals (#if).
  */
 const renderGenerativeTemplate = (template: string, content: any): string => {
-  let rendered = template;
+  // 0. Safety Strip: Remove AI-generated markdown code blocks
+  let rendered = template.replace(/```[a-z]*\n([\s\S]*?)\n```/gi, '$1').replace(/```/g, '').trim();
 
   // 1. Handle Iterations: {{#each arrayName}}...{{/each}}
   const eachRegex = /{{#each\s+([\w.]+)}}([\s\S]*?){{\/each}}/g;

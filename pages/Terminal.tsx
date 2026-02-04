@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ICONS } from '../constants';
 import { LogEntry } from '../types';
-import { Code2, Activity, Copy, Check, Shield } from 'lucide-react';
+import { Code2, Activity, Copy, Check, Shield, Loader } from 'lucide-react';
 
 interface TerminalProps {
   logs: LogEntry[];
@@ -15,6 +15,13 @@ interface TerminalProps {
 const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, onCodeChange, isPaid = false }) => {
   const [mode, setMode] = useState<'logs' | 'code'>('logs');
   const [copied, setCopied] = useState(false);
+  const logEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isCollapsed && mode === 'logs') {
+      logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs, isCollapsed, mode]);
 
   const handleCopy = () => {
     if (code) {
@@ -90,7 +97,7 @@ const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, 
                   <span className="text-slate-300 leading-relaxed font-medium">{log.message}</span>
                 </div>
               ))}
-              <div className="h-4"></div>
+              <div ref={logEndRef} className="h-4" />
             </div>
           ) : (
             <div className="h-full flex flex-col bg-[#010816] relative overflow-hidden">
@@ -115,7 +122,7 @@ const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, 
                     </div>
                     <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Source Code Gated</h3>
                     <p className="text-slate-400 text-xs font-medium max-w-[280px] leading-relaxed mb-8">
-                Upgrade to view and directly edit the underlying code.
+                      Upgrade to view and directly edit the underlying code.
                     </p>
                     <a
                       href="/plans"
@@ -131,8 +138,9 @@ const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, 
             </div>
           )}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 
