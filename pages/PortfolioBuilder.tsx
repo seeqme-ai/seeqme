@@ -12,7 +12,7 @@ import { portfolioService, deploymentService } from '@/services/apiService';
 import Terminal from './Terminal';
 import SectionEditor from '@/components/SectionEditor';
 import SuccessDrawer from '@/components/SuccessDrawer';
-import { ShieldCheck, Check, ArrowLeft, Paperclip, FileText, X } from 'lucide-react';
+import { ShieldCheck, Check, ArrowLeft, Paperclip, FileText, X, Loader } from 'lucide-react';
 import { socketService } from '@/services/socketService';
 import { domainService } from '@/services/apiService';
 import BuilderLoader from '@/components/BuilderLoader';
@@ -1178,16 +1178,15 @@ const PortfolioBuilder: React.FC = () => {
                 {isIframeLoading && (
                   <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-all duration-500">
                     <div className="flex flex-col items-center gap-4">
-                      <div className="w-12 h-12 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin shadow-xl" />
-                      <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-teal-600 animate-pulse">Rendering Design</p>
+                      <Loader className='text-teal-500 animate-spin' />
                     </div>
                   </div>
                 )}
-                <iframe 
-                  ref={iframeRef} 
+                <iframe
+                  ref={iframeRef}
                   onLoad={() => setIsIframeLoading(false)}
-                  className="w-full h-full border-none bg-white" 
-                  title="Artifact Viewport" 
+                  className="w-full h-full border-none bg-white"
+                  title="Artifact Viewport"
                 />
               </MotionDiv>
             )}

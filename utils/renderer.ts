@@ -8,35 +8,90 @@ import { DESIGN_SCHEMES } from '../registry/schemes';
  * Renders HTML by replacing {{key}} placeholders, handling loops (#each) and conditionals (#if).
  */
 const renderGenerativeTemplate = (template: string, content: any): string => {
-  // 0. Safety Strip: Remove AI-generated markdown code blocks
   let rendered = template.replace(/```[a-z]*\n([\s\S]*?)\n```/gi, '$1').replace(/```/g, '').trim();
 
-  // 1. Handle Iterations: {{#each arrayName}}...{{/each}}
-  const eachRegex = /{{#each\s+([\w.]+)\s*}}([\s\S]*?){{\/each}}/g;
-  rendered = rendered.replace(eachRegex, (_, arrayPath, blockContent) => {
-    const array = getValueByPath(content, arrayPath);
-    if (!Array.isArray(array)) return '';
+  const handleLoop = (input: string, context: any): string => {
+    let result = '';
+    let pos = 0;
 
-    return array.map((item, index) => {
-      // Ensure 'this' is always set correctly, even for objects
-      const context = typeof item === 'object' && item !== null
-        ? { ...item, this: item, parent: content, '@index': index + 1 }
-        : { this: item, parent: content, '@index': index + 1 };
-      return renderGenerativeTemplate(blockContent, context);
-    }).join('');
-  });
+    while (pos < input.length) {
+      const startMatch = input.indexOf('{{#each', pos);
+      if (startMatch === -1) {
+        result += input.substring(pos);
+        break;
+      }
+
+      result += input.substring(pos, startMatch);
+
+      // Find the end of the opening tag
+      const openTagEnd = input.indexOf('}}', startMatch);
+      if (openTagEnd === -1) {
+        result += input.substring(startMatch);
+        break;
+      }
+
+      const openingTag = input.substring(startMatch, openTagEnd + 2);
+      const arrayMatch = openingTag.match(/{{#each\s+([\w.]+)\s*}}/);
+      const arrayPath = arrayMatch ? arrayMatch[1] : null;
+
+      // Find the balanced closing tag
+      let depth = 1;
+      let searchPos = openTagEnd + 2;
+      let closeMatch = -1;
+
+      while (depth > 0 && searchPos < input.length) {
+        const nextOpen = input.indexOf('{{#each', searchPos);
+        const nextClose = input.indexOf('{{/each}}', searchPos);
+
+        if (nextClose === -1) break;
+
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+          depth++;
+          searchPos = nextOpen + 7;
+        } else {
+          depth--;
+          if (depth === 0) {
+            closeMatch = nextClose;
+          } else {
+            searchPos = nextClose + 9;
+          }
+        }
+      }
+
+      if (closeMatch !== -1 && arrayPath) {
+        const blockContent = input.substring(openTagEnd + 2, closeMatch);
+        const array = getValueByPath(context, arrayPath);
+
+        if (Array.isArray(array)) {
+          result += array.map((item, index) => {
+            const itemContext = typeof item === 'object' && item !== null
+              ? { ...item, this: item, parent: context, '@index': index + 1 }
+              : { this: item, parent: context, '@index': index + 1 };
+            return renderGenerativeTemplate(blockContent, itemContext);
+          }).join('');
+        }
+        pos = closeMatch + 9; // Skip {{/each}}
+      } else {
+        result += openingTag;
+        pos = openTagEnd + 2;
+      }
+    }
+    return result;
+  };
+
+  rendered = handleLoop(rendered, content);
 
   // 2. Handle Conditionals: {{#if field}}...{{/if}}
   const ifRegex = /{{#if\s+([\w.]+)\s*}}([\s\S]*?){{\/if}}/g;
   rendered = rendered.replace(ifRegex, (_, path, blockContent) => {
     const value = getValueByPath(content, path);
-    return value ? blockContent : '';
+    return value ? renderGenerativeTemplate(blockContent, content) : '';
   });
 
-  // 3. Handle HTML Value Replacements: {{{key}}} (Triple stash)
-  const htmlRegex = /{{{([\w.]+)}}}/g;
+  // 3. Handle HTML Value Replacements: {{{key}}}
+  const htmlRegex = /{{{([\w.\s]+)}}}/g;
   rendered = rendered.replace(htmlRegex, (_, path) => {
-    const value = getValueByPath(content, path);
+    const value = getValueByPath(content, path.trim());
     return value === undefined || value === null ? '' : String(value);
   });
 
@@ -46,9 +101,8 @@ const renderGenerativeTemplate = (template: string, content: any): string => {
     const cleanPath = path.trim();
     const value = getValueByPath(content, cleanPath);
 
-    // Safety check for objects to avoid [object Object]
     if (typeof value === 'object' && value !== null) {
-      return JSON.stringify(value);
+      return value.text || value.label || value.value || JSON.stringify(value);
     }
 
     return value === undefined || value === null ? '' : String(value);
