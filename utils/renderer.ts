@@ -13,53 +13,48 @@ const renderGenerativeTemplate = (template: string, content: any): string => {
   const handleLoop = (input: string, context: any): string => {
     let result = '';
     let pos = 0;
+    const openRegex = /{{#each\s+([\w.]+)\s*}}/g;
 
     while (pos < input.length) {
-      const startMatch = input.indexOf('{{#each', pos);
-      if (startMatch === -1) {
+      openRegex.lastIndex = pos;
+      const match = openRegex.exec(input);
+      if (!match) {
         result += input.substring(pos);
         break;
       }
 
+      const startMatch = match.index;
       result += input.substring(pos, startMatch);
 
-      // Find the end of the opening tag
-      const openTagEnd = input.indexOf('}}', startMatch);
-      if (openTagEnd === -1) {
-        result += input.substring(startMatch);
-        break;
-      }
+      const arrayPath = match[1];
+      const openingTag = match[0];
+      const openTagEnd = startMatch + openingTag.length;
 
-      const openingTag = input.substring(startMatch, openTagEnd + 2);
-      const arrayMatch = openingTag.match(/{{#each\s+([\w.]+)\s*}}/);
-      const arrayPath = arrayMatch ? arrayMatch[1] : null;
-
-      // Find the balanced closing tag
+      // Find the balanced closing tag: {{/each}} (allowing spaces like {{ /each }})
       let depth = 1;
-      let searchPos = openTagEnd + 2;
-      let closeMatch = -1;
+      let searchPos = openTagEnd;
+      let closeMatchIndex = -1;
+      let closeTagLength = 0;
 
-      while (depth > 0 && searchPos < input.length) {
-        const nextOpen = input.indexOf('{{#each', searchPos);
-        const nextClose = input.indexOf('{{/each}}', searchPos);
+      const innerTagRegex = /{{#each\s+[\w.]+\s*}}|{{\s*\/each\s*}}/g;
+      innerTagRegex.lastIndex = searchPos;
 
-        if (nextClose === -1) break;
-
-        if (nextOpen !== -1 && nextOpen < nextClose) {
+      let innerMatch;
+      while ((innerMatch = innerTagRegex.exec(input)) !== null) {
+        if (innerMatch[0].startsWith('{{#each')) {
           depth++;
-          searchPos = nextOpen + 7;
         } else {
           depth--;
           if (depth === 0) {
-            closeMatch = nextClose;
-          } else {
-            searchPos = nextClose + 9;
+            closeMatchIndex = innerMatch.index;
+            closeTagLength = innerMatch[0].length;
+            break;
           }
         }
       }
 
-      if (closeMatch !== -1 && arrayPath) {
-        const blockContent = input.substring(openTagEnd + 2, closeMatch);
+      if (closeMatchIndex !== -1 && arrayPath) {
+        const blockContent = input.substring(openTagEnd, closeMatchIndex);
         const array = getValueByPath(context, arrayPath);
 
         if (Array.isArray(array)) {
@@ -70,10 +65,11 @@ const renderGenerativeTemplate = (template: string, content: any): string => {
             return renderGenerativeTemplate(blockContent, itemContext);
           }).join('');
         }
-        pos = closeMatch + 9; // Skip {{/each}}
+        pos = closeMatchIndex + closeTagLength;
       } else {
+        // Unbalanced or no path: just append the opening tag and continue
         result += openingTag;
-        pos = openTagEnd + 2;
+        pos = openTagEnd;
       }
     }
     return result;
@@ -81,27 +77,28 @@ const renderGenerativeTemplate = (template: string, content: any): string => {
 
   rendered = handleLoop(rendered, content);
 
-  // 2. Handle Conditionals: {{#if field}}...{{/if}}
-  const ifRegex = /{{#if\s+([\w.]+)\s*}}([\s\S]*?){{\/if}}/g;
+  // 2. Handle Conditionals: {{#if field}}...{{/if}} - allowing whitespace
+  const ifRegex = /{{#if\s+([\w.]+)\s*}}([\s\S]*?){{\s*\/if\s*}}/g;
   rendered = rendered.replace(ifRegex, (_, path, blockContent) => {
     const value = getValueByPath(content, path);
     return value ? renderGenerativeTemplate(blockContent, content) : '';
   });
 
   // 3. Handle HTML Value Replacements: {{{key}}}
-  const htmlRegex = /{{{([\w.\s]+)}}}/g;
+  const htmlRegex = /{{{\s*([\w.\s]+)\s*}}}/g;
   rendered = rendered.replace(htmlRegex, (_, path) => {
     const value = getValueByPath(content, path.trim());
     return value === undefined || value === null ? '' : String(value);
   });
 
   // 4. Handle Simple Value Replacements: {{key}}
-  const valueRegex = /{{([\w.@\s]+)}}/g;
+  const valueRegex = /{{\s*([\w.@\s]+)\s*}}/g;
   rendered = rendered.replace(valueRegex, (_, path) => {
     const cleanPath = path.trim();
     const value = getValueByPath(content, cleanPath);
 
     if (typeof value === 'object' && value !== null) {
+      if (Array.isArray(value)) return value.join(', ');
       return value.text || value.label || value.value || JSON.stringify(value);
     }
 

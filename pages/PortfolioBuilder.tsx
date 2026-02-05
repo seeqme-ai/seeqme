@@ -49,7 +49,7 @@ const PortfolioBuilder: React.FC = () => {
   const [history, setHistory] = useState<PortfolioData[]>([]);
   const lastSavedData = useRef<PortfolioData | null>(null);
   const [selectedNiche, setSelectedNiche] = useState('Engineering');
-
+  const [selectedFile, setSelectedFile] = useState<{ name: string; type: string; size: number; preview?: string; url?: string; content?: string } | null>(null);
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [chosenSubdomain, setChosenSubdomain] = useState('');
   const [selectedDomainId, setSelectedDomainId] = useState<string>('subdomain');
@@ -779,7 +779,7 @@ const PortfolioBuilder: React.FC = () => {
     navigate('/auth/login?redirect=/builder');
   };
 
-  const [selectedFile, setSelectedFile] = useState<{ name: string; type: string; size: number; preview?: string; url?: string; content?: string } | null>(null);
+
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
