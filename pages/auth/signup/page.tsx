@@ -38,6 +38,21 @@ export default function SignupPage() {
     },
   });
 
+  const verifyGoogleTokenMutation = useMutation({
+    mutationFn: async (token: string) => {
+      const { data } = await apiClient.post(`/auth/google/verify-token`, { token });
+      return data;
+    },
+    onSuccess: (data) => {
+      localStorage.setItem("token", data.token);
+      window.location.href = searchParams.get("redirect") || "/dashboard";
+      toast.success("Successfully Authenticated!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Google Signup verification failed.");
+    },
+  });
+
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     signupMutation.mutate({ email, password, fullName });
@@ -64,12 +79,13 @@ export default function SignupPage() {
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <GoogleLogin
-                onSuccess={credentialResponse => {
-                  console.log(credentialResponse);
+                onSuccess={(credentialResponse) => {
+                  if (credentialResponse.credential) {
+                    verifyGoogleTokenMutation.mutate(credentialResponse.credential);
+                  }
                 }}
                 onError={() => {
                   toast.error("Google login failed. Please try again.");
-                  console.log('Login Failed');
                 }}
               />
 

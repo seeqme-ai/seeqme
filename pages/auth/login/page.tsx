@@ -48,8 +48,8 @@ export default function LoginPage() {
   });
 
   const verifyGoogleTokenMutation = useMutation({
-    mutationFn: async (idToken: string) => {
-      const { data } = await apiClient.post(`/auth/google/verify-token`, { idToken });
+    mutationFn: async (token: string) => {
+      const { data } = await apiClient.post(`/auth/google/verify-token`, { token });
       return data;
     },
     onSuccess: (data) => {

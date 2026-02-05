@@ -25,44 +25,7 @@ import { getAnonymousId } from '@/lib/identify';
 
 const MotionDiv = motion.div as any;
 
-const BUILD_STEPS = [
-  "Initializing AI synthesis engine...",
-  "Setting up your workspace...",
-  "Scanning professional background...",
-  "Analyzing career trajectory...",
-  "Designing layout architecture...",
-  "Selecting optimal components...",
-  "Synthesizing content sections...",
-  "Polishing visual elements...",
-  "Optimizing for performance...",
-  "Finalizing your site...",
-];
 
-const REMIX_STEPS = [
-  "Initializing visual redesign...",
-  "Reimagining visual architecture...",
-  "Evaluating layout alternatives...",
-  "Redesigning hero aesthetics...",
-  "Restructuring content flow...",
-  "Applying layout...",
-  "Enhancing visual hierarchy...",
-  "Polishing structural transitions...",
-  "Fine-tuning animations...",
-  "Wrapping up design...",
-];
-
-const REFINE_STEPS = [
-  "Processing refinement request...",
-  "Interpreting your instructions...",
-  "Analyzing current architecture...",
-  "Identifying update targets...",
-  "Synthesizing content changes...",
-  "Applying structural updates...",
-  "Validating content integrity...",
-  "Polishing refined sections...",
-  "Optimizing visual balance...",
-  "Finalizing refinements...",
-];
 
 const PortfolioBuilder: React.FC = () => {
   const navigate = useNavigate();
@@ -96,7 +59,8 @@ const PortfolioBuilder: React.FC = () => {
   const [conflictModal, setConflictModal] = useState<{ isOpen: boolean; message: string; existingPortfolioId: string; subdomain: string } | null>(null);
   const [isDeletingExisting, setIsDeletingExisting] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
- 
+  const [isIframeLoading, setIsIframeLoading] = useState(false);
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const layouts = Object.values(LayoutType);
 
@@ -257,6 +221,7 @@ const PortfolioBuilder: React.FC = () => {
   useEffect(() => {
     if (data) {
       localStorage.setItem('seeqme_portfolio_draft', JSON.stringify(data));
+      setIsIframeLoading(true); // Trigger loader when data changes
       updateIframe(data);
 
       const portfolioId = data.id.startsWith('portfolio-') ? null : data.id;
@@ -1209,8 +1174,21 @@ const PortfolioBuilder: React.FC = () => {
                 totalSteps={100}
               />
             ) : (
-              <MotionDiv key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">
-                <iframe ref={iframeRef} className="w-full h-full border-none bg-white" title="Artifact Viewport" />
+              <MotionDiv key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative">
+                {isIframeLoading && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-all duration-500">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-12 h-12 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin shadow-xl" />
+                      <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-teal-600 animate-pulse">Rendering Design</p>
+                    </div>
+                  </div>
+                )}
+                <iframe 
+                  ref={iframeRef} 
+                  onLoad={() => setIsIframeLoading(false)}
+                  className="w-full h-full border-none bg-white" 
+                  title="Artifact Viewport" 
+                />
               </MotionDiv>
             )}
           </AnimatePresence>

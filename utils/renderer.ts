@@ -12,21 +12,22 @@ const renderGenerativeTemplate = (template: string, content: any): string => {
   let rendered = template.replace(/```[a-z]*\n([\s\S]*?)\n```/gi, '$1').replace(/```/g, '').trim();
 
   // 1. Handle Iterations: {{#each arrayName}}...{{/each}}
-  const eachRegex = /{{#each\s+([\w.]+)}}([\s\S]*?){{\/each}}/g;
+  const eachRegex = /{{#each\s+([\w.]+)\s*}}([\s\S]*?){{\/each}}/g;
   rendered = rendered.replace(eachRegex, (_, arrayPath, blockContent) => {
     const array = getValueByPath(content, arrayPath);
     if (!Array.isArray(array)) return '';
 
     return array.map((item, index) => {
-      const context = typeof item === 'object'
-        ? { ...item, parent: content, '@index': index + 1 }
+      // Ensure 'this' is always set correctly, even for objects
+      const context = typeof item === 'object' && item !== null
+        ? { ...item, this: item, parent: content, '@index': index + 1 }
         : { this: item, parent: content, '@index': index + 1 };
       return renderGenerativeTemplate(blockContent, context);
     }).join('');
   });
 
   // 2. Handle Conditionals: {{#if field}}...{{/if}}
-  const ifRegex = /{{#if\s+([\w.]+)}}([\s\S]*?){{\/if}}/g;
+  const ifRegex = /{{#if\s+([\w.]+)\s*}}([\s\S]*?){{\/if}}/g;
   rendered = rendered.replace(ifRegex, (_, path, blockContent) => {
     const value = getValueByPath(content, path);
     return value ? blockContent : '';
@@ -40,9 +41,16 @@ const renderGenerativeTemplate = (template: string, content: any): string => {
   });
 
   // 4. Handle Simple Value Replacements: {{key}}
-  const valueRegex = /{{([\w.@]+)}}/g;
+  const valueRegex = /{{([\w.@\s]+)}}/g;
   rendered = rendered.replace(valueRegex, (_, path) => {
-    const value = getValueByPath(content, path);
+    const cleanPath = path.trim();
+    const value = getValueByPath(content, cleanPath);
+
+    // Safety check for objects to avoid [object Object]
+    if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value);
+    }
+
     return value === undefined || value === null ? '' : String(value);
   });
 
