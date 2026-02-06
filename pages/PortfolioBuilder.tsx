@@ -26,7 +26,6 @@ import { getAnonymousId } from '@/lib/identify';
 const MotionDiv = motion.div as any;
 
 
-
 const PortfolioBuilder: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -665,20 +664,8 @@ const PortfolioBuilder: React.FC = () => {
       }
 
       addLog(`Portfolio saved.`, 'success');
-      addLog(`Broadcasting to ${subdomain}.seeqme.com...`, 'info');
 
-      // Trigger Deployment
-      if (useSubdomain) {
-        await deploymentService.deployPortfolio(portfolioId, subdomain);
-      } else if (customDomain) {
-        await deploymentService.deployPortfolio(portfolioId, undefined, selectedDomainId);
-      }
-
-      addLog(`Deployment workflow initiated. Connecting to live stream...`, 'info');
-      toast.info(`Preparing deployment to ${subdomain}.seeqme.com...`);
-      setIsSuccessDrawerOpen(true); // Open drawer immediately to show progress
-
-      // 3. Use WebSocket for real-time deployment updates
+      // 1. Set up WebSocket for real-time deployment updates BEFORE triggering deployment
       socketService.connect(undefined, user?.id);
       socketService.subscribeToPortfolio(portfolioId);
 
@@ -709,6 +696,21 @@ const PortfolioBuilder: React.FC = () => {
           socketService.unsubscribeFromPortfolio(portfolioId);
         }
       );
+
+      // 2. Open drawer immediately to show initial progress
+      addLog(`Connecting to deployment service...`, 'info');
+      setIsSuccessDrawerOpen(true);
+
+      // 3. Now trigger the deployment (WebSocket is already listening)
+      addLog(`Broadcasting to ${subdomain}.seeqme.com...`, 'info');
+      if (useSubdomain) {
+        await deploymentService.deployPortfolio(portfolioId, subdomain);
+      } else if (customDomain) {
+        await deploymentService.deployPortfolio(portfolioId, undefined, selectedDomainId);
+      }
+
+      addLog(`Deployment workflow initiated.`, 'info');
+      toast.info(`Preparing deployment to ${subdomain}.seeqme.com...`);
 
       // Fallback timeout in case WebSocket events don't arrive
       setTimeout(() => {

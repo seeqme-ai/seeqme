@@ -773,7 +773,6 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	%%s
 	<script>%%s</script>
     <script>%%s</script>
-	%%s
 </body>
 </html>`,
 		finalDocTitle, finalDescription, fullURL,
@@ -782,7 +781,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		favicon, favicon,
 		socialMeta,
 		schema,
-		css, html, js, trackingScript, brandingHTML)
+		css, html, js, trackingScript)
 
 	// Write files
 	streamLog("Writing build artifacts...", "info")
