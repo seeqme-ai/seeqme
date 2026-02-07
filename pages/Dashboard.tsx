@@ -220,11 +220,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                   <Button onClick={() => onEdit(p)} className="flex-1 h-12 rounded-2xl bg-slate-50 text-slate-600 border border-slate-100 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all">
                     Customise
                   </Button>
-                  {p.status === 'completed' && !p.customDomain && (
-                    <Button onClick={() => handleConnectDomainClick(p)} className="flex-1 h-12 rounded-xl bg-teal-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-teal-700 shadow-md shadow-teal-500/10 transition-all">
-                      Connect Domain
-                    </Button>
-                  )}
+                  
                   {p.customDomain && (
                     <a href={`https://${p.customDomain}`} target="_blank" className="flex-1 flex items-center justify-center gap-2 h-12 rounded-2xl bg-teal-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">
                       View Live <ExternalLink className="w-3 h-3" />

@@ -168,7 +168,7 @@ const DomainsPage: React.FC = () => {
                                             <SelectContent>
                                                 <SelectItem value="none">None (Parked)</SelectItem>
                                                 {portfolios.map(p => (
-                                                    <SelectItem key={p.id} value={p.id!}>{p.title}</SelectItem>
+                                                    <SelectItem key={p.id} value={p.id!}>{p.title || p.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
