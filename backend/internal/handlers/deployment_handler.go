@@ -708,7 +708,8 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		favicon = heroImage
 	}
 	if strings.Contains(favicon, "res.cloudinary.com") {
-		favicon = strings.Replace(favicon, "/upload/", "/upload/w_64,h_64,c_fill,q_auto/", 1)
+		// Circular/Rounded Square Favicon: 64x64, Fill, Rounded Corners (r_16), PNG for safeguards
+		favicon = strings.Replace(favicon, "/upload/", "/upload/w_64,h_64,c_fill,r_16,f_png,q_auto/", 1)
 	}
 	if favicon == "" {
 		favicon = "https://seeqme.com/seeqme-logo-black.png"
@@ -748,6 +749,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="index, follow">
 	<title>%s</title>
 	<meta name="description" content="%s">
 	<link rel="canonical" href="%s/">
@@ -793,6 +795,26 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	if err := ioutil.WriteFile(filepath.Join(tempDir, "index.html"), []byte(finalHTML), 0644); err != nil {
 		failDeployment("Failed to write build artifacts", err)
 		return
+	}
+
+	// Generate robots.txt
+	robotsTxt := fmt.Sprintf("User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml", fullURL)
+	if err := ioutil.WriteFile(filepath.Join(tempDir, "robots.txt"), []byte(robotsTxt), 0644); err != nil {
+		log.Printf("[Deploy] Failed to write robots.txt: %v", err)
+	}
+
+	// Generate sitemap.xml
+	sitemap := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>%s/</loc>
+    <lastmod>%s</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`, fullURL, time.Now().Format("2006-01-02"))
+	if err := ioutil.WriteFile(filepath.Join(tempDir, "sitemap.xml"), []byte(sitemap), 0644); err != nil {
+		log.Printf("[Deploy] Failed to write sitemap.xml: %v", err)
 	}
 
 	// Sanitize user email for repo name

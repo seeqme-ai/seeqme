@@ -67,7 +67,7 @@ export interface Portfolio {
   id?: string;
   name: string;
   niche?: string;
-  status?: 'draft' | 'published' | 'failed';
+  status?: 'draft' | 'completed' | 'failed';
   subdomain?: string;
   githubRepo?: string;
   createdAt?: Date | string;

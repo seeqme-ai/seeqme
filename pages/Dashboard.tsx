@@ -79,7 +79,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
         {/* ENHANCED HEADER */}
         <header className="relative flex flex-col md:flex-row justify-between items-end gap-8">
           <div className="space-y-3">
-           
+
             <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-none">
               Your <span className="bg-clip-text">Portfolios</span>
             </h1>
@@ -143,8 +143,8 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
 
                 <div className="px-3 flex-1">
                   <div className="flex justify-between items-start mb-4">
-                    <Badge className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-wider ${p.status === 'published' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'failed' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                      {p.status === 'published' ? '• Published' : p.status === 'failed' ? '• Failed' : '• Draft'}
+                    <Badge className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-wider ${ p.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'failed' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                      {p.status === 'completed' ? '• Published' : p.status === 'failed' ? '• Failed' : '• Draft'}
                     </Badge>
 
                     <DropdownMenu>
