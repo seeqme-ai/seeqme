@@ -242,7 +242,7 @@ func (h *Handler) VerifyGoogleIDToken(c *gin.Context) {
 
 	if err == nil {
 		if user.AuthProvider != "google" {
-			c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("An account with this email already exists. Please log in using the method you originally signed up with.")})
+			c.JSON(http.StatusConflict, gin.H{"error": "An account with this email already exists. Please log in using the method you originally signed up with."})
 			return
 		}
 		user.Country = geoip.GetCountryFromIP(c.ClientIP())

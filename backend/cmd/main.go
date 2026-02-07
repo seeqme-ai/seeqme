@@ -122,6 +122,7 @@ func main() {
 			domains.GET("", h.GetDomains)
 			domains.POST("", h.CreateDomain)
 			domains.GET("/:id", h.GetDomain)
+			domains.PUT("/:id", h.UpdateDomain)
 			domains.DELETE("/:id", h.DeleteDomain)
 			domains.POST("/:id/verify", h.VerifyDomain)
 		}

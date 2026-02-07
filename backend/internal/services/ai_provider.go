@@ -153,14 +153,17 @@ DESIGN FRAMEWORK (MANDATORY):
    - OCEANIC_MIST: Light, clean, blue/teal tones, modern sans. (Medical, Corporate)
 
 2. COMPONENT SELECTION (100+ Elite Variants Available):
-   - HERO: HERO_DYNAMIC_GRADIENT, HERO_MODERN_SPLIT, HERO_CYBER_MONO, HERO_VISUALIST, HERO_EXECUTIVE, HERO_NEOBRUTALIST, HERO_TERMINAL_STYLE, HERO_MAGAZINE, HERO_MINIMAL_ELEGANCE, HERO_GLASS_FLOATING...
-   - PROJECTS: PROJ_BENTO_GRID, PROJ_MASONRY, PROJ_MINIMAL_CARDS, PROJ_GITHUB_STYLE, PROJ_CASE_STUDY, PROJ_CAROUSEL_FULLSCREEN, PROJ_AGENCY_CASE_STUDY...
-   - SERVICES: SERVICES_GLOW_GRID, SERVICES_GLASS_BENTO, SERVICES_CARDS_INTERACTIVE, SERVICES_LIST_MINIMAL, SERVICES_AGENCY_GRID
+   - HERO: HERO_DYNAMIC_GRADIENT, HERO_MODERN_SPLIT, HERO_CYBER_MONO, HERO_VISUALIST, HERO_EXECUTIVE, HERO_NEOBRUTALIST, HERO_TERMINAL_STYLE, HERO_MAGAZINE, HERO_MINIMAL_ELEGANCE, HERO_GLASS_FLOATING, HERO_AGENCY_VIBRANT, HERO_MINIMAL_CREATOR, HERO_MINIMALIST_CREATOR, HERO_DARK_SASS, HERO_TYPOGRAPHIC_BOLD...
+   - HEADERS: HEADER_MINIMALIST, HEADER_AGENCY_VIBRANT, HEADER_TECH_GLOW, HEADER_MINIMALIST_CREATOR, HEADER_DARK_SASS
+   - FORMS: FORM_MINIMALIST, FORM_ELEGANT_SPLIT, FORM_TECH_AUDIT, CONTACT_DARK_SASS, CONTACT_MINIMAL_SIMPLE, CONTACT_TYPOGRAPHIC_CENTER
+   - PROJECTS: PROJ_BENTO_GRID, PROJ_MASONRY, PROJ_MINIMAL_CARDS, PROJ_GITHUB_STYLE, PROJ_CASE_STUDY, PROJ_CAROUSEL_FULLSCREEN, PROJ_AGENCY_CASE_STUDY, PROJ_DARK_SASS, PROJ_TYPOGRAPHIC_LIST
+   - SERVICES: SERVICES_GLOW_GRID, SERVICES_GLASS_BENTO, SERVICES_CARDS_INTERACTIVE, SERVICES_LIST_MINIMAL, SERVICES_AGENCY_GRID, SERVICES_DARK_SASS, SERVICES_TYPOGRAPHIC_COLS
    - LOGOS: LOGOS_STRIP_CLEAN, LOGOS_MINIMAL_TRUST
    - PRICING: PRICING_MODERN_TIERS, PRICING_MINIMAL_CARDS
    - FAQ: FAQ_ACCORDION_NEON
    - PROCESS: PROCESS_STEPS_VERTICAL, PROCESS_TYPOGRAPHIC_STEPS
-   - OTHERS: SKILLS_MARQUEE, SKILLS_GRID_ICONS, EXP_TIMELINE_VERTICAL, EXP_ACCORDION_MINIMAL, ABOUT_NARRATIVE, ABOUT_STATS, ABOUT_METRICS_FOCUS, TESTIMONIALS_BENTO, TESTIMONIALS_GRID_PHOTOS, CTA_GRADIENT_BANNER, CTA_SPLIT_VISUAL, STATS_COUNTER_GRID, STATS_ANIMATED_COUNTERS
+   - FOOTERS: FOOTER_MINIMAL, FOOTER_SOCIAL_HEAVY, FOOTER_NEWSLETTER, FOOTER_MULTI_COLUMN, FOOTER_STICKY_CTA, FOOTER_DARK_DETAILED, FOOTER_SINGLE_LINE, FOOTER_BRAND_FOCUS, FOOTER_DARK_SASS, FOOTER_TYPOGRAPHIC_SIMPLE
+   - OTHERS: SKILLS_MARQUEE, SKILLS_GRID_ICONS, SKILLS_DARK_SASS, EXP_TIMELINE_VERTICAL, EXP_ACCORDION_MINIMAL, ABOUT_NARRATIVE, ABOUT_STATS, ABOUT_METRICS_FOCUS, TESTIMONIALS_BENTO, TESTIMONIALS_GRID_PHOTOS, CTA_GRADIENT_BANNER, CTA_SPLIT_VISUAL, STATS_COUNTER_GRID, STATS_ANIMATED_COUNTERS, STATS_AGENCY_TICKER, STATS_TYPOGRAPHIC_GRID, TEAM_GRID_EDITORIAL, GALLERY_MASONRY_GLASS
     
 3. AESTHETIC & ARCHITECTURAL PRINCIPLES (STRICT):
     - NO GENERIC CONTENT: Never use "Lorem Ipsum" or generic "Developer" placeholders. Extract specific achievements.
@@ -170,7 +173,9 @@ DESIGN FRAMEWORK (MANDATORY):
     - COLOR HARMONY: Use the designated DESIGN FRAMEWORK colors for all dynamic style injections.
 
 4. COMPONENT CONTENT SCHEMAS (STRICT):
-    - HERO_*: { "name": "User Name", "title": "Current Role", "bio": "Short summary", "image": "Unsplash URL", "cta": { "text": "Button Label", "link": "#link" } }
+    - HEADER_*: { "username": "Name/Logo", "navLinks": [{ "label": "About", "link": "#about" }], "cta": { "text": "Action", "link": "#contact" } }
+	- HERO_*: { "name": "User Name", "title": "Current Role", "bio": "Short summary", "image": "Unsplash URL", "cta": { "text": "Button Label", "link": "#link" } }
+    - FORM_*: { "title": "Contact Me", "description": "Subtext", "email": "email@example.com" }
     - ABOUT_*: { "title": "Heading", "content": "Narrative text", "image": "URL", "label": "Tagline", "highlights": ["Point 1", "Point 2"] }
     - PROJ_*: { "title": "Section Title", "items": [{ "title": "Project Name", "description": "Details", "image": "URL", "link": "#", "tech": ["React", "AI"] }] }
     - EXP_*: { "title": "Section Title", "items": [{ "title": "Role/Degree", "company": "Place", "duration": "Year-Year", "description": "Details" }] }
@@ -222,7 +227,8 @@ OUTPUT REQUIREMENT: Return ONLY a valid JSON following the schema below.
 
 STRICT RULE: NEVER hallucinate persona details like names. 
 If a name is not explicitly found in the source data, use "Your Name" as a placeholder.
-Every section must have "componentId" and "content". "component", "props", or "data" are BANNED.`
+Every section must have "componentId" and "content". "component", "props", or "data" are BANNED.
+ALWAYS begin the portfolio with a "header" section using a HEADER_* component.`
 
 const EditSystemPrompt = `You are a Senior Portfolio Architect. Your task is to modify a user's Portfolio Manifest (JSON) based on their instructions.
 

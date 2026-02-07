@@ -182,8 +182,8 @@ const AdminDashboard: React.FC = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id
-                                        ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/20'
-                                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                                    ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/20'
+                                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                                     }`}
                             >
                                 <tab.icon className="w-4 h-4" />
@@ -269,11 +269,13 @@ const AdminDashboard: React.FC = () => {
                                                 <div className="p-4 border-b border-white bg-white/50 backdrop-blur-sm flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
-                                                            {chatSummaries.find(s => s.userId === selectedChat)?.userName[0]}
+                                                            {(chatSummaries.find(s => s.userId === selectedChat)?.userName || 'Guest')[0]}
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-slate-800">{chatSummaries.find(s => s.userId === selectedChat)?.userName}</p>
-                                                            <p className="text-[10px] text-teal-600 font-bold uppercase tracking-tight">Active Conversation</p>
+                                                            <p className="font-bold text-slate-800">{chatSummaries.find(s => s.userId === selectedChat)?.userName || 'Anonymous Guest'}</p>
+                                                            <p className="text-[10px] text-teal-600 font-bold uppercase tracking-tight">
+                                                                {selectedChat?.startsWith('dev_') ? 'Prospecting Guest' : 'Authenticated User'}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -282,8 +284,8 @@ const AdminDashboard: React.FC = () => {
                                                     {chatMessages.map((msg) => (
                                                         <div key={msg.id} className={`flex ${msg.isAdmin ? 'justify-end' : 'justify-start'}`}>
                                                             <div className={`max-w-[70%] rounded-2xl p-4 text-sm ${msg.isAdmin
-                                                                    ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/10'
-                                                                    : 'bg-white text-slate-800 border border-white'
+                                                                ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/10'
+                                                                : 'bg-white text-slate-800 border border-white'
                                                                 }`}>
                                                                 {msg.fileUrl ? (
                                                                     <a href={msg.fileUrl} target="_blank" className="flex items-center gap-2 font-bold underline mb-1">

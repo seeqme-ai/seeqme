@@ -18,9 +18,13 @@ import (
 )
 
 type CreateDomainRequest struct {
-	PortfolioID string `json:"portfolioId" binding:"required"`
+	PortfolioID string `json:"portfolioId"`
 	Domain      string `json:"domain"`
 	IsCustom    bool   `json:"isCustom"`
+}
+
+type UpdateDomainRequest struct {
+	PortfolioID string `json:"portfolioId"`
 }
 
 func (h *Handler) GetDomains(c *gin.Context) {
@@ -70,10 +74,15 @@ func (h *Handler) CreateDomain(c *gin.Context) {
 		return
 	}
 
-	portfolioObjectID, err := primitive.ObjectIDFromHex(req.PortfolioID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid portfolio ID format"})
-		return
+	var portfolioObjectID primitive.ObjectID
+	if req.PortfolioID != "" {
+		portfolioObjectID, err = primitive.ObjectIDFromHex(req.PortfolioID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid portfolio ID format"})
+			return
+		}
+	} else {
+		portfolioObjectID = primitive.NilObjectID
 	}
 
 	subdomain := req.Domain
@@ -144,6 +153,61 @@ func (h *Handler) CreateDomain(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, domain)
+}
+
+func (h *Handler) UpdateDomain(c *gin.Context) {
+	domainID := c.Param("id")
+	var req UpdateDomainRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+	userObjectID, _ := primitive.ObjectIDFromHex(userID.(string))
+	domainObjectID, _ := primitive.ObjectIDFromHex(domainID)
+
+	portfolioObjectID, err := primitive.ObjectIDFromHex(req.PortfolioID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid portfolio ID format"})
+		return
+	}
+
+	filter := bson.M{"_id": domainObjectID, "userId": userObjectID}
+	update := bson.M{
+		"$set": bson.M{
+			"portfolioId": portfolioObjectID,
+			"updatedAt":   time.Now(),
+		},
+	}
+
+	result, err := database.Client.Database(database.DBName).Collection("domains").UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update domain"})
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Domain not found or unauthorized"})
+		return
+	}
+
+	// Sync to portfolio if domain is verified
+	var domain models.Domain
+	err = database.Client.Database(database.DBName).Collection("domains").FindOne(context.Background(), bson.M{"_id": domainObjectID}).Decode(&domain)
+	if err == nil && domain.IsVerified {
+		database.Client.Database(database.DBName).Collection("portfolios").UpdateOne(
+			context.Background(),
+			bson.M{"_id": portfolioObjectID, "userId": userObjectID},
+			bson.M{"$set": bson.M{"customDomain": domain.Domain, "updatedAt": time.Now()}},
+		)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Domain updated successfully"})
 }
 
 func (h *Handler) GetDomain(c *gin.Context) {
@@ -234,6 +298,15 @@ func (h *Handler) DeleteDomain(c *gin.Context) {
 		return
 	}
 
+	// Clear from portfolio if it was linked
+	if !domain.PortfolioID.IsZero() {
+		database.Client.Database(database.DBName).Collection("portfolios").UpdateOne(
+			context.Background(),
+			bson.M{"_id": domain.PortfolioID, "userId": userObjectID, "customDomain": domain.Domain},
+			bson.M{"$set": bson.M{"customDomain": "", "updatedAt": time.Now()}},
+		)
+	}
+
 	c.Status(http.StatusNoContent)
 }
 
@@ -312,7 +385,7 @@ func (h *Handler) VerifyDomain(c *gin.Context) {
 		return
 	}
 
-	// Finally, update the database
+	// Finally, update the database (Domain)
 	_, err = database.Client.Database(database.DBName).Collection("domains").UpdateOne(
 		context.Background(),
 		bson.M{"_id": domainObjectID},
@@ -322,6 +395,13 @@ func (h *Handler) VerifyDomain(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update domain status in database."})
 		return
 	}
+
+	// Sync to Portfolio
+	database.Client.Database(database.DBName).Collection("portfolios").UpdateOne(
+		context.Background(),
+		bson.M{"_id": domain.PortfolioID},
+		bson.M{"$set": bson.M{"customDomain": domain.Domain, "updatedAt": time.Now()}},
+	)
 
 	c.JSON(http.StatusOK, gin.H{
 		"verified": true,

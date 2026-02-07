@@ -2,7 +2,7 @@
 export interface ComponentMetadata {
     id: string;
     name: string;
-    category: 'hero' | 'about' | 'projects' | 'experience' | 'skills' | 'contact' | 'testimonials' | 'footer' | 'cta' | 'stats' | 'services' | 'pricing' | 'faq' | 'logos' | 'process' | 'blog' | 'gallery';
+    category: 'header' | 'hero' | 'about' | 'projects' | 'experience' | 'skills' | 'contact' | 'testimonials' | 'footer' | 'cta' | 'stats' | 'services' | 'pricing' | 'faq' | 'logos' | 'process' | 'blog' | 'gallery' | 'team';
     niche?: string[];
     previewImage?: string;
     description?: string;
@@ -34,6 +34,11 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     HERO_PHOTO_MOSAIC: { id: 'HERO_PHOTO_MOSAIC', name: 'Photo Mosaic', category: 'hero', niche: ['Photography', 'Artist'], description: 'Collage background for visual portfolios.' },
     HERO_AGENCY_VIBRANT: { id: 'HERO_AGENCY_VIBRANT', name: 'Agency Vibrant', category: 'hero', niche: ['Agency', 'Marketing'], description: 'Bold split layout with pulsating availability badge.' },
     HERO_MINIMAL_CREATOR: { id: 'HERO_MINIMAL_CREATOR', name: 'Minimal Creator', category: 'hero', niche: ['Creator', 'Minimalist'], description: 'Centered profile with large serif tagline.' },
+    HERO_MINIMALIST_CREATOR: { id: 'HERO_MINIMALIST_CREATOR', name: 'Minimalist Creator', category: 'hero', niche: ['Virtual Assistant', 'Minimalist'], description: 'Clean split layout with grayscale imagery.' },
+    HERO_GLITCH_TEXT: { id: 'HERO_GLITCH_TEXT', name: 'Cyber Glitch', category: 'hero', niche: ['Tech', 'Creative'], description: 'Glitch effect typography focus.' },
+    HERO_SMOOTH_SWEEP: { id: 'HERO_SMOOTH_SWEEP', name: 'Smooth Sweep', category: 'hero', niche: ['Modern', 'Agency'], description: 'Identity standard layout with pulse effects.' },
+    HERO_GRID_PORTRAIT: { id: 'HERO_GRID_PORTRAIT', name: 'Grid Portrait', category: 'hero', niche: ['Portfolio', 'Artist'], description: 'Large portrait image with diagonal text.' },
+    HERO_DARK_SASS: { id: 'HERO_DARK_SASS', name: 'Dark SASS Hero', category: 'hero', niche: ['Tech', 'SaaS'], description: 'Immersive dark hero with glowing radial accents.' },
 
     // PROJECTS
     PROJ_BENTO_GRID: { id: 'PROJ_BENTO_GRID', name: 'Bento Grid', category: 'projects', niche: ['Tech', 'Creative'], description: 'Modern mosaic layout.' },
@@ -47,6 +52,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     PROJ_FEATURED_SINGLE: { id: 'PROJ_FEATURED_SINGLE', name: 'Featured Work', category: 'projects', niche: ['Minimalist'], description: 'Focuses on one major masterpiece.' },
     PROJ_TIMELINE_VERTICAL: { id: 'PROJ_TIMELINE_VERTICAL', name: 'Chronological Works', category: 'projects', niche: ['Chronological'], description: 'Projects mapped along a timeline.' },
     PROJ_AGENCY_CASE_STUDY: { id: 'PROJ_AGENCY_CASE_STUDY', name: 'Agency Case Study', category: 'projects', niche: ['Agency'], description: 'Result-oriented case study cards with metrics.' },
+    PROJ_DARK_SASS: { id: 'PROJ_DARK_SASS', name: 'Dark SASS Projects', category: 'projects', niche: ['Tech'], description: 'Detailed project cards with tech badges and icons.' },
 
     // SKILLS
     SKILLS_MARQUEE: { id: 'SKILLS_MARQUEE', name: 'Infinite Marquee', category: 'skills', niche: ['General'], description: 'Scrolling ticker style.' },
@@ -56,6 +62,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     SKILLS_HEXAGON_GRID: { id: 'SKILLS_HEXAGON_GRID', name: 'Honeycomb Hex', category: 'skills', niche: ['Tech', 'Gaming'], description: 'Futuristic hexagon honeycomb.' },
     SKILLS_RADAR_CHART: { id: 'SKILLS_RADAR_CHART', name: 'Radar Spider', category: 'skills', niche: ['Data', 'Tech'], description: 'Multi-dimensional competence chart.' },
     SKILLS_AGENCY: { id: 'SKILLS_AGENCY', name: 'Agency Stack', category: 'skills', niche: ['Agency'], description: 'Tech stack icons with labels.' },
+    SKILLS_DARK_SASS: { id: 'SKILLS_DARK_SASS', name: 'Dark SASS Stack', category: 'skills', niche: ['Tech'], description: 'Grid of specialized tool cards with hover states.' },
 
     // EXPERIENCE
     EXP_TIMELINE_VERTICAL: { id: 'EXP_TIMELINE_VERTICAL', name: 'Vertical Timeline', category: 'experience', niche: ['General'], description: 'Alternating professional journey.' },
@@ -93,6 +100,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     CONTACT_CARD_SIMPLE: { id: 'CONTACT_CARD_SIMPLE', name: 'Clean Coordinates', category: 'contact', niche: ['General', 'Minimal'], description: 'Centered contact card.' },
     CONTACT_FORM_FULL: { id: 'CONTACT_FORM_FULL', name: 'Secure Inquiry', category: 'contact', niche: ['Corporate', 'B2B'], description: 'In-depth professional form.' },
     CONTACT_MINIMAL_SIMPLE: { id: 'CONTACT_MINIMAL_SIMPLE', name: 'Minimal Contact', category: 'contact', niche: ['Minimalist'], description: 'Clean form on dark background.' },
+    CONTACT_DARK_SASS: { id: 'CONTACT_DARK_SASS', name: 'Dark SASS Contact', category: 'contact', niche: ['Tech'], description: 'Audit-focused contact form with gradient action.' },
 
     // FOOTERS
     FOOTER_MINIMAL: { id: 'FOOTER_MINIMAL', name: 'Minimal One-line', category: 'footer', description: 'Simple socials + copyright.' },
@@ -105,6 +113,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     FOOTER_BRAND_FOCUS: { id: 'FOOTER_BRAND_FOCUS', name: 'Legacy Brand', category: 'footer', description: 'Large brand typography centerpiece.' },
     FOOTER_AGENCY_BOLD: { id: 'FOOTER_AGENCY_BOLD', name: 'Agency Bold', category: 'footer', description: 'High-contrast footer with social focus.' },
     FOOTER_MINIMAL_SIMPLE: { id: 'FOOTER_MINIMAL_SIMPLE', name: 'Minimal Simple', category: 'footer', description: 'Just copyright.' },
+    FOOTER_DARK_SASS: { id: 'FOOTER_DARK_SASS', name: 'Dark SASS Footer', category: 'footer', description: 'Minimalist mono-font footer with brand focus.' },
 
     // STATS
     STATS_COUNTER_GRID: { id: 'STATS_COUNTER_GRID', name: 'Digital Counters', category: 'stats', description: 'Animated performance metrics.' },
@@ -132,6 +141,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     SERVICES_LIST_MINIMAL: { id: 'SERVICES_LIST_MINIMAL', name: 'Process Flow List', category: 'services', description: 'Minimalist list with animated arrows.' },
     SERVICES_AGENCY_GRID: { id: 'SERVICES_AGENCY_GRID', name: 'Agency Services', category: 'services', description: 'Grid with icons and feature bullets.' },
     SERVICES_MINIMAL_LIST: { id: 'SERVICES_MINIMAL_LIST', name: 'Minimal Services', category: 'services', description: 'Clean list of services with bullets.' },
+    SERVICES_DARK_SASS: { id: 'SERVICES_DARK_SASS', name: 'Dark SASS Services', category: 'services', description: 'Clean dark cards for service offerings.' },
 
     // PRICING
     PRICING_MODERN_TIERS: { id: 'PRICING_MODERN_TIERS', name: 'Investment Tiers', category: 'pricing', description: 'Modern, clean pricing cards with feature lists.' },
@@ -139,6 +149,18 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
 
     // FAQ
     FAQ_ACCORDION_NEON: { id: 'FAQ_ACCORDION_NEON', name: 'Neon Questions', category: 'faq', description: 'Stylish accordion with neon accents.' },
+
+    // HEADERS
+    HEADER_MINIMALIST: { id: 'HEADER_MINIMALIST', name: 'Minimal Header', category: 'header', niche: ['General'], description: 'Clean logo with right-aligned nav.' },
+    HEADER_AGENCY_VIBRANT: { id: 'HEADER_AGENCY_VIBRANT', name: 'Vibrant Agency', category: 'header', niche: ['Agency'], description: 'Bold with hover effects and CTA.' },
+    HEADER_TECH_GLOW: { id: 'HEADER_TECH_GLOW', name: 'Tech Glow', category: 'header', niche: ['Tech'], description: 'Dark mode with glowing accents.' },
+    HEADER_MINIMALIST_CREATOR: { id: 'HEADER_MINIMALIST_CREATOR', name: 'Minimalist Creator Header', category: 'header', niche: ['Minimalist'], description: 'Clean serif branding with simple navigation.' },
+    HEADER_DARK_SASS: { id: 'HEADER_DARK_SASS', name: 'Dark SASS Header', category: 'header', niche: ['Tech', 'SaaS'], description: 'Dark backdrop-blur header with modern navigation.' },
+
+    // FORMS (Categorized under Contact)
+    FORM_MINIMALIST: { id: 'FORM_MINIMALIST', name: 'Minimal Form', category: 'contact', niche: ['General'], description: 'Simple name and message fields.' },
+    FORM_ELEGANT_SPLIT: { id: 'FORM_ELEGANT_SPLIT', name: 'Elegant Split Form', category: 'contact', niche: ['Business'], description: 'Split layout with detailed inputs.' },
+    FORM_TECH_AUDIT: { id: 'FORM_TECH_AUDIT', name: 'Tech Audit Form', category: 'contact', niche: ['Tech'], description: 'specialized fields for system audits.' },
 
     // LOGOS
     LOGOS_STRIP_CLEAN: { id: 'LOGOS_STRIP_CLEAN', name: 'Trust Marquee', category: 'logos', description: 'Infinite scrolling logo strip for social proof.' },
@@ -155,6 +177,12 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     SERVICES_TYPOGRAPHIC_COLS: { id: 'SERVICES_TYPOGRAPHIC_COLS', name: 'Typographic Services', category: 'services', description: 'Three-column service list with serif headings.' },
     CONTACT_TYPOGRAPHIC_CENTER: { id: 'CONTACT_TYPOGRAPHIC_CENTER', name: 'Typographic Contact', category: 'contact', description: 'Centered serif CTA.' },
     FOOTER_TYPOGRAPHIC_SIMPLE: { id: 'FOOTER_TYPOGRAPHIC_SIMPLE', name: 'Typographic Footer', category: 'footer', description: 'Minimal footer with uppercase links.' },
+
+    // TEAM
+    TEAM_GRID_EDITORIAL: { id: 'TEAM_GRID_EDITORIAL', name: 'Editorial Team', category: 'team', description: 'Professional team grid with grayscale portraits and hover effects.' },
+
+    // GALLERY
+    GALLERY_MASONRY_GLASS: { id: 'GALLERY_MASONRY_GLASS', name: 'Masonry Glass Gallery', category: 'gallery', description: 'Glassmorphic masonry layout for visual artifacts.' },
 };
 
 export const getComponentsByCategory = (category: string) => {

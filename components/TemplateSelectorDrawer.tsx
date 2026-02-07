@@ -16,7 +16,7 @@ const TemplateSelectorDrawer: React.FC<TemplateSelectorProps> = ({ isOpen, onClo
     const [activeTab, setActiveTab] = useState<'templates' | 'blocks'>('templates');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const categories = ['hero', 'about', 'skills', 'experience', 'projects', 'testimonials', 'contact'];
+    const categories = ['header', 'hero', 'about', 'skills', 'experience', 'projects', 'testimonials', 'contact', 'footer', 'services'];
 
     const filteredBlocks = Object.values(RegistryMetadata).filter(block => {
         const matchesSearch = block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -107,8 +107,16 @@ const TemplateSelectorDrawer: React.FC<TemplateSelectorProps> = ({ isOpen, onClo
                                                 : 'border-slate-100 bg-slate-50 hover:border-slate-300 hover:bg-white'
                                                 }`}
                                         >
-                                            <div className="h-36 bg-slate-200 relative overflow-hidden">
-                                                <div className="absolute inset-0 bg-gradient-to-br from-slate-400/20 to-teal-500/20" />
+                                            <div className="h-48 bg-slate-200 relative overflow-hidden group-hover:scale-[1.02] transition-transform duration-300">
+                                                {template.preview ? (
+                                                    <img
+                                                        src={template.preview}
+                                                        alt={template.name}
+                                                        className="w-full h-full object-cover object-top"
+                                                    />
+                                                ) : (
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-slate-400/20 to-teal-500/20" />
+                                                )}
                                                 <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end z-10">
                                                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest backdrop-blur-md border ${currentTemplateId === template.id ? 'bg-teal-500/10 border-teal-500/20 text-teal-700' : 'bg-white/50 border-white/50 text-slate-500'
                                                         }`}>

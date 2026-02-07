@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAnonymousId } from '@/lib/identify';
 
-export const API_BASE_URL = 'https://seeqme.com/api/v1' //import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'// 'https://seeqme.com/api/v1'
+export const API_BASE_URL = 'https://seeqme.com/api/v1' // import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'// 'https://seeqme.com/api/v1'
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -189,6 +189,10 @@ export const domainService = {
   },
   verifyDomain: async (id: string) => {
     const response = await apiClient.post(`/domains/${id}/verify`);
+    return response.data;
+  },
+  updateDomain: async (id: string, portfolioId: string) => {
+    const response = await apiClient.put(`/domains/${id}`, { portfolioId });
     return response.data;
   },
   deleteDomain: async (id: string) => {

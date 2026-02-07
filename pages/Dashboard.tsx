@@ -19,6 +19,7 @@ import {
 } from '../components/ui/dropdown-menu';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import ConnectDomainModal from '../components/ConnectDomainModal';
 
 const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }> = ({ onNew, onEdit }) => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [connectDomainPortfolio, setConnectDomainPortfolio] = useState<Portfolio | null>(null);
 
   useEffect(() => {
     Promise.all([fetchPortfolios(), fetchSubscription()]);
@@ -61,6 +63,25 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
     }
   };
 
+  const handleConnectDomainClick = (p: Portfolio) => {
+    // Plan validation
+    const currentPlan = subscription?.planId?.toLowerCase() || 'starter';
+    const canConnect = currentPlan === 'professional' || currentPlan === 'elite' || currentPlan === 'pro';
+
+    if (!canConnect) {
+      toast.error('Upgrade Required', {
+        description: 'Custom domains are available on the Professional and Elite plans.',
+        action: {
+          label: 'View Plans',
+          onClick: () => navigate('/plans')
+        }
+      });
+      return;
+    }
+
+    setConnectDomainPortfolio(p);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -89,7 +110,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-            <div className="hidden sm:flex items-center gap-4 p-1.5 pl-4 bg-white/50 backdrop-blur-md border border-slate-200 rounded-2xl shadow-sm">
+            <div className="hidden sm:flex items-center gap-4 p-1.5 pl-4 bg-white/50 backdrop-blur-md border border-slate-200 rounded-xl shadow-sm">
 
               <div className="pr-4 border-r border-slate-200">
                 <p className="text-[10px] text-slate-400 font-bold uppercase italic leading-none">Status</p>
@@ -100,7 +121,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
               </Button>
             </div>
 
-            <Button onClick={onNew} className="h-14 px-8 rounded-2xl bg-teal-600 hover:bg-teal-600 text-white shadow-2xl shadow-slate-900/20 group transition-all duration-300">
+            <Button onClick={onNew} className="h-14 px-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-500/10 group transition-all duration-300">
               <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
               <span className="font-bold tracking-tight">Create New</span>
             </Button>
@@ -119,13 +140,13 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: idx * 0.05 }}
                 whileHover={{ y: -8 }}
-                className="group relative flex flex-col bg-white border border-slate-200 rounded-[2.5rem] p-4 transition-all duration-500 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] hover:border-teal-500/30 overflow-hidden"
+                className="group relative flex flex-col bg-white border border-slate-200 rounded-3xl p-4 transition-all duration-300 hover:shadow-xl hover:border-teal-500/30 overflow-hidden"
               >
                 {/* Decorative Background Gradient */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl group-hover:bg-teal-500/10 transition-colors" />
 
                 {/* Card Preview Area */}
-                <div className="relative h-44 w-full rounded-[1.8rem] bg-slate-50 border border-slate-100 mb-6 overflow-hidden flex items-center justify-center">
+                <div className="relative h-44 w-full rounded-2xl bg-slate-50 border border-slate-100 mb-6 overflow-hidden flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-br from-transparent via-slate-100/50 to-slate-200/20" />
                   <div className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
                     <Globe className="w-8 h-8 text-slate-300 group-hover:text-teal-500 transition-colors" />
@@ -143,7 +164,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
 
                 <div className="px-3 flex-1">
                   <div className="flex justify-between items-start mb-4">
-                    <Badge className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-wider ${ p.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'failed' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                    <Badge className={`rounded-full px-3 py-1 font-bold text-[10px] uppercase tracking-wider ${p.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'failed' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
                       {p.status === 'completed' ? '• Published' : p.status === 'failed' ? '• Failed' : '• Draft'}
                     </Badge>
 
@@ -160,6 +181,11 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                         <DropdownMenuItem onClick={() => navigate(`/portfolio/${p.id}/analytics`)} className="flex gap-3 p-3 rounded-xl focus:bg-slate-50 cursor-pointer">
                           <BarChart3 className="w-4 h-4 text-blue-600" /> <span className="font-semibold">Analytics</span>
                         </DropdownMenuItem>
+                        {p.status === 'completed' && !p.customDomain && (
+                          <DropdownMenuItem onClick={() => handleConnectDomainClick(p)} className="flex gap-3 p-3 rounded-xl focus:bg-slate-50 cursor-pointer">
+                            <Globe className="w-4 h-4 text-teal-600" /> <span className="font-semibold">Connect Domain</span>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator className="my-2" />
                         <DropdownMenuItem onClick={() => setDeleteConfirm(p.id!)} className="flex gap-3 p-3 rounded-xl focus:bg-red-50 text-red-500 focus:text-red-500 cursor-pointer">
                           <Trash2 className="w-4 h-4" /> <span className="font-semibold">Delete</span>
@@ -174,7 +200,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
 
                   <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold mb-6">
                     <MousePointer2 className="w-3 h-3" />
-                    <span>{p.subdomain ? `${p.subdomain}.seeqme.com` : 'No domain assigned'}</span>
+                    <span>{p.customDomain || (p.subdomain ? `${p.subdomain}.seeqme.com` : 'No domain assigned')}</span>
                   </div>
 
                   {/* SUBSTANCE: QUICK STATS */}
@@ -191,9 +217,19 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  <Button onClick={() => onEdit(p)} className="flex-1 h-12 rounded-2xl bg-teal-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">
+                  <Button onClick={() => onEdit(p)} className="flex-1 h-12 rounded-2xl bg-slate-50 text-slate-600 border border-slate-100 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all">
                     Customise
                   </Button>
+                  {p.status === 'completed' && !p.customDomain && (
+                    <Button onClick={() => handleConnectDomainClick(p)} className="flex-1 h-12 rounded-xl bg-teal-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-teal-700 shadow-md shadow-teal-500/10 transition-all">
+                      Connect Domain
+                    </Button>
+                  )}
+                  {p.customDomain && (
+                    <a href={`https://${p.customDomain}`} target="_blank" className="flex-1 flex items-center justify-center gap-2 h-12 rounded-2xl bg-teal-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">
+                      View Live <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -247,6 +283,15 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
           </div>
         )}
       </AnimatePresence>
+
+      {/* CONNECT DOMAIN MODAL */}
+      <ConnectDomainModal
+        isOpen={!!connectDomainPortfolio}
+        onClose={() => setConnectDomainPortfolio(null)}
+        portfolioId={connectDomainPortfolio?.id || ''}
+        portfolioName={connectDomainPortfolio?.name || 'Your Project'}
+        onSuccess={fetchPortfolios}
+      />
     </DashboardLayout>
   );
 };

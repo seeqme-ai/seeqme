@@ -84,7 +84,7 @@ const ChatBot: React.FC = () => {
                 userName: user.fullName,
                 lastMessage: textPayload,
                 lastTimestamp: serverTimestamp(),
-                unreadCount: 0, // Reset for user (admin will increment this if they send)
+                unreadCount: 0,
             });
         } catch (err: any) {
             console.error('Failed to send message:', err);

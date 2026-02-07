@@ -46,13 +46,14 @@ func (w *RetentionWorker) Start(ctx context.Context) {
 
 func (w *RetentionWorker) ProcessRetentionEmails(ctx context.Context) {
 	now := time.Now()
-	// Half-week interval (approx 3.5 days) to ensure max 2 per week
-	notificationThreshold := now.Add(-84 * time.Hour)
+	// Weekly interval (168 hours)
+	notificationThreshold := now.Add(-168 * time.Hour)
 
 	// Find portfolios that are:
 	// 1. Not published
-	// 2. Created at least 24 hours ago (give them some time)
-	// 3. Not notified in the last 3.5 days
+	// 2. Created at least 24 hours ago
+	// 3. Not notified in the last 7 days
+	// 4. Previously edited (UpdatedAt > CreatedAt)
 	filter := bson.M{
 		"isPublished": false,
 		"createdAt":   bson.M{"$lt": now.Add(-24 * time.Hour)},
@@ -61,6 +62,7 @@ func (w *RetentionWorker) ProcessRetentionEmails(ctx context.Context) {
 			{"lastNotifiedAt": nil},
 			{"lastNotifiedAt": bson.M{"$lt": notificationThreshold}},
 		},
+		"$expr": bson.M{"$gt": []interface{}{"$updatedAt", "$createdAt"}},
 	}
 
 	cursor, err := w.db.Collection("portfolios").Find(ctx, filter)

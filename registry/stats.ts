@@ -239,6 +239,20 @@ export const STATS_LARGE_NUMBERS = (content: any) => {
    `;
 };
 
+
+export const STATS_AGENCY_TICKER = (content: any) => `
+    <div data-section="stats" class="bg-black text-white py-8 border-y border-gray-800">
+        <div class="flex flex-wrap justify-around text-center gap-8 px-6">
+            ${(content.stats || []).map((stat: any) => `
+            <div>
+                <div class="text-4xl md:text-5xl font-black text-red-500 mb-1">${stat.value}</div>
+                <div class="text-xs uppercase tracking-widest font-bold text-gray-400">${stat.label}</div>
+            </div>
+            `).join('')}
+        </div>
+    </div>
+`;
+
 export const StatsRegistry: any = {
   STATS_COUNTER_GRID,
   STATS_TIMELINE,
@@ -248,5 +262,6 @@ export const StatsRegistry: any = {
   STATS_ANIMATED_COUNTERS,
   STATS_ICON_CARDS,
   STATS_MINIMAL_INLINE,
-  STATS_LARGE_NUMBERS
+  STATS_LARGE_NUMBERS,
+  STATS_AGENCY_TICKER
 };

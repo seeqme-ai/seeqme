@@ -379,6 +379,68 @@ export const PROJ_OVERLAP_SLOTS = (content: any) => {
    `;
 };
 
+
+export const PROJ_DARK_SASS = (content: any) => `
+    <section class="py-24 px-6 bg-[#0f172a]" id="projects">
+        <div class="max-w-5xl mx-auto">
+             <h2 class="text-3xl font-bold text-white mb-12 border-l-4 border-violet-500 pl-4">${content.title}</h2>
+             <div class="space-y-8">
+                ${(content.projects || []).map((p: any) => `
+                <div class="bg-slate-800 rounded-2xl p-8 border border-slate-700 flex flex-col md:flex-row gap-8 items-center">
+                    <div class="w-full md:w-1/2 aspect-video bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 relative overflow-hidden group text-3xl">
+                         ${p.icon || '🚀'}
+                    </div>
+                    <div class="w-full md:w-1/2">
+                         <div class="text-xs font-bold uppercase text-violet-400 mb-2">${p.tech || ''}</div>
+                         <h3 class="text-2xl font-bold text-white mb-4">${p.title}</h3>
+                         <p class="text-slate-400 text-sm leading-relaxed mb-6">${p.desc || p.description}</p>
+                    </div>
+                </div>
+                `).join('')}
+             </div>
+        </div>
+    </section>
+`;
+
+
+export const PROJ_AGENCY_CASE_STUDY = (content: any) => `
+    <section data-section="projects" class="max-w-7xl mx-auto px-6 py-24 md:py-32" id="results">
+         <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div>
+                <div class="text-red-600 font-bold uppercase tracking-widest text-sm mb-4">Case Studies</div>
+                <h2 class="text-4xl md:text-6xl font-black leading-tight text-gray-900" data-field="proj-title">
+                    ${content.title || 'Proof is in<br/>the numbers.'}
+                </h2>
+            </div>
+            <p class="text-lg text-gray-500 max-w-sm" data-field="proj-desc">
+                ${content.desc || "I don't just make things look pretty. I focus on ROI, community growth, and tangible business outcomes."}
+            </p>
+         </div>
+         
+         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            ${(content.projects || []).map((project: any) => `
+            <div class="group bg-gray-50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div class="relative h-64 overflow-hidden">
+                    <img src="${project.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 text-xs font-bold rounded-full text-red-600">
+                        ${project.metric}
+                    </div>
+                </div>
+                <div class="p-8">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">${project.client}</div>
+                    <h3 class="text-2xl font-bold mb-4 group-hover:text-red-600 transition-colors">${project.title}</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">${project.desc}</p>
+                    <div class="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between text-xs font-bold uppercase">
+                        <span>Read Case Study</span>
+                        <span class="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center group-hover:bg-red-600 transition-colors">&rarr;</span>
+                    </div>
+                </div>
+            </div>
+            `).join('')}
+         </div>
+    </section>
+`;
+
 export const ProjectRegistry: any = {
    PROJ_BENTO_GRID,
    PROJ_MINIMAL_CARDS,
@@ -392,6 +454,8 @@ export const ProjectRegistry: any = {
    PROJ_TIMELINE_VERTICAL,
    PROJ_3D_PERSPECTIVE,
    PROJ_LIST_PREVIEW,
-   PROJ_OVERLAP_SLOTS
+   PROJ_OVERLAP_SLOTS,
+   PROJ_DARK_SASS,
+   PROJ_AGENCY_CASE_STUDY
 };
 

@@ -198,6 +198,37 @@ export const FOOTER_BRAND_FOCUS = (content: any) => `
   </footer>
 `;
 
+
+export const FOOTER_DARK_SASS = (content: any) => `
+     <footer class="py-12 px-6 bg-[#0f172a] text-center text-slate-600 text-xs font-mono border-t border-slate-800">
+         <a href="mailto:${content.footerEmail || content.email}" class="block mb-8 text-xl text-slate-400 hover:text-cyan-400 transition-colors">${content.footerEmail || content.email}</a>
+         <h3 class="font-bold text-white mb-4 text-sm">${content.footerHeading || content.name || 'SYSTEM'}</h3>
+        <p>${content.copyright || `© ${new Date().getFullYear()} ${content.name || 'SYSTEM'}. ALL RIGHTS RESERVED.`}</p>
+     </footer>
+`;
+
+export const FOOTER_AGENCY_BOLD = (content: any) => `
+    <footer data-section="footer" class="bg-black text-white py-16 px-6 text-center">
+         <h2 class="text-4xl md:text-6xl font-black mb-8" data-field="cta-text">${content.ctaText || 'Ready to grow?'}</h2>
+         <a href="mailto:${content.email}" target="_blank" rel="noopener" class="text-2xl md:text-4xl text-red-500 hover:text-white transition-colors underline decoration-2 underline-offset-8" data-field="email">${content.email}</a>
+         
+         <div class="flex justify-center gap-8 mt-12 text-2xl">
+            ${(content.socials || []).map((social: any) => `
+            <a href="${social.url}" target="_blank" rel="noopener" class="hover:text-red-500"><i class="${social.icon}"></i></a>
+            `).join('')}
+         </div>
+         <div class="mt-16 text-gray-600 text-sm uppercase tracking-widest" data-field="copyright">
+            &copy; ${content.year || new Date().getFullYear()} ${content.copyright || 'All rights reserved'}.
+         </div>
+    </footer>
+`;
+
+export const FOOTER_MINIMAL_SIMPLE = (content: any) => `
+    <footer data-section="footer" class="py-12 text-center text-xs text-stone-400 bg-stone-900 border-t border-stone-800">
+        <p>&copy; ${content.year || new Date().getFullYear()} ${content.copyright || 'All rights reserved'}. All rights reserved.</p>
+    </footer>
+`;
+
 export const FooterRegistry: any = {
   FOOTER_MINIMAL,
   FOOTER_SOCIAL_HEAVY,
@@ -206,5 +237,8 @@ export const FooterRegistry: any = {
   FOOTER_STICKY_CTA,
   FOOTER_DARK_DETAILED,
   FOOTER_SINGLE_LINE,
-  FOOTER_BRAND_FOCUS
+  FOOTER_BRAND_FOCUS,
+  FOOTER_DARK_SASS,
+  FOOTER_AGENCY_BOLD,
+  FOOTER_MINIMAL_SIMPLE
 };

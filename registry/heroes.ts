@@ -711,6 +711,136 @@ export const HERO_GRID_PORTRAIT = (content: any) => `
    </section>
 `;
 
+
+
+export const HERO_AGENCY_VIBRANT = (content: any) => `
+    <section data-section="hero" class="min-h-screen grid grid-cols-1 md:grid-cols-2">
+        <div class="flex flex-col justify-center px-8 md:px-24 order-2 md:order-1 py-16 md:py-0">
+             <div class="inline-flex items-center gap-2 mb-8 bg-black/5 w-fit px-4 py-1 rounded-full">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-xs font-bold tracking-widest uppercase text-gray-600" data-field="hero-availability">${content.availability || 'Open for Clients'}</span>
+             </div>
+             <h1 class="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight" data-field="hero-heading">
+                ${content.heading || 'I TURN<br/><span class="text-red-500">ATTENTION</span><br/>INTO REVENUE.'}
+             </h1>
+             <p class="text-lg md:text-xl text-gray-500 max-w-md mb-12 leading-relaxed font-medium" data-field="hero-bio">
+                ${content.bio || 'Digital alchemist transforming ideas into gold.'}
+             </p>
+             <div class="flex flex-col md:flex-row gap-6">
+                <a href="${content.ctaPrimaryLink || '#packages'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 bg-black text-white font-bold hover:bg-red-600 transition-colors uppercase tracking-wider text-sm text-center">
+                    ${content.ctaPrimaryText || 'View Packages'}
+                </a>
+                 <a href="${content.ctaSecondaryLink || '#results'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 border-2 border-black text-black font-bold hover:bg-black hover:text-white transition-colors uppercase tracking-wider text-sm text-center">
+                    ${content.ctaSecondaryText || 'See Results'}
+                </a>
+             </div>
+             <div class="mt-12 flex gap-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all">
+                <span class="font-bold">Trusted by:</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2560px-Google_2015_logo.svg.png" class="h-6" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-4" />
+             </div>
+        </div>
+        <div class="relative order-1 md:order-2 h-[50vh] md:h-auto overflow-hidden">
+             <img src="${content.image}" class="w-full h-full object-cover transition-transform duration-1000 hover:scale-105" data-field="hero-image" />
+             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent md:hidden"></div>
+             <div class="absolute bottom-8 left-8 text-white z-10 md:hidden">
+                <div class="text-4xl font-black">${content.name || 'Agency'}</div>
+             </div>
+        </div>
+    </section>
+`;
+
+export const HERO_MINIMAL_CREATOR = (content: any) => `
+    <section data-section="hero" class="min-h-screen flex items-center justify-center bg-[#fafaf9] px-6 py-20">
+        <div class="max-w-4xl text-center">
+            <div class="w-32 h-32 mx-auto rounded-full overflow-hidden mb-8 border-4 border-white shadow-lg">
+                <img src="${content.image}" class="w-full h-full object-cover" data-field="hero-image" />
+            </div>
+            <h1 class="text-4xl md:text-6xl font-serif text-stone-900 mb-6 italic" data-field="hero-tagline">
+                ${content.tagline || 'Your Chaos,<br/>Managed.'}
+            </h1>
+            <p class="text-lg md:text-xl text-stone-600 mb-10 max-w-lg mx-auto leading-relaxed" data-field="hero-bio">
+                ${content.bio}
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#services" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-3 bg-stone-900 text-white rounded-full font-bold hover:bg-stone-700 transition-colors shadow-lg">View Services</a>
+                <a href="#contact" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-3 bg-white text-stone-900 border border-stone-200 rounded-full font-bold hover:border-stone-400 transition-colors">Book Discovery Call</a>
+            </div>
+            
+            ${content.availability ? `
+            <div class="mt-16 flex items-center justify-center gap-2 text-sm text-stone-500">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                ${content.availability}
+            </div>
+            ` : ''}
+        </div>
+    </section>
+`;
+
+export const HERO_MINIMALIST_CREATOR = (content: any) => `
+    <section data-section="hero" class="min-h-screen pt-20 flex items-center bg-[var(--background)] px-6">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+            <div class="order-2 md:order-1 space-y-8">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)] mb-6">${content.statusTag || 'Available'}</p>
+                    <h1 class="text-5xl md:text-7xl font-serif text-[var(--heading)] mb-8 leading-tight" data-field="hero-name">
+                        ${content.name || 'Your Name'}
+                    </h1>
+                    <p class="text-lg text-[var(--text)]/80 mb-10 max-w-md leading-relaxed" data-field="hero-tagline">
+                        ${content.heroTagline || content.bio || ''}
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <a href="${content.cta?.link || '#services'}" class="px-8 py-3 bg-[var(--heading)] text-[var(--background)] font-bold text-sm uppercase tracking-wider hover:bg-[var(--primary)] transition-colors rounded-sm shadow-lg" data-field="hero-ctaText">
+                        ${content.cta?.text || 'Explore Work'}
+                    </a>
+                    <a href="#contact" class="px-8 py-3 bg-transparent border border-[var(--primary)] text-[var(--text)] font-bold text-sm uppercase tracking-wider hover:border-[var(--heading)] hover:text-[var(--heading)] transition-colors rounded-sm">
+                        Speak with Me
+                    </a>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--text)]/40">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Currently Accepting Projects
+                </div>
+            </div>
+            <div class="order-1 md:order-2 relative aspect-[3/4] md:aspect-square w-full">
+                <div class="absolute inset-0 bg-[var(--primary)]/5 -rotate-3 rounded-sm"></div>
+                <img src="${content.image || content.avatarImage}" class="relative z-10 w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-700 rounded-sm shadow-2xl" data-field="hero-image" />
+            </div>
+        </div>
+    </section>
+`;
+
+export const HERO_DARK_SASS = (content: any) => `
+    <section data-section="hero" class="min-h-screen flex items-center justify-center bg-[#0f172a] text-white px-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
+             <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-violet-600/20 blur-[120px] rounded-full"></div>
+             <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-cyan-600/20 blur-[120px] rounded-full"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-4xl text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-cyan-400 mb-8 hover:bg-slate-700 transition-colors cursor-pointer">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                ${content.statusTag || 'System Active'}
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight" data-field="hero-name">
+                ${content.name || 'Digital Systems Architect'}
+            </h1>
+            <p class="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed" data-field="hero-tagline">
+                ${content.heroTagline || content.bio || 'I build the systems that run your business.'}
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                 <a href="${content.cta?.link || '#services'}" class="px-8 py-4 bg-violet-600 text-white rounded-lg font-bold hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/25" data-field="hero-ctaText">
+                    ${content.cta?.text || 'Explore Automations'}
+                 </a>
+                 <a href="#projects" class="px-8 py-4 bg-slate-800 text-white border border-slate-700 rounded-lg font-bold hover:bg-slate-700 transition-all">
+                    View Portfolio
+                 </a>
+            </div>
+        </div>
+    </section>
+`;
+
 export const HeroRegistry: any = {
    HERO_MODERN_SPLIT,
    HERO_CENTERED_MINIMAL,
@@ -736,7 +866,9 @@ export const HeroRegistry: any = {
    HERO_PHOTO_MOSAIC,
    HERO_GLITCH_TEXT,
    HERO_SMOOTH_SWEEP,
-   HERO_GRID_PORTRAIT
+   HERO_GRID_PORTRAIT,
+   HERO_AGENCY_VIBRANT,
+   HERO_MINIMAL_CREATOR,
+   HERO_MINIMALIST_CREATOR,
+   HERO_DARK_SASS
 };
-
-

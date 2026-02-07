@@ -1,38 +1,45 @@
-
+import { HeaderRegistry } from './headers';
 import { HeroRegistry } from './heroes';
+import { AboutRegistry } from './about';
+import { ExperienceRegistry } from './experience';
 import { ProjectRegistry } from './projects';
-import { ExperienceRegistry, SkillsRegistry } from './experience_skills';
-import { AboutRegistry, ContactRegistry, TestimonialRegistry } from './about_contact';
+import { SkillsRegistry } from './skills';
+import { TestimonialRegistry } from './testimonials';
+import { ContactRegistry } from './contact';
 import { FooterRegistry } from './footers';
 import { CTARegistry } from './cta';
 import { StatsRegistry } from './stats';
-import { HighEndRegistry } from './high_end';
-import { AgencyMinimalRegistry } from './agency_minimal';
+import { ServicesRegistry } from './services';
 import { TypographicRegistry } from './typographic';
+import { LogoRegistry } from './logos';
+import { PricingRegistry } from './pricing';
+import { FAQRegistry } from './faq';
+import { ProcessRegistry } from './process';
+import { GalleryRegistry } from './gallery';
+import { TeamRegistry } from './team';
 
-export const Registry: any = {
+export type RegistryComponent = (content: any) => string;
+
+export const Registry: Record<string, RegistryComponent> = {
+    ...HeaderRegistry,
     ...HeroRegistry,
-    ...ProjectRegistry,
-    ...ExperienceRegistry,
-    ...SkillsRegistry,
     ...AboutRegistry,
-    ...ContactRegistry,
+    ...ExperienceRegistry,
+    ...ProjectRegistry,
+    ...SkillsRegistry,
     ...TestimonialRegistry,
+    ...ContactRegistry,
     ...FooterRegistry,
     ...CTARegistry,
     ...StatsRegistry,
-    ...HighEndRegistry,
-    ...AgencyMinimalRegistry,
+    ...ServicesRegistry,
     ...TypographicRegistry,
-
-    // Add direct lookups for consistency
-    SERVICES_GLOW_GRID: HighEndRegistry.SERVICES_GLOW_GRID,
-    PRICING_MODERN_TIERS: HighEndRegistry.PRICING_MODERN_TIERS,
-    FAQ_ACCORDION_NEON: HighEndRegistry.FAQ_ACCORDION_NEON,
-    LOGOS_STRIP_CLEAN: HighEndRegistry.LOGOS_STRIP_CLEAN,
-    PROCESS_STEPS_VERTICAL: HighEndRegistry.PROCESS_STEPS_VERTICAL,
-    GALLERY_MASONRY_GLASS: HighEndRegistry.GALLERY_MASONRY_GLASS,
-    TEAM_GRID_EDITORIAL: HighEndRegistry.TEAM_GRID_EDITORIAL,
+    ...LogoRegistry,
+    ...PricingRegistry,
+    ...FAQRegistry,
+    ...ProcessRegistry,
+    ...GalleryRegistry,
+    ...TeamRegistry,
 
     HERO_MODERN_SPLIT: HeroRegistry.HERO_MODERN_SPLIT,
     HERO_CENTERED_MINIMAL: HeroRegistry.HERO_CENTERED_MINIMAL,

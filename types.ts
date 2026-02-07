@@ -33,6 +33,7 @@ export interface PortfolioData {
   id: string;
   portfolioId?: string;
   name: string;
+  title?: string;
   html: string;
   css: string;
   js: string;
@@ -66,6 +67,7 @@ export interface Template {
 export interface Portfolio {
   id?: string;
   name: string;
+  title?: string;
   niche?: string;
   status?: 'draft' | 'completed' | 'failed';
   subdomain?: string;
@@ -75,6 +77,7 @@ export interface Portfolio {
   css?: string;
   js?: string;
   structuredContent?: any;
+  customDomain?: string;
 }
 
 export enum LayoutType {

@@ -26,7 +26,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'header',
             type: 'header',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'HEADER_MINIMALIST_CREATOR',
             template: `
                 <header class="fixed top-0 left-0 right-0 z-50 bg-[#fafaf9] border-b border-[#e7e5e4] transition-all duration-300" id="main-header">
                     <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -107,7 +107,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'hero',
             type: 'hero',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'HERO_MINIMALIST_CREATOR',
             template: `
                 <section class="min-h-screen pt-20 flex items-center bg-[#fafaf9] px-6">
                     <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -150,7 +150,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'trust-bar',
             type: 'logos',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'LOGOS_MINIMAL_TRUST',
             template: `
                 <section class="py-12 bg-[#fafaf9] border-y border-[#e7e5e4]">
                     <div class="max-w-6xl mx-auto px-6 text-center">
@@ -171,7 +171,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'problems',
             type: 'about',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'ABOUT_MINIMAL_PROBLEMS',
             template: `
                 <section class="py-24 bg-[#fafaf9] px-6" id="about">
                     <div class="max-w-4xl mx-auto text-center">
@@ -201,7 +201,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'services',
             type: 'services',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'SERVICES_MINIMAL_LIST',
             template: `
                 <section class="py-24 bg-[#f5f5f4] px-6" id="services">
                     <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
@@ -237,7 +237,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'about-me',
             type: 'about',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'ABOUT_MINIMAL_BIO',
             template: `
                  <section class="py-24 bg-[#fafaf9] px-6">
                     <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12">
@@ -262,7 +262,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'contact',
             type: 'contact',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'CONTACT_MINIMAL_SIMPLE',
             template: `
                 <section class="py-24 bg-[#f5f5f4] px-6 text-center" id="contact">
                     <div class="max-w-2xl mx-auto">
@@ -316,7 +316,7 @@ export const MINIMALIST_CREATOR: Manifest = {
         {
             id: 'footer',
             type: 'footer',
-            componentId: 'GEN_TEMPLATE',
+            componentId: 'FOOTER_MINIMAL_SIMPLE',
             template: `
                  <footer class="py-12 px-6 bg-[#fafaf9] text-center text-[#a8a29e] text-xs uppercase tracking-widest border-t border-[#e7e5e4]">
                      <a href="mailto:{{footerEmail}}" class="block mb-6 hover:text-[#44403c] transition-colors lowercase font-serif italic text-lg tracking-normal">{{footerEmail}}</a>

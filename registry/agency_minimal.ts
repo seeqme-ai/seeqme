@@ -1,43 +1,4 @@
 
-// AGENCY VYSION COMPONENTS
-
-export const HERO_AGENCY_VIBRANT = (content: any) => `
-    <section data-section="hero" class="min-h-screen grid grid-cols-1 md:grid-cols-2">
-        <div class="flex flex-col justify-center px-8 md:px-24 order-2 md:order-1 py-16 md:py-0">
-             <div class="inline-flex items-center gap-2 mb-8 bg-black/5 w-fit px-4 py-1 rounded-full">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span class="text-xs font-bold tracking-widest uppercase text-gray-600" data-field="hero-availability">${content.availability || 'Open for Clients'}</span>
-             </div>
-             <h1 class="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight" data-field="hero-heading">
-                ${content.heading || 'I TURN<br/><span class="text-red-500">ATTENTION</span><br/>INTO REVENUE.'}
-             </h1>
-             <p class="text-lg md:text-xl text-gray-500 max-w-md mb-12 leading-relaxed font-medium" data-field="hero-bio">
-                ${content.bio || 'Digital alchemist transforming ideas into gold.'}
-             </p>
-             <div class="flex flex-col md:flex-row gap-6">
-                <a href="${content.ctaPrimaryLink || '#packages'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 bg-black text-white font-bold hover:bg-red-600 transition-colors uppercase tracking-wider text-sm text-center">
-                    ${content.ctaPrimaryText || 'View Packages'}
-                </a>
-                 <a href="${content.ctaSecondaryLink || '#results'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 border-2 border-black text-black font-bold hover:bg-black hover:text-white transition-colors uppercase tracking-wider text-sm text-center">
-                    ${content.ctaSecondaryText || 'See Results'}
-                </a>
-             </div>
-             <div class="mt-12 flex gap-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all">
-                <span class="font-bold">Trusted by:</span>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2560px-Google_2015_logo.svg.png" class="h-6" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-4" />
-             </div>
-        </div>
-        <div class="relative order-1 md:order-2 h-[50vh] md:h-auto overflow-hidden">
-             <img src="${content.image}" class="w-full h-full object-cover transition-transform duration-1000 hover:scale-105" data-field="hero-image" />
-             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent md:hidden"></div>
-             <div class="absolute bottom-8 left-8 text-white z-10 md:hidden">
-                <div class="text-4xl font-black">${content.name || 'Agency'}</div>
-             </div>
-        </div>
-    </section>
-`;
-
 export const STATS_AGENCY_TICKER = (content: any) => `
     <div data-section="stats" class="bg-black text-white py-8 border-y border-gray-800">
         <div class="flex flex-wrap justify-around text-center gap-8 px-6">
@@ -176,35 +137,6 @@ export const FOOTER_AGENCY_BOLD = (content: any) => `
     </footer>
 `;
 
-// MINIMALIST CREATOR COMPONENTS
-
-export const HERO_MINIMAL_CREATOR = (content: any) => `
-    <section data-section="hero" class="min-h-screen flex items-center justify-center bg-[#fafaf9] px-6 py-20">
-        <div class="max-w-4xl text-center">
-            <div class="w-32 h-32 mx-auto rounded-full overflow-hidden mb-8 border-4 border-white shadow-lg">
-                <img src="${content.image}" class="w-full h-full object-cover" data-field="hero-image" />
-            </div>
-            <h1 class="text-4xl md:text-6xl font-serif text-stone-900 mb-6 italic" data-field="hero-tagline">
-                ${content.tagline || 'Your Chaos,<br/>Managed.'}
-            </h1>
-            <p class="text-lg md:text-xl text-stone-600 mb-10 max-w-lg mx-auto leading-relaxed" data-field="hero-bio">
-                ${content.bio}
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#services" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-3 bg-stone-900 text-white rounded-full font-bold hover:bg-stone-700 transition-colors shadow-lg">View Services</a>
-                <a href="#contact" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-3 bg-white text-stone-900 border border-stone-200 rounded-full font-bold hover:border-stone-400 transition-colors">Book Discovery Call</a>
-            </div>
-            
-            ${content.availability ? `
-            <div class="mt-16 flex items-center justify-center gap-2 text-sm text-stone-500">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                ${content.availability}
-            </div>
-            ` : ''}
-        </div>
-    </section>
-`;
-
 export const LOGOS_MINIMAL_TRUST = (content: any) => `
     <section data-section="logos" class="py-12 border-y border-stone-200 bg-white">
         <p class="text-center text-xs font-bold uppercase tracking-widest text-stone-400 mb-6">As seen in / Tools</p>
@@ -216,24 +148,6 @@ export const LOGOS_MINIMAL_TRUST = (content: any) => `
     </section>
 `;
 
-export const ABOUT_MINIMAL_PROBLEMS = (content: any) => `
-    <section data-section="about" class="py-24 px-6 bg-[#fafaf9]">
-        <div class="max-w-3xl mx-auto">
-            <h2 class="text-3xl font-serif text-center mb-16 italic" data-field="prob-heading">${content.heading || 'Do you feel like...'}</h2>
-            <div class="space-y-6">
-                ${content.problems?.map((p: any) => `
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-stone-800 flex items-start gap-4">
-                    <span class="text-2xl shrink-0"><i class="${p.icon}"></i></span>
-                    <p class="text-stone-700">${p.text}</p>
-                </div>
-                `).join('') || ''}
-            </div>
-            <div class="text-center mt-12 font-bold text-lg text-stone-900" data-field="prob-solution">
-                ${content.solution || 'I can fix that.'}
-            </div>
-        </div>
-    </section>
-`;
 
 export const SERVICES_MINIMAL_LIST = (content: any) => `
     <section data-section="services" class="py-24 px-6 bg-stone-900 text-stone-100" id="services">
@@ -260,30 +174,6 @@ export const SERVICES_MINIMAL_LIST = (content: any) => `
     </section>
 `;
 
-export const ABOUT_MINIMAL_BIO = (content: any) => `
-    <section data-section="about" class="py-24 px-6 max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12">
-         <div class="md:w-1/2 w-full">
-            <img src="${content.image}" class="w-full h-auto rounded-lg shadow-xl rotate-2 hover:rotate-0 transition-transform duration-500" data-field="bio-image" />
-         </div>
-         <div class="md:w-1/2">
-            <h2 class="text-3xl font-serif italic mb-6" data-field="bio-heading">Hi, I'm ${content.name || 'Alex'}.</h2>
-            <p class="text-stone-600 mb-6 leading-relaxed" data-field="bio-p1">
-                ${content.bio1 || "I execute on the details that others miss. With a background in precision engineering and a passion for minimal design, I build systems that scale."}
-            </p>
-            <p class="text-stone-600 mb-8 leading-relaxed" data-field="bio-p2">
-                ${content.bio2 || "My work is defined by subtraction, not addition. I believe in the power of less."}
-            </p>
-             <div class="grid grid-cols-2 gap-4 text-center">
-                ${content.stats?.map((s: any) => `
-                <div class="bg-stone-100 p-4 rounded-lg">
-                    <div class="font-bold text-2xl text-stone-800">${s.value}</div>
-                    <div class="text-xs uppercase text-stone-500">${s.label}</div>
-                </div>
-                `).join('') || ''}
-            </div>
-         </div>
-    </section>
-`;
 
 export const PRICING_MINIMAL_CARDS = (content: any) => `
     <section data-section="pricing" class="py-24 px-6 bg-white border-t border-stone-100">
@@ -348,18 +238,14 @@ export const FOOTER_MINIMAL_SIMPLE = (content: any) => `
 `;
 
 export const AgencyMinimalRegistry = {
-    HERO_AGENCY_VIBRANT,
     STATS_AGENCY_TICKER,
     PROJ_AGENCY_CASE_STUDY,
     SERVICES_AGENCY_GRID,
     TESTIMONIALS_AGENCY_QUOTES,
     SKILLS_AGENCY,
     FOOTER_AGENCY_BOLD,
-    HERO_MINIMAL_CREATOR,
     LOGOS_MINIMAL_TRUST,
-    ABOUT_MINIMAL_PROBLEMS,
     SERVICES_MINIMAL_LIST,
-    ABOUT_MINIMAL_BIO,
     PRICING_MINIMAL_CARDS,
     TESTIMONIALS_MINIMAL_SINGLE,
     CONTACT_MINIMAL_SIMPLE,
