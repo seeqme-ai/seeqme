@@ -1160,7 +1160,7 @@ const PortfolioBuilder: React.FC = () => {
               <span>
                 {status === 'deploying'
                   ? 'Publishing'
-                  : (data && !data.id.startsWith('portfolio-') ? 'Redeploy' : 'Publish')}
+                  : (data && !data.id.startsWith('portfolio-') && (data as any).url ? 'Redeploy' : 'Publish')}
               </span>
             </button>
           </div>

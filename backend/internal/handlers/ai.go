@@ -450,14 +450,26 @@ func (h *Handler) GenerateCode(c *gin.Context) {
 		return
 	}
 
-	prompt := `Act as a Senior Identity Designer. Generate complete HTML, CSS, and JavaScript code for this portfolio structure.
+	// --- Design Persona Injection ---
+	personas := []string{
+		"Create a **Swiss International Style** portfolio. Focus on: Grid systems, asymmetric layouts, sans-serif typography (Helvetica/Inter), negative space, and high contrast. Use a strict typographic hierarchy.",
+		"Create a **Neo-Brutalism** style portfolio. Focus on: Bold layouts, high-contrast borders, raw aesthetics, vibrant (almost clashing) accent colors, and large typography. Use shadows and outlines explicitly.",
+		"Create a **Minimalist Luxury** style portfolio. Focus on: Sophisticated simplicity, serif headings (Playfair Display), plentiful whitespace, muted/monochrome color palette with gold/silver accents, and subtle micro-animations.",
+		"Create a **Glassmorphism & Gradient** style portfolio. Focus on: Translucency, frosted glass effects, vibrant background blurs, rounded cards, and modern sans-serif fonts. Give it a futuristic, tech-forward feel.",
+		"Create a **Magazine / Editorial** style portfolio. Focus on: Large imagery, interesting text wrapping, strong headlines, and a layout that feels like a high-end fashion or design magazine. Mix serif and sans-serif fonts.",
+	}
+	// Simple random selection based on time
+	selectedPersona := personas[time.Now().UnixNano()%int64(len(personas))]
+
+	prompt := fmt.Sprintf(`Act as a Senior Identity Designer. %s
+Generate complete HTML, CSS, and JavaScript code for this portfolio structure.
 Use PLACEHOLDER TAGS (e.g. {HERO_NAME}, {PROJ_LIST}, {EXP_LIST}) instead of hardcoded text.
 Follow these rules:
-1. High-fidelity, professional aesthetics.
+1. High-fidelity, professional aesthetics matching the persona.
 2. Flawless dark/light mode color wisdom.
-3. Google Fonts (Outfit/Inter) and FontAwesome icons (no emojis).
+3. Google Fonts (Outfit/Inter/Playfair) and FontAwesome icons (no emojis).
 4. Flawless responsiveness.
-Structure: ` + string(structuredContentJSON)
+Structure: %s`, selectedPersona, string(structuredContentJSON))
 
 	if req.PortfolioID != "" {
 		websocket.BroadcastToPortfolio(req.PortfolioID, "portfolio_log", gin.H{
