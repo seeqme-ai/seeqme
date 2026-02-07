@@ -73,9 +73,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           lg:translate-x-0 lg:static shadow-xl lg:shadow-none`}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center h-20 px-4 border-b border-border/50">
+        <div className={`flex items-center h-20 px-4 border-b border-border/50 ${!isSidebarOpen && 'justify-center'}`}>
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-           
+
             <img
               src="/seeqme-logo-black.png"
               alt="SeeQMe"
@@ -95,6 +95,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               to={item.path}
               onClick={() => setIsMobileSidebarOpen(false)}
               className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all relative group
+                      ${!isSidebarOpen ? 'justify-center' : ''}
                       ${isActive(item.path)
                   ? 'bg-teal-500/10 text-teal-600 shadow-sm'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
@@ -146,7 +147,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               <HamburgerMenuIcon className="h-6 w-6" />
             </Button>
             <div className="flex items-center gap-3">
-             
+
               <img
                 src="/seeqme-logo-black.png"
                 alt="SeeQMe"

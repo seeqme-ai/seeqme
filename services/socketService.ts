@@ -1,4 +1,4 @@
-const WS_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').replace('/api/v1', '').replace('http', 'ws') + '/ws';
+const WS_URL =  'https://seeqme.com/api/v1'.replace('/api/v1', '').replace('http', 'ws') + '/ws';
 
 class SocketService {
     private socket: WebSocket | null = null;
