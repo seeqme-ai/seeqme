@@ -653,7 +653,11 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	// Analytics Tracking Script
 	backendURL := h.Config.BackendURL
-	trackingScript := fmt.Sprintf(`
+	var trackingScript string
+
+	// Skip analytics on localhost to prevent "Allow Local Network Access" prompts and Mixed Content errors
+	if !strings.Contains(backendURL, "localhost") && !strings.Contains(backendURL, "127.0.0.1") {
+		trackingScript = fmt.Sprintf(`
 (function() {
     try {
         const payload = {
@@ -674,6 +678,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
         }
     } catch(e) {}
 })();`, portfolioID, backendURL, backendURL)
+	}
 	// Construct the final title for the HTML document
 	var finalDocTitle string
 	if heroTitle != "" {

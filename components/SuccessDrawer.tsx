@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ICONS } from '../constants';
 import { Activity, Check, Cloud, Copy, Cpu, ExternalLink, Loader, Github, Globe, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
+import Confetti from 'react-confetti';
 
 interface SuccessDrawerProps {
     isOpen: boolean;
@@ -44,17 +44,6 @@ const DynamicLoadingText = () => {
 const SuccessDrawer: React.FC<SuccessDrawerProps> = ({ isOpen, onClose, url, domain, status, logs = [] }) => {
     const isSuccess = status === 'completed';
 
-    useEffect(() => {
-        if (isSuccess) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#14b8a6', '#0d9488', '#0f766e', '#ffffff']
-            });
-        }
-    }, [isSuccess]);
-
     const handleShare = async () => {
         const finalUrl = url || `https://${domain}`;
         if (navigator.share) {
@@ -77,6 +66,19 @@ const SuccessDrawer: React.FC<SuccessDrawerProps> = ({ isOpen, onClose, url, dom
         <AnimatePresence>
             {isOpen && (
                 <>
+                    {/* Confetti Rain */}
+                    {isSuccess && (
+                        <div className="fixed inset-0 z-[10001] pointer-events-none">
+                            <Confetti
+                                width={window.innerWidth}
+                                height={window.innerHeight}
+                                recycle={true}
+                                numberOfPieces={200}
+                                gravity={0.2}
+                            />
+                        </div>
+                    )}
+
                     {/* Backdrop */}
                     <MotionDiv
                         initial={{ opacity: 0 }}
