@@ -743,36 +743,36 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>%%s</title>
-	<meta name="description" content="%%s">
-	<link rel="canonical" href="%%s/">
+	<title>%s</title>
+	<meta name="description" content="%s">
+	<link rel="canonical" href="%s/">
 	<meta property="og:type" content="website">
-	<meta property="og:url" content="%%s/">
-	<meta property="og:title" content="%%s">
-	<meta property="og:description" content="%%s">
-	<meta property="og:image" content="%%s">
+	<meta property="og:url" content="%s/">
+	<meta property="og:title" content="%s">
+	<meta property="og:description" content="%s">
+	<meta property="og:image" content="%s">
 	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:url" content="%%s/">
-	<meta name="twitter:title" content="%%s">
-	<meta name="twitter:description" content="%%s">
-	<meta name="twitter:image" content="%%s">
-	<link rel="icon" href="%%s">
-	<link rel="apple-touch-icon" href="%%s">
-%%s
+	<meta name="twitter:url" content="%s/">
+	<meta name="twitter:title" content="%s">
+	<meta name="twitter:description" content="%s">
+	<meta name="twitter:image" content="%s">
+	<link rel="icon" href="%s">
+	<link rel="apple-touch-icon" href="%s">
+%s
 	<script type="application/ld+json">
-	%%s
+	%s
 	</script>
 	<script src="https://cdn.tailwindcss.com"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 	<style>
 		body { font-family: 'Space Grotesk', sans-serif; }
-		%%s
+		%s
 	</style>
 </head>
 <body>
-	%%s
-	<script>%%s</script>
-    <script>%%s</script>
+	%s
+	<script>%s</script>
+    <script>%s</script>
 </body>
 </html>`,
 		finalDocTitle, finalDescription, fullURL,

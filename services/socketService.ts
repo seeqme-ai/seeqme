@@ -8,6 +8,8 @@ class SocketService {
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
 
+    private messageQueue: any[] = [];
+
     connect(token?: string, userId?: string) {
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) return;
         this.socket = new WebSocket(WS_URL);
@@ -16,6 +18,12 @@ class SocketService {
             console.log('✅ Connected to Seeqme Engine Socket');
             this.reconnectAttempts = 0;
             if (userId) this.subscribeToUser(userId);
+
+            // Flush queued messages
+            while (this.messageQueue.length > 0) {
+                const payload = this.messageQueue.shift();
+                this.send(payload);
+            }
         };
 
         this.socket.onmessage = (event) => {
@@ -66,6 +74,9 @@ class SocketService {
     private send(payload: any) {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(payload));
+        } else if (this.socket?.readyState === WebSocket.CONNECTING) {
+            console.log('⏳ Socket connecting, queuing message:', payload);
+            this.messageQueue.push(payload);
         } else {
             console.error('🚫 Socket not open. Cannot send:', payload);
         }
