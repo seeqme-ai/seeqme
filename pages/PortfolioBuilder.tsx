@@ -703,6 +703,10 @@ const PortfolioBuilder: React.FC = () => {
 
       // 3. Now trigger the deployment (WebSocket is already listening)
       addLog(`Broadcasting to ${subdomain}.seeqme.com...`, 'info');
+
+      // Allow time for WS subscription to propagate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       if (useSubdomain) {
         await deploymentService.deployPortfolio(portfolioId, subdomain);
       } else if (customDomain) {

@@ -58,7 +58,7 @@ func (o *Orchestrator) Deploy(projectName, domain, srcDir, userEmail string, str
 	// Push static files to the GitHub repository.
 	// This triggers a new deployment on Cloudflare Pages if integrated.
 	statusUpdate := func(msg string) {
-		streamLog(fmt.Sprintf("GitHub Push Status: %s", msg), "info")
+		streamLog(fmt.Sprintf("Source Control Sync: %s", msg), "info")
 	}
 	if err := o.github.PushFiles(repoURL, projectName, srcDir, gitTempDir, userEmail, statusUpdate); err != nil {
 		return "", fmt.Errorf("github push failed: %v", err)
@@ -68,29 +68,30 @@ func (o *Orchestrator) Deploy(projectName, domain, srcDir, userEmail string, str
 	// Links the GitHub repository to Cloudflare for continuous deployment.
 	if err := o.cloudflare.CreateProject(projectName, o.config.GitHubOwner, projectName); err != nil {
 		if !strings.Contains(err.Error(), "409") {
-			return "", fmt.Errorf("cloudflare project creation failed: %v", err)
+			return "", fmt.Errorf("project creation failed: %v", err)
 		}
 		o.log.Infof("Cloudflare project %s already exists, skipping creation", projectName)
 	}
 
 	//  Add custom domain.
 	if err := o.cloudflare.AddDomain(projectName, domain); err != nil {
-		if !strings.Contains(err.Error(), "409") {
-			return "", fmt.Errorf("cloudflare domain assignment failed: %v", err)
+		// Code 8000018: "You have already added this custom domain" (Status 400)
+		if !strings.Contains(err.Error(), "409") && !strings.Contains(err.Error(), "8000018") && !strings.Contains(err.Error(), "already added") {
+			return "", fmt.Errorf("domain assignment failed: %v", err)
 		}
 		o.log.Infof("Cloudflare domain %s already assigned to %s", domain, projectName)
 	}
 
 	//  Trigger initial deployment.
 	// Cloudflare Pages doesn't always auto-deploy on initial project creation via API.
-	streamLog("Triggering initial deployment build...", "info")
+	streamLog("Initializing global deployment network...", "info")
 	if err := o.cloudflare.CreateDeployment(projectName); err != nil {
 		o.log.Warnf("Failed to trigger initial deployment: %v", err)
 		// We don't fail the whole operation if this fails, as GitHub push might still trigger it.
 	}
 
 	// Poll Cloudflare for deployment status
-	streamLog("Waiting for Cloudflare build to complete...", "info")
+	streamLog("Waiting for edge propagation...", "info")
 	maxRetries := 60 // 5 minutes (5s interval)
 	for i := 0; i < maxRetries; i++ {
 		time.Sleep(5 * time.Second)
@@ -101,16 +102,16 @@ func (o *Orchestrator) Deploy(projectName, domain, srcDir, userEmail string, str
 		}
 
 		if status == "success" {
-			streamLog("Cloudflare build successful!", "success")
+			streamLog("Deployment verification successful!", "success")
 			break
 		} else if status == "failure" {
-			return "", fmt.Errorf("cloudflare build failed")
+			return "", fmt.Errorf("edge deployment failed")
 		} else {
-			streamLog(fmt.Sprintf("Build Status: %s...", status), "info")
+			streamLog(fmt.Sprintf("Optimization Status: %s...", status), "info")
 		}
 
 		if i == maxRetries-1 {
-			streamLog("Build is taking longer than expected, but proceeding...", "warn")
+			streamLog("Optimization is taking longer than expected, but proceeding...", "warn")
 		}
 	}
 
@@ -175,8 +176,15 @@ func (o *Orchestrator) Deploy(projectName, domain, srcDir, userEmail string, str
 		streamLog("Propagating DNS records...", "info")
 		dnsRecordID, err := o.cloudflare.AddDNSRecord(o.config.CloudflareZoneID, domain, projectName, true)
 		if err != nil {
-			// If it fails, we return error as this is critical for system subdomains
-			return "", fmt.Errorf("cloudflare DNS record creation failed: %v", err)
+			// Code 81053: "An A, AAAA, or CNAME record with that host already exists"
+			if strings.Contains(err.Error(), "81053") {
+				streamLog("DNS record already exists, skipping creation...", "info")
+				// We don't return an error. We also don't have the ID, but that's acceptable as we can look it up later.
+				dnsRecordID = ""
+			} else {
+				// If it fails with any other error, we return error as this is critical for system subdomains
+				return "", fmt.Errorf("cloudflare DNS record creation failed: %v", err)
+			}
 		}
 
 		//  Add Domain to Pages project
