@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getAnonymousId } from '@/lib/identify';
 
-export const API_BASE_URL = 'https://seeqme.com/api/v1' // import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'// 'https://seeqme.com/api/v1'
+const isDev = window.location.hostname === 'localhost';
+export const API_BASE_URL = isDev ? 'http://localhost:8080/api/v1' : 'https://seeqme.com/api/v1';
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {

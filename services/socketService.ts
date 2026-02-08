@@ -1,4 +1,6 @@
-const WS_URL =  'https://seeqme.com/api/v1'.replace('/api/v1', '').replace('http', 'ws') + '/ws';
+import { API_BASE_URL } from './apiService';
+
+const WS_URL = API_BASE_URL.replace('/api/v1', '').replace('http', 'ws') + '/ws';
 
 class SocketService {
     private socket: WebSocket | null = null;
@@ -78,7 +80,10 @@ class SocketService {
             console.log('⏳ Socket connecting, queuing message:', payload);
             this.messageQueue.push(payload);
         } else {
-            console.error('🚫 Socket not open. Cannot send:', payload);
+            // Silently ignore if it's just an unsubscribe request on a closed socket
+            if (payload.type !== 'unsubscribe') {
+                console.error('🚫 Socket not open. Cannot send:', payload);
+            }
         }
     }
 
