@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ICONS } from '../constants';
-import { Activity, Check, Cloud, Copy, Cpu, ExternalLink, Loader, Github, Globe, XCircle } from 'lucide-react';
+import { Activity, Check,Copy,ExternalLink, Loader, XCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 
@@ -96,6 +96,15 @@ const SuccessDrawer: React.FC<SuccessDrawerProps> = ({ isOpen, onClose, url, dom
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         className="fixed bottom-0 left-0 right-0 bg-white/95  backdrop-blur-3xl border-t border-border rounded-t-3xl z-[10000] p-8 pb-10 shadow-[0_-20px_50px_rgba(20,184,166,0.15)]"
                     >
+                        {/* Close Button */}
+                        <button
+                            onClick={onClose}
+                            className="absolute top-6 right-6 p-2 rounded-full hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground group"
+                            aria-label="Close"
+                        >
+                            <X className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        </button>
+
                         <div className="max-w-2xl mx-auto flex flex-col items-center text-center">
                             <div className="w-12 h-1.5 bg-white/10 rounded-full mb-8" />
 
