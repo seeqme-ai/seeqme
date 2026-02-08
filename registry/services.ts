@@ -6,7 +6,7 @@
 export const SERVICES_CARDS_INTERACTIVE = (content: any) => {
    const items = content.items || [];
    return `
-   <section data-section="services" class="py-24 px-6 bg-[var(--surface)]/20">
+   <section id="services" data-section="services" class="py-24 px-6 bg-[var(--surface)]/20">
      <div class="max-w-7xl mx-auto space-y-16">
         <div class="text-center max-w-2xl mx-auto space-y-4">
            <h2 class="text-xs font-black uppercase tracking-[0.4em] text-[var(--primary)]">Capabilities</h2>
@@ -34,7 +34,7 @@ export const SERVICES_CARDS_INTERACTIVE = (content: any) => {
 export const SERVICES_GLASS_BENTO = (content: any) => {
    const items = content.items || [];
    return `
-   <section data-section="services" class="py-24 px-6">
+   <section id="services" data-section="services" class="py-24 px-6">
      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="md:col-span-2 p-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[3rem] flex flex-col justify-between">
            <h3 class="text-6xl font-black uppercase italic leading-none text-white/20">CRAFT</h3>
@@ -66,7 +66,7 @@ export const SERVICES_GLASS_BENTO = (content: any) => {
 export const SERVICES_LIST_MINIMAL = (content: any) => {
    const items = content.items || [];
    return `
-   <section data-section="services" class="py-32 px-6 border-y border-white/5">
+   <section id="services" data-section="services" class="py-32 px-6 border-y border-white/5">
      <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20">
         <div>
            <h3 class="text-8xl font-black uppercase italic tracking-tighter opacity-10 leading-none mb-4">FLOW</h3>
@@ -117,7 +117,7 @@ export const SERVICES_DARK_SASS = (content: any) => `
 `;
 
 export const SERVICES_AGENCY_GRID = (content: any) => `
-    <section data-section="services" class="bg-black text-white py-24 md:py-32 px-6">
+    <section id="services" data-section="services" class="bg-black text-white py-24 md:py-32 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-20">
                 <h2 class="text-4xl md:text-5xl font-black mb-6" data-field="serv-title">${content.title || 'How I Can Help'}</h2>
@@ -146,7 +146,7 @@ export const SERVICES_AGENCY_GRID = (content: any) => `
 `;
 
 export const SERVICES_MINIMAL_LIST = (content: any) => `
-    <section data-section="services" class="py-24 px-6 bg-stone-900 text-stone-100" id="services">
+    <section id="services" data-section="services" class="py-24 px-6 bg-stone-900 text-stone-100" id="services">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-serif italic mb-4" data-field="serv-title">${content.title || 'My Services'}</h2>
@@ -173,7 +173,7 @@ export const SERVICES_MINIMAL_LIST = (content: any) => `
 export const SERVICES_GLOW_GRID = (content: any) => {
    const items = content.items || content.services || [];
    return `
-  <section data-section="services" class="py-24 px-6 overflow-hidden">
+  <section id="services" data-section="services" class="py-24 px-6 overflow-hidden">
     <div class="max-w-7xl mx-auto">
       <div class="mb-16 flex flex-col md:flex-row justify-between items-end gap-8">
         <div class="max-w-xl">

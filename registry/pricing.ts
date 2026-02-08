@@ -1,5 +1,5 @@
 export const PRICING_MINIMAL_CARDS = (content: any) => `
-    <section data-section="pricing" class="py-24 px-6 bg-white border-t border-stone-100">
+    <section id="pricing" data-section="pricing" class="py-24 px-6 bg-white border-t border-stone-100">
         <div class="max-w-5xl mx-auto">
              <h2 class="text-3xl font-serif text-center mb-16 italic" data-field="price-title">${content.title || 'Simple Pricing'}</h2>
              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -18,9 +18,9 @@ export const PRICING_MINIMAL_CARDS = (content: any) => `
 `;
 
 export const PRICING_MODERN_TIERS = (content: any) => {
-    const items = content.items || content.plans || [];
-    return `
-  <section data-section="pricing" class="py-24 px-6 bg-[var(--surface)]/30 border-y border-white/5">
+  const items = content.items || content.plans || [];
+  return `
+  <section id="pricing" data-section="pricing" class="py-24 px-6 bg-[var(--surface)]/30 border-y border-white/5">
     <div class="max-w-7xl mx-auto space-y-16">
       <div class="text-center space-y-4">
         <h2 class="text-xs font-black uppercase tracking-[0.5em] opacity-40">Value Structure</h2>
@@ -56,6 +56,6 @@ export const PRICING_MODERN_TIERS = (content: any) => {
 };
 
 export const PricingRegistry: any = {
-    PRICING_MINIMAL_CARDS,
-    PRICING_MODERN_TIERS
+  PRICING_MINIMAL_CARDS,
+  PRICING_MODERN_TIERS
 };

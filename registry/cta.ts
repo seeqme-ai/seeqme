@@ -1,7 +1,7 @@
 // CTA (Call-to-Action) Components - High-Conversion, Modern
 
 export const CTA_HERO_INLINE = (content: any) => `
-  <section class="py-32 px-6 text-center bg-gradient-to-br from-[var(--primary)]/10 to-transparent">
+  <section id="cta" data-section="cta" class="py-32 px-6 text-center bg-gradient-to-br from-[var(--primary)]/10 to-transparent">
     <div class="max-w-4xl mx-auto space-y-8">
       <h2 class="text-[clamp(2.5rem,8vw,5rem)] font-black leading-[0.9]" data-field="cta-title">
         ${content.title || 'Ready to Start?'}
@@ -24,7 +24,7 @@ export const CTA_HERO_INLINE = (content: any) => `
 `;
 
 export const CTA_SPLIT_VISUAL = (content: any) => `
-  <section class="py-24 px-6">
+  <section id="cta" data-section="cta" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <div class="space-y-6">
         <div class="inline-block px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-black uppercase tracking-wider">
@@ -77,7 +77,7 @@ export const CTA_BANNER_STICKY = (content: any) => `
 `;
 
 export const CTA_CENTERED_BOLD = (content: any) => `
-  <section class="py-32 px-6 text-center relative overflow-hidden">
+  <section id="cta" data-section="cta" class="py-32 px-6 text-center relative overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_70%)] opacity-10"></div>
     <div class="relative z-10 max-w-5xl mx-auto space-y-12">
       <h2 class="text-[clamp(3rem,12vw,8rem)] font-black leading-[0.8] uppercase" data-field="cta-title">
@@ -95,7 +95,7 @@ export const CTA_CENTERED_BOLD = (content: any) => `
 `;
 
 export const CTA_CARD_HOVER = (content: any) => `
-  <section class="py-24 px-6">
+  <section id="cta" data-section="cta" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
       ${(content.options || [
     { title: 'Consultation', description: 'Free 30-min strategy call', link: '#', price: 'Free' },
@@ -121,7 +121,7 @@ export const CTA_CARD_HOVER = (content: any) => `
 `;
 
 export const CTA_NEWSLETTER_INLINE = (content: any) => `
-  <section data-section="cta" class="py-24 px-6 bg-[var(--surface)]/30 border-y border-white/5">
+  <section id="cta" data-section="cta" class="py-24 px-6 bg-[var(--surface)]/30 border-y border-white/5">
     <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12 text-center md:text-left">
        <div class="flex-1 space-y-4">
           <h2 class="text-3xl font-black uppercase tracking-tight">${content.title || 'Stay in the Loop'}</h2>
@@ -136,7 +136,7 @@ export const CTA_NEWSLETTER_INLINE = (content: any) => `
 `;
 
 export const CTA_CONTACT_MINI = (content: any) => `
-  <section data-section="cta" class="py-24 px-6">
+  <section id="cta" data-section="cta" class="py-24 px-6">
     <div class="max-w-5xl mx-auto bg-[var(--primary)] rounded-[3rem] p-12 md:p-20 flex flex-col md:flex-row items-center justify-between gap-12 shadow-2xl relative overflow-hidden group">
        <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-5 transition-opacity"></div>
        <div class="space-y-6 relative z-10 max-w-md">
@@ -151,7 +151,7 @@ export const CTA_CONTACT_MINI = (content: any) => `
 `;
 
 export const CTA_GRADIENT_BANNER = (content: any) => `
-  <section data-section="cta" class="relative py-32 px-6 overflow-hidden bg-black flex items-center justify-center">
+  <section id="cta" data-section="cta" class="relative py-32 px-6 overflow-hidden bg-black flex items-center justify-center">
     <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 animate-pulse"></div>
     <div class="relative z-10 text-center space-y-12">
        <h2 class="text-6xl md:text-[10vw] font-black text-white italic tracking-tighter leading-none opacity-40 uppercase">PUSH LIMITS</h2>

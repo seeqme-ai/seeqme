@@ -1,7 +1,7 @@
 // Stats/Metrics Components - Data-Driven, Professional
 
 export const STATS_COUNTER_GRID = (content: any) => `
-  <section class="py-24 px-6 bg-[var(--surface)]">
+  <section id="stats" data-section="stats" class="py-24 px-6 bg-[var(--surface)]">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16">
         <h2 class="text-4xl md:text-5xl font-black mb-4" data-field="stats-title">
@@ -33,7 +33,7 @@ export const STATS_COUNTER_GRID = (content: any) => `
 `;
 
 export const STATS_TIMELINE = (content: any) => `
-  <section class="py-24 px-6">
+  <section id="stats" data-section="stats" class="py-24 px-6">
     <div class="max-w-7xl mx-auto">
       <h2 class="text-4xl md:text-5xl font-black mb-16 text-center" data-field="stats-title">
         ${content.title || 'Growth Journey'}
@@ -64,7 +64,7 @@ export const STATS_TIMELINE = (content: any) => `
 `;
 
 export const STATS_CIRCULAR_PROGRESS = (content: any) => `
-  <section class="py-24 px-6 bg-gradient-to-b from-transparent to-[var(--surface)]">
+  <section id="stats" data-section="stats" class="py-24 px-6 bg-gradient-to-b from-transparent to-[var(--surface)]">
     <div class="max-w-7xl mx-auto">
       <h2 class="text-4xl md:text-5xl font-black mb-16 text-center" data-field="stats-title">
         ${content.title || 'Expertise Breakdown'}
@@ -98,7 +98,7 @@ export const STATS_CIRCULAR_PROGRESS = (content: any) => `
 `;
 
 export const STATS_COMPARISON_TABLE = (content: any) => `
-  <section class="py-24 px-6">
+  <section id="stats" data-section="stats" class="py-24 px-6">
     <div class="max-w-5xl mx-auto">
       <h2 class="text-4xl md:text-5xl font-black mb-16 text-center" data-field="stats-title">
         ${content.title || 'Before vs After'}
@@ -136,7 +136,7 @@ export const STATS_COMPARISON_TABLE = (content: any) => `
 `;
 
 export const STATS_ACHIEVEMENT_BADGES = (content: any) => `
-  <section class="py-24 px-6">
+  <section id="stats" data-section="stats" class="py-24 px-6">
     <div class="max-w-7xl mx-auto">
       <h2 class="text-4xl md:text-5xl font-black mb-16 text-center" data-field="stats-title">
         ${content.title || 'Achievements & Recognition'}
@@ -241,7 +241,7 @@ export const STATS_LARGE_NUMBERS = (content: any) => {
 
 
 export const STATS_AGENCY_TICKER = (content: any) => `
-    <div data-section="stats" class="bg-black text-white py-8 border-y border-gray-800">
+    <div id="stats" data-section="stats" class="bg-black text-white py-8 border-y border-gray-800">
         <div class="flex flex-wrap justify-around text-center gap-8 px-6">
             ${(content.stats || []).map((stat: any) => `
             <div>

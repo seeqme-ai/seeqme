@@ -4,7 +4,7 @@
  */
 
 export const FAQ_ACCORDION_NEON = (content: any) => `
-    <section data-section="faq" class="py-24 px-6 bg-[var(--bg)]">
+    <section id="faq" data-section="faq" class="py-24 px-6 bg-[var(--bg)]">
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="text-xs font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-4">${content.label || 'Common Queries'}</h2>

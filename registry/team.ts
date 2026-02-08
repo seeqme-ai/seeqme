@@ -4,7 +4,7 @@
  */
 
 export const TEAM_GRID_EDITORIAL = (content: any) => `
-    <section data-section="team" class="py-24 px-6">
+    <section id="team" data-section="team" class="py-24 px-6">
         <div class="max-w-7xl mx-auto space-y-20">
             <div class="flex flex-col md:flex-row justify-between items-end gap-8">
                 <div class="max-w-xl">

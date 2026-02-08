@@ -7,7 +7,7 @@
 export const SERVICES_GLOW_GRID = (content: any) => {
   const items = content.items || [];
   return `
-  <section data-section="services" class="py-24 px-6 overflow-hidden">
+  <section id="services" data-section="services" class="py-24 px-6 overflow-hidden">
     <div class="max-w-7xl mx-auto">
       <div class="mb-16 flex flex-col md:flex-row justify-between items-end gap-8">
         <div class="max-w-xl">
@@ -36,7 +36,7 @@ export const SERVICES_GLOW_GRID = (content: any) => {
 export const PRICING_MODERN_TIERS = (content: any) => {
   const items = content.items || [];
   return `
-  <section data-section="pricing" class="py-24 px-6 bg-[var(--surface)]/30 border-y border-white/5">
+  <section id="pricing" data-section="pricing" class="py-24 px-6 bg-[var(--surface)]/30 border-y border-white/5">
     <div class="max-w-7xl mx-auto space-y-16">
       <div class="text-center space-y-4">
         <h2 class="text-xs font-black uppercase tracking-[0.5em] opacity-40">Value Structure</h2>
@@ -75,7 +75,7 @@ export const PRICING_MODERN_TIERS = (content: any) => {
 export const FAQ_ACCORDION_NEON = (content: any) => {
   const items = content.items || [];
   return `
-  <section data-section="faq" class="py-24 px-6 overflow-hidden">
+  <section id="faq" data-section="faq" class="py-24 px-6 overflow-hidden">
     <div class="max-w-4xl mx-auto space-y-16">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
         <div class="md:col-span-4 italic text-7xl font-black leading-[0.8] tracking-tighter opacity-10 uppercase">QUEST<br/>IONS</div>
@@ -124,7 +124,7 @@ export const LOGOS_STRIP_CLEAN = (content: any) => {
 export const PROCESS_STEPS_VERTICAL = (content: any) => {
   const items = content.items || [];
   return `
-  <section data-section="process" class="py-24 px-6">
+  <section id="process" data-section="process" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
       <div class="sticky top-24 self-start space-y-8">
         <h2 class="text-xs font-black uppercase tracking-[0.5em] text-[var(--primary)]">The Protocol</h2>
@@ -154,7 +154,7 @@ export const PROCESS_STEPS_VERTICAL = (content: any) => {
 export const GALLERY_MASONRY_GLASS = (content: any) => {
   const images = content.images || [];
   return `
-  <section data-section="gallery" class="py-24 px-6 bg-[var(--surface)]/10">
+  <section id="gallery" data-section="gallery" class="py-24 px-6 bg-[var(--surface)]/10">
     <div class="max-w-7xl mx-auto columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
       ${images.map((img: any) => `
         <div class="relative group rounded-[2rem] overflow-hidden break-inside-avoid border border-white/5 shadow-2xl">
@@ -173,7 +173,7 @@ export const GALLERY_MASONRY_GLASS = (content: any) => {
 export const TEAM_GRID_EDITORIAL = (content: any) => {
   const members = content.members || [];
   return `
-  <section data-section="team" class="py-24 px-6">
+  <section id="team" data-section="team" class="py-24 px-6">
     <div class="max-w-7xl mx-auto space-y-20">
       <div class="flex items-center gap-8">
         <h2 class="text-7xl font-black uppercase italic tracking-tighter leading-none">${content.title || 'The collective'}</h2>

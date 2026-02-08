@@ -4,7 +4,7 @@
  */
 
 export const GALLERY_MASONRY_GLASS = (content: any) => `
-    <section data-section="gallery" class="py-24 px-6 bg-[var(--surface)]/10">
+    <section id="gallery" data-section="gallery" class="py-24 px-6 bg-[var(--surface)]/10">
         <div class="max-w-7xl mx-auto space-y-16">
             <div class="text-center space-y-4">
                 <h2 class="text-xs font-black uppercase tracking-[0.5em] opacity-40">${content.label || 'Artifacts'}</h2>

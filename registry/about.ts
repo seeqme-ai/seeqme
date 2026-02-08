@@ -1,6 +1,6 @@
 
 export const ABOUT_NARRATIVE = (content: any) => `
-  <section data-section="about" class="py-24 px-6 bg-[var(--surface)]/30">
+  <section id="about" data-section="about" class="py-24 px-6 bg-[var(--surface)]/30">
     <div class="max-w-4xl mx-auto space-y-12">
       <div class="flex items-center gap-4">
         <div class="h-px flex-1 bg-[var(--primary)]/20"></div>
@@ -20,7 +20,7 @@ export const ABOUT_NARRATIVE = (content: any) => `
 export const ABOUT_STATS = (content: any) => {
     const stats = content.stats || [];
     return `
-  <section data-section="about" class="py-24 px-6">
+  <section id="about" data-section="about" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
       <div class="space-y-8">
         <h2 class="text-5xl md:text-7xl font-black uppercase tracking-tighter" data-field="about-title">${content.title || 'By the Numbers'}</h2>
@@ -40,7 +40,7 @@ export const ABOUT_STATS = (content: any) => {
 };
 
 export const ABOUT_IMAGE_WRAP = (content: any) => `
-  <section data-section="about" class="py-24 px-6 overflow-hidden">
+  <section id="about" data-section="about" class="py-24 px-6 overflow-hidden">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
       <div class="lg:col-span-5 relative">
         <div class="absolute -top-10 -left-10 w-40 h-40 bg-[var(--primary)]/20 rounded-full blur-[80px]"></div>
@@ -65,7 +65,7 @@ export const ABOUT_IMAGE_WRAP = (content: any) => `
 `;
 
 export const ABOUT_GLASS_DECONSTRUCTED = (content: any) => `
-  <section data-section="about" class="py-32 px-6 relative">
+  <section id="about" data-section="about" class="py-32 px-6 relative">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
         <div class="space-y-12">
@@ -114,7 +114,7 @@ export const ABOUT_GLASS_DECONSTRUCTED = (content: any) => `
 export const ABOUT_TIMELINE_PERSONAL = (content: any) => {
     const items = content.timeline || content.items || [];
     return `
-   <section data-section="about" class="py-24 px-6 bg-[var(--surface)]/10">
+   <section id="about" data-section="about" class="py-24 px-6 bg-[var(--surface)]/10">
      <div class="max-w-4xl mx-auto space-y-20">
        <h2 class="text-4xl font-black uppercase text-center">${content.title || 'My Journey'}</h2>
        <div class="space-y-12 relative before:absolute before:left-0 md:before:left-1/2 before:w-px before:h-full before:bg-[var(--text)]/10">
@@ -135,7 +135,7 @@ export const ABOUT_TIMELINE_PERSONAL = (content: any) => {
 };
 
 export const ABOUT_SPLIT_COLUMNS = (content: any) => `
-  <section data-section="about" class="py-24 px-6">
+  <section id="about" data-section="about" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
       <div class="space-y-8">
          <h2 class="text-6xl font-black uppercase leading-none italic">${content.title || 'Philosophy'}</h2>
@@ -153,7 +153,7 @@ export const ABOUT_SPLIT_COLUMNS = (content: any) => `
 `;
 
 export const ABOUT_QUOTE_FOCUS = (content: any) => `
-  <section data-section="about" class="py-32 px-6 bg-black text-white text-center">
+  <section id="about" data-section="about" class="py-32 px-6 bg-black text-white text-center">
     <div class="max-w-5xl mx-auto space-y-12">
        <span class="text-6xl font-serif italic text-teal-400 opacity-40">"</span>
        <h2 class="text-4xl md:text-6xl font-bold leading-tight tracking-tight">${content.quote || content.title || 'Design is intelligence made visible.'}</h2>
@@ -171,7 +171,7 @@ export const ABOUT_QUOTE_FOCUS = (content: any) => `
 `;
 
 export const ABOUT_VIDEO_INTRO = (content: any) => `
-  <section data-section="about" class="py-24 px-6">
+  <section id="about" data-section="about" class="py-24 px-6">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
        <div class="lg:col-span-7 bg-slate-900 aspect-video rounded-[3rem] overflow-hidden relative shadow-2xl group cursor-pointer">
           <img src="${content.image}" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
@@ -202,7 +202,7 @@ export const ABOUT_VIDEO_INTRO = (content: any) => `
 export const ABOUT_METRICS_FOCUS = (content: any) => {
     const stats = content.stats || [];
     return `
-   <section data-section="about" class="py-24 px-6 border-y border-[var(--text)]/5">
+   <section id="about" data-section="about" class="py-24 px-6 border-y border-[var(--text)]/5">
      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
         <div class="lg:col-span-1 space-y-6">
            <h2 class="text-6xl font-black uppercase italic leading-[0.8]">ROI<br/><span class="text-[var(--primary)]">Driven</span></h2>

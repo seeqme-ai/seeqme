@@ -2,7 +2,7 @@
 export const EXP_TIMELINE_VERTICAL = (content: any) => {
     const items = content.items || [];
     return `
-  <section data-section="experience" class="py-24 px-6">
+  <section id="experience" data-section="experience" class="py-24 px-6">
     <div class="max-w-4xl mx-auto">
       <div class="mb-20 text-center">
         <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter" data-field="experience-title">${content.title || 'Career path'}</h2>
@@ -32,7 +32,7 @@ export const EXP_TIMELINE_VERTICAL = (content: any) => {
 export const EXP_ACCORDION_MINIMAL = (content: any) => {
     const items = content.items || [];
     return `
-  <section data-section="experience" class="py-24 px-6 border-y border-[var(--text)]/5 bg-[var(--surface)]/30">
+  <section id="experience" data-section="experience" class="py-24 px-6 border-y border-[var(--text)]/5 bg-[var(--surface)]/30">
     <div class="max-w-5xl mx-auto">
       <div class="flex flex-col md:flex-row justify-between items-baseline mb-16 gap-4">
          <h2 class="text-5xl font-black uppercase italic tracking-tighter" data-field="experience-title">${content.title || 'Experience'}</h2>
@@ -68,7 +68,7 @@ export const EXP_ACCORDION_MINIMAL = (content: any) => {
 export const EXP_CARDS_GRID = (content: any) => {
     const items = content.items || [];
     return `
-  <section data-section="experience" class="py-24 px-6">
+  <section id="experience" data-section="experience" class="py-24 px-6">
     <div class="max-w-7xl mx-auto space-y-16">
       <div class="flex justify-between items-end">
          <h2 class="text-5xl font-black uppercase tracking-tighter leading-none">${content.title || 'Career Path'}</h2>
@@ -99,7 +99,7 @@ export const EXP_CARDS_GRID = (content: any) => {
 export const EXP_HORIZONTAL_SCROLL = (content: any) => {
     const items = content.items || [];
     return `
-  <section data-section="experience" class="py-32 px-6 bg-black overflow-hidden relative">
+  <section id="experience" data-section="experience" class="py-32 px-6 bg-black overflow-hidden relative">
     <div class="absolute top-1/2 left-0 w-full h-px bg-white/10 -translate-y-1/2"></div>
     <div class="max-w-7xl mx-auto mb-20 relative z-10">
        <h2 class="text-4xl font-black uppercase text-white tracking-widest">Global Trajectory</h2>
@@ -123,7 +123,7 @@ export const EXP_HORIZONTAL_SCROLL = (content: any) => {
 export const EXP_TABS_SWITCH = (content: any) => {
     const items = content.items || [];
     return `
-  <section data-section="experience" class="py-24 px-6 border-y border-[var(--text)]/5">
+  <section id="experience" data-section="experience" class="py-24 px-6 border-y border-[var(--text)]/5">
     <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
       <div class="md:col-span-4 flex md:flex-col gap-4 overflow-x-auto no-scrollbar pb-4 md:pb-0">
         ${items.map((item: any, i: number) => `
@@ -161,7 +161,7 @@ export const EXP_TABS_SWITCH = (content: any) => {
 export const EXP_SIDEBAR_LIST = (content: any) => {
     const items = content.items || [];
     return `
-  <section data-section="experience" class="py-24 px-6">
+  <section id="experience" data-section="experience" class="py-24 px-6">
     <div class="max-w-7xl mx-auto space-y-20">
       <h2 class="text-6xl md:text-9xl font-black uppercase italic tracking-tighter opacity-10">LEGACY</h2>
       <div class="space-y-1">

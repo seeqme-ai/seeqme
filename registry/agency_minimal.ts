@@ -1,6 +1,6 @@
 
 export const STATS_AGENCY_TICKER = (content: any) => `
-    <div data-section="stats" class="bg-black text-white py-8 border-y border-gray-800">
+    <div id="stats" data-section="stats" class="bg-black text-white py-8 border-y border-gray-800">
         <div class="flex flex-wrap justify-around text-center gap-8 px-6">
             ${content.stats?.map((stat: any) => `
             <div>
@@ -13,7 +13,7 @@ export const STATS_AGENCY_TICKER = (content: any) => `
 `;
 
 export const PROJ_AGENCY_CASE_STUDY = (content: any) => `
-    <section data-section="projects" class="max-w-7xl mx-auto px-6 py-24 md:py-32" id="results">
+    <section id="projects" data-section="projects" class="max-w-7xl mx-auto px-6 py-24 md:py-32">
          <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div>
                 <div class="text-red-600 font-bold uppercase tracking-widest text-sm mb-4">Case Studies</div>
@@ -51,7 +51,7 @@ export const PROJ_AGENCY_CASE_STUDY = (content: any) => `
 `;
 
 export const SERVICES_AGENCY_GRID = (content: any) => `
-    <section data-section="services" class="bg-black text-white py-24 md:py-32 px-6">
+    <section id="services" data-section="services" class="bg-black text-white py-24 md:py-32 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-20">
                 <h2 class="text-4xl md:text-5xl font-black mb-6" data-field="serv-title">${content.title || 'How I Can Help'}</h2>
@@ -80,7 +80,7 @@ export const SERVICES_AGENCY_GRID = (content: any) => `
 `;
 
 export const TESTIMONIALS_AGENCY_QUOTES = (content: any) => `
-    <section data-section="testimonials" class="py-24 px-6 bg-red-600 text-white">
+    <section id="testimonials" data-section="testimonials" class="py-24 px-6 bg-red-600 text-white">
          <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-16 items-center">
             <div class="md:w-1/3">
                 <h2 class="text-4xl font-black mb-6" data-field="test-title">${content.title || 'Client Love'}</h2>
@@ -108,7 +108,7 @@ export const TESTIMONIALS_AGENCY_QUOTES = (content: any) => `
 `;
 
 export const SKILLS_AGENCY = (content: any) => `
-    <section data-section="skills" class="py-20 px-6 text-center">
+    <section id="skills" data-section="skills" class="py-20 px-6 text-center">
         <p class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-8" data-field="skills-title">${content.title || 'My Tech Stack'}</p>
         <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-70 grayscale">
             ${content.skills?.map((skill: any) => `
@@ -176,7 +176,7 @@ export const SERVICES_MINIMAL_LIST = (content: any) => `
 
 
 export const PRICING_MINIMAL_CARDS = (content: any) => `
-    <section data-section="pricing" class="py-24 px-6 bg-white border-t border-stone-100">
+    <section id="pricing" data-section="pricing" class="py-24 px-6 bg-white border-t border-stone-100">
         <div class="max-w-5xl mx-auto">
              <h2 class="text-3xl font-serif text-center mb-16 italic" data-field="price-title">${content.title || 'Simple Pricing'}</h2>
              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -195,7 +195,7 @@ export const PRICING_MINIMAL_CARDS = (content: any) => `
 `;
 
 export const TESTIMONIALS_MINIMAL_SINGLE = (content: any) => `
-    <section data-section="testimonials" class="py-20 px-6 bg-[#fafaf9]">
+    <section id="testimonials" data-section="testimonials" class="py-20 px-6 bg-[#fafaf9]">
         <div class="max-w-3xl mx-auto text-center">
             <i class="fas fa-quote-left text-4xl text-stone-300 mb-8"></i>
             ${content.testimonials?.map((t: any) => `

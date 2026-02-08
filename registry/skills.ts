@@ -1,7 +1,7 @@
 export const SKILLS_MARQUEE = (content: any) => {
     const items = content.skills || content.items || (content.skillsCategories ? content.skillsCategories.flatMap((c: any) => c.skills || []) : []);
     return `
-  <section data-section="skills" class="py-20 bg-[var(--text)] text-[var(--bg)] overflow-hidden">
+  <section id="skills" data-section="skills" class="py-20 bg-[var(--text)] text-[var(--bg)] overflow-hidden">
     <div class="flex whitespace-nowrap animate-marquee">
       ${[...items, ...items].map((item: string) => `
         <span class="text-6xl md:text-8xl font-black uppercase tracking-tighter mx-12 flex items-center gap-8">
@@ -25,7 +25,7 @@ export const SKILLS_MARQUEE = (content: any) => {
 export const SKILLS_GRID_ICONS = (content: any) => {
     const items = content.skills || content.items || (content.skillsCategories ? content.skillsCategories.flatMap((c: any) => c.skills || []) : []);
     return `
-  <section data-section="skills" class="py-32 px-6">
+  <section id="skills" data-section="skills" class="py-32 px-6">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
          <div class="space-y-8">
@@ -57,7 +57,7 @@ export const SKILLS_GRID_ICONS = (content: any) => {
 export const SKILLS_PROGRESS_BARS = (content: any) => {
     const items = content.skills || content.items || (content.skillsCategories ? content.skillsCategories.flatMap((c: any) => c.skills || []) : []);
     return `
-  <section data-section="skills" class="py-24 px-6 bg-[var(--surface)]/20">
+  <section id="skills" data-section="skills" class="py-24 px-6 bg-[var(--surface)]/20">
     <div class="max-w-4xl mx-auto space-y-12">
       <div class="text-center">
          <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter" data-field="skills-title">${content.title || 'Technical Proficiency'}</h2>
@@ -87,7 +87,7 @@ export const SKILLS_PROGRESS_BARS = (content: any) => {
 export const SKILLS_TAGS_CLOUD = (content: any) => {
     const items = content.skills || content.items || (content.skillsCategories ? content.skillsCategories.flatMap((c: any) => c.skills || []) : []);
     return `
-  <section data-section="skills" class="py-24 px-6">
+  <section id="skills" data-section="skills" class="py-24 px-6">
     <div class="max-w-5xl mx-auto text-center space-y-12">
       <h2 class="text-sm font-black uppercase tracking-[0.4em] opacity-40">${content.title || 'Expertise Cloud'}</h2>
       <div class="flex flex-wrap justify-center gap-4">
@@ -105,7 +105,7 @@ export const SKILLS_TAGS_CLOUD = (content: any) => {
 export const SKILLS_HEXAGON_GRID = (content: any) => {
     const items = content.skills || content.items || (content.skillsCategories ? content.skillsCategories.flatMap((c: any) => c.skills || []) : []);
     return `
-  <section data-section="skills" class="py-24 px-6 overflow-hidden">
+  <section id="skills" data-section="skills" class="py-24 px-6 overflow-hidden">
     <div class="max-w-7xl mx-auto flex flex-col items-center">
       <h2 class="text-6xl font-black uppercase mb-20 text-center" data-field="skills-title">${content.title || 'Power Grid'}</h2>
       <div class="flex flex-wrap justify-center gap-8 max-w-4xl">
@@ -122,7 +122,7 @@ export const SKILLS_HEXAGON_GRID = (content: any) => {
 };
 
 export const SKILLS_RADAR_CHART = (content: any) => `
-  <section data-section="skills" class="py-24 px-6">
+  <section id="skills" data-section="skills" class="py-24 px-6">
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
       <div class="space-y-6">
          <h2 class="text-5xl font-black uppercase tracking-tighter">${content.title || 'Skill Balance'}</h2>
@@ -146,7 +146,7 @@ export const SKILLS_RADAR_CHART = (content: any) => `
 
 
 export const SKILLS_DARK_SASS = (content: any) => `
-    <section class="py-20 px-6 bg-[#0f172a]">
+    <section id="skills" data-section="skills" class="py-20 px-6 bg-[#0f172a]">
         <div class="max-w-6xl mx-auto">
             <h2 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-8">${content.title}</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -164,7 +164,7 @@ export const SKILLS_DARK_SASS = (content: any) => `
 `;
 
 export const SKILLS_AGENCY = (content: any) => `
-    <section data-section="skills" class="py-20 px-6 text-center">
+    <section id="skills" data-section="skills" class="py-20 px-6 text-center">
         <p class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-8" data-field="skills-title">${content.title || 'My Tech Stack'}</p>
         <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-70 grayscale">
             ${(content.skills || []).map((skill: any) => `

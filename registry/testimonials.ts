@@ -2,7 +2,7 @@
 export const TESTIMONIALS_BENTO = (content: any) => {
     const items = content.items || [];
     return `
-      <section data-section="testimonials" class="py-24 px-6 bg-[var(--surface)]/10">
+      <section id="testimonials" data-section="testimonials" class="py-24 px-6 bg-[var(--surface)]/10">
         <div class="max-w-7xl mx-auto">
           <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
             <h2 class="text-5xl font-black uppercase italic tracking-tighter" data-field="testimonials-title">${content.title || 'Client Feedback'}</h2>
@@ -35,7 +35,7 @@ export const TESTIMONIALS_BENTO = (content: any) => {
 export const TESTIMONIALS_CAROUSEL = (content: any) => {
     const items = content.items || [];
     return `
-   <section data-section="testimonials" class="py-24 px-6 overflow-hidden">
+   <section id="testimonials" data-section="testimonials" class="py-24 px-6 overflow-hidden">
      <div class="max-w-7xl mx-auto space-y-16">
         <h2 class="text-xs font-black uppercase tracking-[0.5em] opacity-40 text-center">Global Commendations</h2>
         <div class="flex gap-8 overflow-x-auto no-scrollbar pb-12">
@@ -60,7 +60,7 @@ export const TESTIMONIALS_CAROUSEL = (content: any) => {
 export const TESTIMONIALS_GRID_PHOTOS = (content: any) => {
     const items = content.items || [];
     return `
-   <section data-section="testimonials" class="py-24 px-6 bg-[var(--surface)]/30">
+   <section id="testimonials" data-section="testimonials" class="py-24 px-6 bg-[var(--surface)]/30">
      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         ${items.map((item: any) => `
            <div class="space-y-8 p-6">
@@ -84,7 +84,7 @@ export const TESTIMONIALS_GRID_PHOTOS = (content: any) => {
 export const TESTIMONIALS_QUOTE_WALL = (content: any) => {
     const items = content.items || [];
     return `
-   <section data-section="testimonials" class="py-24 px-6 overflow-hidden">
+   <section id="testimonials" data-section="testimonials" class="py-24 px-6 overflow-hidden">
      <div class="max-w-7xl mx-auto columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
         ${items.map((item: any) => `
            <div class="break-inside-avoid p-10 bg-[var(--surface)] border border-white/5 rounded-3xl space-y-6">
@@ -104,7 +104,7 @@ export const TESTIMONIALS_QUOTE_WALL = (content: any) => {
 };
 
 export const TESTIMONIALS_AGENCY_QUOTES = (content: any) => `
-    <section data-section="testimonials" class="py-24 px-6 bg-red-600 text-white">
+    <section id="testimonials" data-section="testimonials" class="py-24 px-6 bg-red-600 text-white">
          <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-16 items-center">
             <div class="md:w-1/3">
                 <h2 class="text-4xl font-black mb-6" data-field="test-title">${content.title || 'Client Love'}</h2>
@@ -132,7 +132,7 @@ export const TESTIMONIALS_AGENCY_QUOTES = (content: any) => `
 `;
 
 export const TESTIMONIALS_MINIMAL_SINGLE = (content: any) => `
-    <section data-section="testimonials" class="py-20 px-6 bg-[#fafaf9]">
+    <section id="testimonials" data-section="testimonials" class="py-20 px-6 bg-[#fafaf9]">
         <div class="max-w-3xl mx-auto text-center">
             <i class="fas fa-quote-left text-4xl text-stone-300 mb-8"></i>
             ${(content.testimonials || []).map((t: any) => `

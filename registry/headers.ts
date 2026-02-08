@@ -57,6 +57,19 @@ export const HEADER_MINIMALIST = (content: any) => `
                         icon.classList.add('fa-bars');
                     }));
                 }
+                
+                // Event delegation for smooth scrolling
+                document.body.addEventListener('click', function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (link) {
+                        const targetId = link.getAttribute('href').substring(1);
+                        const target = targetId ? document.getElementById(targetId) : null;
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                });
             })();
         </script>
     </header>
@@ -125,6 +138,19 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
                         document.body.style.overflow = '';
                     }));
                 }
+                
+                // Event delegation for smooth scrolling
+                document.body.addEventListener('click', function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (link) {
+                        const targetId = link.getAttribute('href').substring(1);
+                        const target = targetId ? document.getElementById(targetId) : null;
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                });
             })();
         </script>
     </header>
@@ -189,10 +215,23 @@ export const HEADER_TECH_GLOW = (content: any) => `
                         icon.classList.add('fa-bars');
                      }));
                  }
+                 
+                 // Event delegation for smooth scrolling
+                 document.body.addEventListener('click', function(e) {
+                     const link = e.target.closest('a[href^="#"]');
+                     if (link) {
+                         const targetId = link.getAttribute('href').substring(1);
+                         const target = targetId ? document.getElementById(targetId) : null;
+                         if (target) {
+                             e.preventDefault();
+                             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                         }
+                     }
+                 });
              })();
          </script>
      </header>
- `;
+`;
 
 export const HEADER_MINIMALIST_CREATOR = (content: any) => `
      <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--background)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
@@ -247,6 +286,19 @@ export const HEADER_MINIMALIST_CREATOR = (content: any) => `
                          icon.classList.add('fa-bars');
                      }));
                  }
+                 
+                 // Event delegation for smooth scrolling
+                 document.body.addEventListener('click', function(e) {
+                     const link = e.target.closest('a[href^="#"]');
+                     if (link) {
+                         const targetId = link.getAttribute('href').substring(1);
+                         const target = targetId ? document.getElementById(targetId) : null;
+                         if (target) {
+                             e.preventDefault();
+                             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                         }
+                     }
+                 });
              })();
          </script>
      </header>
@@ -305,6 +357,19 @@ export const HEADER_DARK_SASS = (content: any) => `
                         icon.classList.add('fa-bars');
                     }));
                 }
+                
+                // Event delegation for smooth scrolling
+                document.body.addEventListener('click', function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (link) {
+                        const targetId = link.getAttribute('href').substring(1);
+                        const target = targetId ? document.getElementById(targetId) : null;
+                        if (target) {
+                            e.preventDefault();
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                });
             })();
         </script>
     </header>

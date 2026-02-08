@@ -1,6 +1,6 @@
 
 export const CONTACT_SPLIT = (content: any) => `
-  <section data-section="contact" class="py-24 px-6 border-t border-[var(--text)]/5">
+  <section id="contact" data-section="contact" class="py-24 px-6 border-t border-[var(--text)]/5">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
       <div class="space-y-12">
         <h2 class="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none" data-field="contact-title">${content.title || "Let's Talk"}</h2>
@@ -75,7 +75,7 @@ export const CONTACT_SPLIT = (content: any) => `
 `;
 
 export const CONTACT_NEON_MODERN = (content: any) => `
-  <section data-section="contact" class="py-32 px-6 relative overflow-hidden bg-slate-950">
+  <section id="contact" data-section="contact" class="py-32 px-6 relative overflow-hidden bg-slate-950">
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-teal-500/5 blur-[120px] rounded-full"></div>
     <div class="max-w-4xl mx-auto relative z-10 text-center space-y-16">
       <div class="space-y-4">
@@ -132,7 +132,7 @@ export const CONTACT_NEON_MODERN = (content: any) => `
 `;
 
 export const CONTACT_SOCIAL_ONLY = (content: any) => `
-  <section data-section="contact" class="py-24 px-6 text-center">
+  <section id="contact" data-section="contact" class="py-24 px-6 text-center">
     <div class="max-w-4xl mx-auto space-y-12">
        <h2 class="text-sm font-black uppercase tracking-[0.5em] opacity-40">${content.title || 'Connect on the Grid'}</h2>
        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -149,7 +149,7 @@ export const CONTACT_SOCIAL_ONLY = (content: any) => `
 `;
 
 export const CONTACT_CARD_SIMPLE = (content: any) => `
-  <section data-section="contact" class="py-24 px-6">
+  <section id="contact" data-section="contact" class="py-24 px-6">
     <div class="max-w-3xl mx-auto bg-[var(--surface)] border border-white/10 rounded-[3rem] p-12 md:p-20 shadow-2xl relative overflow-hidden">
        <div class="absolute top-0 right-0 w-40 h-40 bg-[var(--primary)] opacity-10 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
        <div class="space-y-12 text-center relative z-10">
@@ -170,7 +170,7 @@ export const CONTACT_CARD_SIMPLE = (content: any) => `
 `;
 
 export const CONTACT_FORM_FULL = (content: any) => `
-  <section data-section="contact" class="py-24 px-6 border-t border-white/5">
+  <section id="contact" data-section="contact" class="py-24 px-6 border-t border-white/5">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
        <div class="space-y-12">
           <h2 class="text-7xl font-black uppercase leading-none tracking-tighter">Secure<br/>Inquiry</h2>
@@ -215,7 +215,7 @@ export const CONTACT_FORM_FULL = (content: any) => `
 `;
 
 export const FORM_MINIMALIST = (content: any) => `
-    <section data-section="contact" class="py-24 px-6 bg-[var(--surface)]/30 text-center">
+    <section id="contact" data-section="contact" class="py-24 px-6 bg-[var(--surface)]/30 text-center">
         <div class="max-w-2xl mx-auto">
             <h2 class="text-3xl font-serif mb-6 text-[var(--heading)]">${content.title || "Let's Connect"}</h2>
             <p class="text-[var(--text)] opacity-70 mb-10 leading-relaxed">${content.description || "Send me a message and I'll get back to you shortly."}</p>
@@ -253,7 +253,7 @@ export const FORM_MINIMALIST = (content: any) => `
 `;
 
 export const FORM_ELEGANT_SPLIT = (content: any) => `
-    <section data-section="contact" class="max-w-4xl mx-auto px-6 py-16 md:py-32" id="contact">
+    <section id="contact" data-section="contact" class="max-w-4xl mx-auto px-6 py-16 md:py-32" id="contact">
         <div class="text-center mb-16">
             <span class="text-[var(--primary)] font-bold tracking-widest text-xs uppercase">${content.label || 'Contact'}</span>
             <h2 class="text-4xl md:text-5xl font-black text-[var(--heading)] mt-4">${content.title || 'Get in Touch'}</h2>
@@ -376,7 +376,7 @@ export const CONTACT_DARK_SASS = (content: any) => `
 `;
 
 export const CONTACT_MINIMAL_SIMPLE = (content: any) => `
-    <section data-section="contact" class="py-24 px-6 bg-stone-900 text-white text-center" id="contact">
+    <section id="contact" data-section="contact" class="py-24 px-6 bg-stone-900 text-white text-center" id="contact">
         <h2 class="text-4xl font-serif italic mb-8" data-field="cta-heading">${content.ctaHeading || content.title || 'Let\'s Connect'}</h2>
         <p class="text-stone-400 mb-12 max-w-lg mx-auto" data-field="cta-sub">
             ${content.ctaSub || content.subtitle || 'Ready to start your project?'}

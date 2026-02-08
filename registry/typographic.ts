@@ -2,7 +2,7 @@
 // TYPOGRAPHIC BOLD COMPONENTS
 
 export const HERO_TYPOGRAPHIC_BOLD = (content: any) => `
-    <section data-section="hero" class="min-h-screen px-6 py-20 flex flex-col justify-between border-b-2 border-black">
+    <section id="hero" data-section="hero" class="min-h-screen px-6 py-20 flex flex-col justify-between border-b-2 border-black">
          <nav class="flex justify-between items-center mb-20">
             <div class="font-bold tracking-tight" data-field="nav-logo">${content.logo || 'ALEX.CONTENT'}</div>
             <a href="#contact" target="_blank" rel="noopener" onclick="event.preventDefault()" class="underline decoration-1 underline-offset-4 hover:bg-black hover:text-white transition-colors px-2 py-1" data-field="nav-cta">${content.availability || 'Currently Accepting Clients'}</a>
@@ -29,7 +29,7 @@ export const HERO_TYPOGRAPHIC_BOLD = (content: any) => `
 `;
 
 export const STATS_TYPOGRAPHIC_GRID = (content: any) => `
-    <div data-section="stats" class="grid grid-cols-2 md:grid-cols-4 border-b-2 border-black divide-x-2 divide-black">
+    <div id="stats" data-section="stats" class="grid grid-cols-2 md:grid-cols-4 border-b-2 border-black divide-x-2 divide-black">
          ${content.stats?.map((stat: any) => `
          <div class="p-12 hover:bg-black hover:text-white transition-colors group">
             <div class="text-5xl font-serif mb-2 group-hover:italic">${stat.value}</div>
@@ -40,7 +40,7 @@ export const STATS_TYPOGRAPHIC_GRID = (content: any) => `
 `;
 
 export const PROJ_TYPOGRAPHIC_LIST = (content: any) => `
-    <section data-section="projects" class="border-b-2 border-black">
+    <section id="projects" data-section="projects" class="border-b-2 border-black">
          <div class="p-6 border-b border-gray-200">
             <h2 class="text-sm font-bold uppercase tracking-widest" data-field="proj-heading">${content.heading || 'Selected Stories'}</h2>
          </div>
@@ -64,7 +64,7 @@ export const PROJ_TYPOGRAPHIC_LIST = (content: any) => `
 `;
 
 export const PROCESS_TYPOGRAPHIC_STEPS = (content: any) => `
-    <section data-section="process" class="py-24 px-6 max-w-4xl mx-auto">
+    <section id="process" data-section="process" class="py-24 px-6 max-w-4xl mx-auto">
         <h2 class="text-4xl font-serif font-medium mb-16 text-center" data-field="process-heading">${content.heading || 'My Methodology'}</h2>
         <div class="space-y-12">
             ${content.steps?.map((step: any, i: number) => `
@@ -81,7 +81,7 @@ export const PROCESS_TYPOGRAPHIC_STEPS = (content: any) => `
 `;
 
 export const SERVICES_TYPOGRAPHIC_COLS = (content: any) => `
-    <section data-section="services" class="bg-[#f5f5f5] py-24 px-6 border-y-2 border-black">
+    <section id="services" data-section="services" class="bg-[#f5f5f5] py-24 px-6 border-y-2 border-black">
          <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
             ${content.services?.map((service: any) => `
             <div class="border-t-2 border-black pt-6">

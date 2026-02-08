@@ -2,7 +2,7 @@
 export const PROJ_BENTO_GRID = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-  <section data-section="projects" class="py-24 px-6 overflow-hidden">
+  <section id="projects" data-section="projects" class="py-24 px-6 overflow-hidden">
     <div class="max-w-7xl mx-auto">
       <div class="mb-16 space-y-4">
         <h2 class="text-4xl md:text-6xl font-black uppercase tracking-tighter" data-field="projects-title">${content.title || 'Selected Projects'}</h2>
@@ -70,7 +70,7 @@ export const PROJ_BENTO_GRID = (content: any) => {
 export const PROJ_MINIMAL_CARDS = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-  <section data-section="projects" class="py-24 px-6">
+  <section id="projects" data-section="projects" class="py-24 px-6">
     <div class="max-w-7xl mx-auto">
       <div class="flex flex-col md:flex-row justify-between items-end mb-16 md:mb-24 gap-8">
         <h2 class="text-5xl md:text-8xl font-black tracking-tighter uppercase" data-field="projects-title">${content.title || 'Work'}</h2>
@@ -109,7 +109,7 @@ export const PROJ_MINIMAL_CARDS = (content: any) => {
 export const PROJ_STACKED_LIST = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-  <section data-section="projects" class="py-24 px-6 border-t border-[var(--text)]/5">
+  <section id="projects" data-section="projects" class="py-24 px-6 border-t border-[var(--text)]/5">
     <div class="max-w-5xl mx-auto">
       <h2 class="text-xs font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-20 text-center" data-field="projects-subtitle">Archive of Projects</h2>
       <div class="space-y-px bg-[var(--text)]/5">
@@ -142,7 +142,7 @@ export const PROJ_STACKED_LIST = (content: any) => {
 export const PROJ_CAROUSEL_FULLSCREEN = (content: any) => {
    const items = content.items || [];
    return `
-   <section data-section="projects" class="py-24 px-6 relative overflow-hidden">
+   <section id="projects" data-section="projects" class="py-24 px-6 relative overflow-hidden">
       <div class="max-w-7xl mx-auto mb-20">
          <h2 class="text-8xl font-black uppercase tracking-tighter opacity-10 absolute -top-10 left-0 leading-none">PROJECTS</h2>
          <h3 class="text-4xl font-black relative z-10" data-field="projects-title">Portfolio Favorites</h3>
@@ -167,7 +167,7 @@ export const PROJ_CAROUSEL_FULLSCREEN = (content: any) => {
 export const PROJ_GITHUB_STYLE = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6 font-mono">
+   <section id="projects" data-section="projects" class="py-24 px-6 font-mono">
       <div class="max-w-6xl mx-auto">
          <div class="flex border-b border-[var(--text)]/10 mb-12 pb-4 items-center gap-4">
             <span class="text-[var(--primary)]">λ</span>
@@ -203,7 +203,7 @@ export const PROJ_GITHUB_STYLE = (content: any) => {
 export const PROJ_MASONRY = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6 bg-[var(--surface)]/10">
+   <section id="projects" data-section="projects" class="py-24 px-6 bg-[var(--surface)]/10">
      <div class="max-w-7xl mx-auto space-y-16">
        <h2 class="text-4xl font-black uppercase tracking-widest text-center">${content.title || 'Creative Portfolio'}</h2>
        <div class="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
@@ -225,7 +225,7 @@ export const PROJ_MASONRY = (content: any) => {
 export const PROJ_CASE_STUDY = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6 border-y border-[var(--text)]/5">
+   <section id="projects" data-section="projects" class="py-24 px-6 border-y border-[var(--text)]/5">
      <div class="max-w-5xl mx-auto space-y-32">
        ${items.slice(0, 3).map((item: any, i: number) => `
          <div class="group grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
@@ -250,7 +250,7 @@ export const PROJ_CASE_STUDY = (content: any) => {
 export const PROJ_THUMBNAIL_GRID = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6">
+   <section id="projects" data-section="projects" class="py-24 px-6">
      <div class="max-w-7xl mx-auto">
        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
          ${items.map((item: any) => `
@@ -271,7 +271,7 @@ export const PROJ_FEATURED_SINGLE = (content: any) => {
    const items = content.items || content.projects || [];
    const item = items[0] || {};
    return `
-   <section data-section="projects" class="py-24 px-6">
+   <section id="projects" data-section="projects" class="py-24 px-6">
      <div class="max-w-7xl mx-auto">
         <div class="relative h-[80vh] flex items-center justify-center text-center overflow-hidden rounded-[4rem] shadow-2xl">
            <img src="${item.image}" class="absolute inset-0 w-full h-full object-cover opacity-50 transition-transform duration-[20s] hover:scale-125" />
@@ -293,7 +293,7 @@ export const PROJ_FEATURED_SINGLE = (content: any) => {
 export const PROJ_TIMELINE_VERTICAL = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6">
+   <section id="projects" data-section="projects" class="py-24 px-6">
      <div class="max-w-4xl mx-auto space-y-24 relative before:absolute before:left-1/2 before:top-0 before:bottom-0 before:w-px before:bg-[var(--text)]/10">
        ${items.map((item: any, i: number) => `
          <div class="relative grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -317,7 +317,7 @@ export const PROJ_TIMELINE_VERTICAL = (content: any) => {
 export const PROJ_3D_PERSPECTIVE = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6 overflow-hidden">
+   <section id="projects" data-section="projects" class="py-24 px-6 overflow-hidden">
      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
         ${items.map((item: any) => `
            <div class="group relative" style="perspective: 1000px">
@@ -338,7 +338,7 @@ export const PROJ_3D_PERSPECTIVE = (content: any) => {
 export const PROJ_LIST_PREVIEW = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6">
+   <section id="projects" data-section="projects" class="py-24 px-6">
      <div class="max-w-5xl mx-auto">
         <h2 class="text-xs font-black uppercase tracking-[0.5em] opacity-30 mb-20 text-center">Selected Projects (0${items.length})</h2>
         <div class="space-y-1">
@@ -362,7 +362,7 @@ export const PROJ_LIST_PREVIEW = (content: any) => {
 export const PROJ_OVERLAP_SLOTS = (content: any) => {
    const items = content.items || content.projects || [];
    return `
-   <section data-section="projects" class="py-24 px-6">
+   <section id="projects" data-section="projects" class="py-24 px-6">
      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-4">
         ${items.slice(0, 4).map((item: any, i: number) => `
            <div class="${i === 0 || i === 3 ? 'md:col-span-7' : 'md:col-span-5'} aspect-video overflow-hidden rounded-[3rem] group relative shadow-xl hover:shadow-2xl transition-all">
@@ -404,7 +404,7 @@ export const PROJ_DARK_SASS = (content: any) => `
 
 
 export const PROJ_AGENCY_CASE_STUDY = (content: any) => `
-    <section data-section="projects" class="max-w-7xl mx-auto px-6 py-24 md:py-32" id="results">
+    <section id="projects" data-section="projects" class="max-w-7xl mx-auto px-6 py-24 md:py-32" id="results">
          <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div>
                 <div class="text-red-600 font-bold uppercase tracking-widest text-sm mb-4">Case Studies</div>

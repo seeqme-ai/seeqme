@@ -4,7 +4,7 @@
  */
 
 export const PROCESS_STEPS_VERTICAL = (content: any) => `
-    <section data-section="process" class="py-24 px-6">
+    <section id="process" data-section="process" class="py-24 px-6">
         <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-20">
             <div class="md:w-1/3">
                 <div class="sticky top-24 space-y-6">
