@@ -217,7 +217,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  <Button onClick={() => onEdit(p)} className="flex-1 h-12 rounded-2xl bg-slate-50 text-slate-600 border border-slate-100 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all">
+                  <Button onClick={() => onEdit(p)} className="flex-1 h-12 rounded-2xl bg-teal-500 text-white border border-teal-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all">
                     Customise
                   </Button>
                   

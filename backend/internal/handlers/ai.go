@@ -78,7 +78,47 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	if sessionID == "" {
 		sessionID = primitive.NewObjectID().Hex()
 	}
-	portfolioID := primitive.NewObjectID()
+	// Determine Portfolio ID
+	var portfolioID primitive.ObjectID
+	isExisting := false
+	if req.PortfolioID != "" {
+		if id, err := primitive.ObjectIDFromHex(req.PortfolioID); err == nil {
+			portfolioID = id
+			isExisting = true
+
+			// Ownership check for existing portfolio
+			var existingPortfolio models.Portfolio
+			err := database.Client.Database(database.DBName).Collection("portfolios").FindOne(
+				context.Background(),
+				bson.M{"_id": portfolioID},
+			).Decode(&existingPortfolio)
+
+			if err == nil {
+				// Verify ownership
+				subjectID, _ := c.Get("subjectId")
+				subjectIDStr := ""
+				if subjectID != nil {
+					subjectIDStr = subjectID.(string)
+				}
+
+				canEdit := false
+				if userID != nil && existingPortfolio.UserID.Hex() == userID.(string) {
+					canEdit = true
+				} else if existingPortfolio.AnonymousID == subjectIDStr {
+					canEdit = true
+				}
+
+				if !canEdit {
+					c.JSON(http.StatusForbidden, gin.H{"error": "Access denied to portfolio"})
+					return
+				}
+			}
+		}
+	}
+
+	if !isExisting {
+		portfolioID = primitive.NewObjectID()
+	}
 
 	// If it's a redesign/remix of an existing portfolio, use its ID for logs
 	// Otherwise, broadcast to the user room for initial creation logs
@@ -229,10 +269,25 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	if req.Theme != "" {
 		portfolioDoc["theme"] = req.Theme
 	}
-	_, err = database.Client.Database(database.DBName).Collection("portfolios").InsertOne(
-		context.Background(),
-		portfolioDoc,
-	)
+	if isExisting {
+		// Update existing
+		_, err = database.Client.Database(database.DBName).Collection("portfolios").UpdateOne(
+			context.Background(),
+			bson.M{"_id": portfolioID},
+			bson.M{"$set": bson.M{
+				"structuredContent": manifest,
+				"updatedAt":         primitive.NewDateTimeFromTime(time.Now()),
+				"status":            "draft", // Reset to draft on major regeneration
+			}},
+		)
+	} else {
+		// Insert new
+		portfolioDoc["_id"] = portfolioID
+		_, err = database.Client.Database(database.DBName).Collection("portfolios").InsertOne(
+			context.Background(),
+			portfolioDoc,
+		)
+	}
 	if err != nil {
 		log.Printf("[AI] DB Insert error: %v", err)
 		streamLog("CRITICAL: Failed to commit portfolio to storage.", "error")

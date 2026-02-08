@@ -374,12 +374,16 @@ const PortfolioBuilder: React.FC = () => {
     try {
       const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
 
+      // Determine if we have a persistent portfolio ID (not a temp one based on Date.now)
+      const persistentId = data?.id && !data.id.startsWith('portfolio-') ? data.id : undefined;
+
       const result = await generatePortfolio({
         type: 'omni',
         value: inputToUse,
         baseHtml: template?.html,
         files: files,
-        sessionId: builderSessionId
+        sessionId: builderSessionId,
+        portfolioId: persistentId
       } as any);
 
       timeouts.forEach(clearTimeout);

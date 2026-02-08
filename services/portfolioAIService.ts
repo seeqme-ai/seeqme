@@ -231,9 +231,15 @@ function extractTemplatesFromHtml(html: string): Record<string, string> {
   return templates;
 }
 
-export async function generatePortfolio(input: { type: string, value: string, baseHtml?: string, files?: any[], sessionId?: string }) {
+export async function generatePortfolio(input: { type: string, value: string, baseHtml?: string, files?: any[], sessionId?: string, portfolioId?: string }) {
   try {
-    const response = await aiService.generatePortfolio(input.value, input.baseHtml, input.files, undefined, undefined, input.sessionId);
+    const response = await aiService.generatePortfolio({
+      value: input.value,
+      template: input.baseHtml,
+      files: input.files,
+      sessionId: input.sessionId,
+      portfolioId: input.portfolioId
+    });
 
     // Parse the stringified code data from the backend
     let aiCode: any = {};

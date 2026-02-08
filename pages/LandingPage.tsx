@@ -317,7 +317,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div id="templates" className="w-full scroll-mt-32 mt-4">
           <div className="flex flex-col lg:flex-row items-end justify-between mb-20 gap-10">
             <div className="max-w-xl">
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Professional Templates</h2>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Templates</h2>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6 w-full lg:w-auto">
