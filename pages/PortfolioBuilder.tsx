@@ -427,21 +427,39 @@ const PortfolioBuilder: React.FC = () => {
     setHistory(prev => [...prev, { ...data }]);
 
     setStatus('generating');
+    setProgress(10);
+    setIsTerminalCollapsed(false);
     addLog('AI Protocol: Redesigning visual architecture...', 'info');
 
-    const stepInterval = setInterval(() => {
-    }, 1000);
+    const progressSteps = [
+      { p: 25, m: "Analyzing visual hierarchy...", t: 1500 },
+      { p: 50, m: "Synthesizing new design components...", t: 4000 },
+      { p: 75, m: "Re-rendering UI layout...", t: 7000 },
+      { p: 90, m: "Finalizing redesign polish...", t: 10000 }
+    ];
+
+    const timeouts: any[] = [];
+    progressSteps.forEach(step => {
+      const timeout = setTimeout(() => {
+        setProgress(step.p);
+        addLog(step.m, 'info');
+      }, step.t);
+      timeouts.push(timeout);
+    });
 
     try {
       const redesigned = await redesignLayout(data);
-      clearInterval(stepInterval);
+      timeouts.forEach(clearTimeout);
+      setProgress(100);
+
       setData(redesigned);
       if (redesigned.layout) setCurrentLayout(redesigned.layout);
       if (redesigned.theme) setCurrentTheme(redesigned.theme);
       setStatus('ready');
       addLog('Design updated successfully.', 'success');
     } catch (error: any) {
-      clearInterval(stepInterval);
+      timeouts.forEach(clearTimeout);
+      setProgress(0);
       addLog(`ERR_REDESIGN: ${error.message}`, 'error');
       setStatus('ready');
 

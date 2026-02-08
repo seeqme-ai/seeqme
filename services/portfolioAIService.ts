@@ -377,10 +377,11 @@ export async function redesignLayout(currentData: PortfolioData) {
       - Projects: Choose from PROJ_* components.
       - Skills: Choose from SKILLS_* components.
       
-      STRICT RULE: 
+      STRICT RULES: 
       - Every section MUST use "componentId" (not "component").
       - Every section MUST use "content" (not "props" or "data").
-      - Maintain all existing professional content but re-architect into the new components.
+      - DO NOT MODIFY ANY TEXT CONTENT. Maintain all professional descriptions, metrics, and labels exactly as provided.
+      - THIS IS A UI-ONLY REMIX. Focus on componentId selection and globalConfig styles.
       
       OUTPUT: Return a valid Manifest JSON.`,
       baseHtml: currentData.html,
@@ -411,6 +412,23 @@ export async function redesignLayout(currentData: PortfolioData) {
     if (!structuredContent || Object.keys(structuredContent).length === 0) {
       console.log('[PortfolioAIService] Redesign: Extracting structuredContent from new HTML...');
       structuredContent = extractStructuredContentFromHtml(html);
+    }
+
+    // CRITICAL: Structural Merge to ensure content preservation during Remix
+    // If AI changed content fields during remix, we revert them to original structuredContent
+    // while keeping the new componentId and styles.
+    if (structuredContent?.sections && currentData.structuredContent?.sections) {
+      console.log('[PortfolioAIService] Applying structural merge to preserve user content during remix...');
+      structuredContent.sections = structuredContent.sections.map((section: any) => {
+        const originalSection = currentData.structuredContent.sections.find((s: any) => s.type === section.type);
+        if (originalSection) {
+          return {
+            ...section,
+            content: originalSection.content // Restore original content fields
+          };
+        }
+        return section;
+      });
     }
 
     const sc = normalizeToManifest(structuredContent || currentData.structuredContent, currentData.layout);

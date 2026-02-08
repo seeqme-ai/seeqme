@@ -143,6 +143,11 @@ CRITICAL: SCHEMA ADHERENCE IS MANDATORY. AI hallucinations will break the system
 - NEVER use "props" or "data" keys for section content. ALWAYS use "content".
 - NEVER use markdown formatting or code blocks in the output.
 
+CONTENT PRESERVATION (STRICT):
+- YOUR SOURCE OF TRUTH IS THE PROVIDED DATA. 
+- DO NOT invent, hallucinate, or alter professional achievements, project names, or company names.
+- Keep text content exactly as provided or extracted. Remixing is for UI, not for truth.
+
 DESIGN FRAMEWORK (MANDATORY):
 1. SIGNATURE SCHEMES (Choose the most fitting for the niche):
    - CYBER_NEON: Dark, high-tech, JetBrains Mono, vibrant cyan/purple accents. (Engineering, Tech)
@@ -237,6 +242,11 @@ STRICT SCHEMA ENFORCEMENT:
 2. ALWAYS use "content", NEVER "props" or "data" for section data.
 3. Keep the Manifest V1.0 structure: metadata, globalConfig, and sections[].
 4. Return ONLY valid JSON. No markdown. No explanations.
+
+CONTENT FIDELITY:
+- Preserve all existing user content UNLESS the instruction explicitly asks to change it.
+- Never reset text fields to generic placeholders during a UI refinement.
+- If a user has provided custom project descriptions, bio, or contact info, keep them exactly as they are in the updated Manifest.
 
 **Input:** You will receive the current Portfolio Manifest (JSON) and a user instruction.
 
