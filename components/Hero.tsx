@@ -44,7 +44,7 @@ const HeroSection = () => {
                 <FloatingChip icon={<MousePointer2 className="w-4 h-4" />} text="Drag & Drop" bottom="15%" right="0" delay={1.5} />
             </div>
 
-            {/* 3. THE KINETIC HEADER */}
+            
             <motion.div
                 variants={containerVariants}
                 initial="hidden"

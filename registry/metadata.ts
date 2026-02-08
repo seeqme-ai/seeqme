@@ -132,8 +132,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     CTA_CENTERED_BOLD: { id: 'CTA_CENTERED_BOLD', name: 'Impact Prompt', category: 'cta', description: 'Fullscreen bold command.' },
     CTA_NEWSLETTER_INLINE: { id: 'CTA_NEWSLETTER_INLINE', name: 'Community Join', category: 'cta', description: 'Direct newsletter acquisition.' },
     CTA_CONTACT_MINI: { id: 'CTA_CONTACT_MINI', name: 'Shortcut Deck', category: 'cta', description: 'Compact direct link card.' },
-    CTA_GRADIENT_BANNER: { id: 'CTA_GRADIENT_BANNER', name: 'Visionary Launch', category: 'cta', description: 'Animated full-width callout.' },
-
+  
     // SERVICES
     SERVICES_GLOW_GRID: { id: 'SERVICES_GLOW_GRID', name: 'Neon Glow Grid', category: 'services', niche: ['Tech', 'Agency'], description: 'High-tech grid with interactive glow states.' },
     SERVICES_CARDS_INTERACTIVE: { id: 'SERVICES_CARDS_INTERACTIVE', name: 'Interactive Cards', category: 'services', description: 'Grid of floating cards with hover effects.' },

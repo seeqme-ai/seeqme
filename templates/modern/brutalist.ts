@@ -134,7 +134,6 @@ export const DEV_BRUTALIST: Manifest = {
                             
                             <div class="flex flex-col md:flex-row gap-4 ml-4 md:ml-8">
                                 <a href="#projects" class="inline-block border-2 border-black bg-white px-8 py-3 hover:bg-black hover:text-[#00ff00] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-                                    console.log('Projects')
                                 </a>
                                 <a href="{{cta.link}}" class="inline-block border-2 border-black bg-[#00ff00] px-8 py-3 hover:bg-[#00cc00] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
                                     {{cta.text}}

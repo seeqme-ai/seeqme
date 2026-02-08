@@ -17,7 +17,7 @@ class SocketService {
         this.socket = new WebSocket(WS_URL);
 
         this.socket.onopen = () => {
-            console.log('✅ Connected to Seeqme Engine Socket');
+         
             this.reconnectAttempts = 0;
             if (userId) this.subscribeToUser(userId);
 
@@ -31,7 +31,7 @@ class SocketService {
         this.socket.onmessage = (event) => {
             try {
                 const { event: eventName, data } = JSON.parse(event.data);
-                console.log(`📬 Received ${eventName}:`, data);
+               
 
                 switch (eventName) {
                     case 'portfolio_log':
@@ -53,7 +53,7 @@ class SocketService {
             console.warn('❌ Socket disconnected:', event.reason);
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
-                console.log(`🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+              
                 setTimeout(() => this.connect(token, userId), 2000);
             }
         };
@@ -77,7 +77,7 @@ class SocketService {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(payload));
         } else if (this.socket?.readyState === WebSocket.CONNECTING) {
-            console.log('⏳ Socket connecting, queuing message:', payload);
+
             this.messageQueue.push(payload);
         } else {
             // Silently ignore if it's just an unsubscribe request on a closed socket

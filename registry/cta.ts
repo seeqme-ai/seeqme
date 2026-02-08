@@ -150,18 +150,7 @@ export const CTA_CONTACT_MINI = (content: any) => `
   </section>
 `;
 
-export const CTA_GRADIENT_BANNER = (content: any) => `
-  <section id="cta" data-section="cta" class="relative py-32 px-6 overflow-hidden bg-black flex items-center justify-center">
-    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 animate-pulse"></div>
-    <div class="relative z-10 text-center space-y-12">
-       <h2 class="text-6xl md:text-[10vw] font-black text-white italic tracking-tighter leading-none opacity-40 uppercase">PUSH LIMITS</h2>
-       <div class="max-w-3xl mx-auto space-y-8">
-          <p class="text-2xl md:text-4xl font-bold text-white uppercase">${content.title || 'Transform your digital presence today.'}</p>
-          <a href="${content.ctaLink || '#contact'}" class="inline-block px-16 py-6 bg-white text-black rounded-full font-black uppercase tracking-[0.4em] text-xs hover:bg-[var(--primary)] transition-colors">Launch Project</a>
-       </div>
-    </div>
-  </section>
-`;
+
 
 export const CTARegistry: any = {
   CTA_HERO_INLINE,
@@ -171,6 +160,5 @@ export const CTARegistry: any = {
   CTA_CARD_HOVER,
   CTA_NEWSLETTER_INLINE,
   CTA_CONTACT_MINI,
-  CTA_GRADIENT_BANNER
 };
 

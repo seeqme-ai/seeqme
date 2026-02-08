@@ -31,7 +31,7 @@ function generatePresets(count: number) {
                     { type: 'projects', componentId: projects[i % projects.length] },
                     { type: 'stats', componentId: i % 2 === 0 ? 'STATS_ANIMATED_COUNTERS' : 'STATS_LARGE_NUMBERS' },
                     { type: 'testimonials', componentId: i % 2 === 0 ? 'TESTIMONIALS_CAROUSEL' : 'TESTIMONIALS_GRID_PHOTOS' },
-                    { type: 'cta', componentId: 'CTA_GRADIENT_BANNER' },
+                    { type: 'cta', componentId: 'CTA_CENTERED_BOLD' },
                     { type: 'faq', componentId: 'FAQ_ACCORDION_NEON' },
                     { type: 'footer', componentId: footers[i % footers.length] }
                 ]
@@ -41,4 +41,4 @@ function generatePresets(count: number) {
     return presets;
 }
 
-export const PRESET_LAYOUTS = generatePresets(120); // 120 unique production templates
+export const PRESET_LAYOUTS = generatePresets(120);

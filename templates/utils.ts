@@ -8,8 +8,7 @@ export const generateTemplateHTML = (
     theme: "dark" | "light",
     content: any
 ): string => {
-    console.log("⚡ Using Local Layout Engine:", layout);
-
+    
     const isDark = theme === "dark";
     const bg = isDark ? "bg-slate-900" : "bg-white";
     const text = isDark ? "text-slate-100" : "text-slate-900";

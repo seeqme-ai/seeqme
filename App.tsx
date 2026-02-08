@@ -21,6 +21,7 @@ import TermsOfService from './pages/TermsOfService';
 import MonetaryPolicy from './pages/MonetaryPolicy';
 import { ThemeProvider } from './context/theme-context';
 import { Loader } from 'lucide-react';
+import Templates from './pages/Templates';
 import MainLayout from './components/MainLayout';
 import SessionExpiredModal from './components/SessionExpiredModal';
 
@@ -94,6 +95,7 @@ const App: React.FC = () => {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<MainLayout><LandingPage onGetStarted={handleGetStarted} /></MainLayout>} />
+        <Route path="/templates" element={<Templates />} />
         <Route path="/contact" element={<MainLayout><ContactUs /></MainLayout>} />
         <Route path="/privacy-policy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
         <Route path="/terms-of-service" element={<MainLayout><TermsOfService /></MainLayout>} />

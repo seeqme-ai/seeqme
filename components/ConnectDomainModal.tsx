@@ -85,7 +85,7 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -101,7 +101,7 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                     className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col mx-auto"
                 >
                     {/* Header */}
-                    <div className="p-6 md:p-10 bg-teal-600 text-white flex justify-between items-start relative overflow-hidden">
+                    <div className="p-2 bg-teal-600 text-white flex justify-between items-start relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] -mr-32 -mt-32" />
 
                         <div className="relative z-10 space-y-2">
@@ -121,10 +121,10 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 md:p-10 space-y-8 flex-1 overflow-y-auto max-h-[70vh] no-scrollbar bg-white">
+                    <div className="p-2 space-y-8 flex-1 overflow-y-auto max-h-[70vh] no-scrollbar bg-white">
                         {step === 'input' ? (
                             <form onSubmit={handleInitialSubmit} className="space-y-6 md:space-y-8">
-                                <div className="p-6 md:p-8 bg-slate-50 rounded-2xl border border-slate-100 space-y-6">
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-6">
                                     <div className="space-y-3">
                                         <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Enter Domain</Label>
                                         <div className="relative group">
@@ -141,7 +141,7 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4 p-4 md:p-6 bg-teal-50/50 rounded-2xl border border-teal-100/50">
+                                    <div className="flex gap-4 p-2 md:p-6 bg-teal-50/50 rounded-2xl border border-teal-100/50">
                                         <ShieldCheck className="w-5 h-5 text-teal-500 shrink-0" />
                                         <p className="text-[10px] md:text-[11px] font-bold text-slate-600 leading-relaxed">
                                             We'll automatically provision an SSL certificate for your domain through our global edge network.
@@ -187,7 +187,7 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                             </div>
                                         </div>
 
-                                        <div className="pt-6 border-t border-slate-200 space-y-3">
+                                        <div className="pt-4 border-t border-slate-200 space-y-3">
                                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Value</p>
                                             <div className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl">
                                                 <p className="text-[11px] md:text-sm font-mono font-bold text-slate-600 truncate mr-4">
@@ -208,14 +208,14 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                     <Button
                                         onClick={() => setIsPolling(true)}
                                         disabled={isPolling}
-                                        className="flex-1 h-14 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-teal-500/10 transition-all active:scale-95 order-1 md:order-2"
+                                        className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-teal-500/10 transition-all active:scale-95 order-1 md:order-2"
                                     >
                                         {isPolling ? <><Loader className="w-4 h-4 animate-spin mr-2" /> Verifying...</> : 'Verify Connection'}
                                     </Button>
                                     <Button
                                         variant="outline"
                                         onClick={onClose}
-                                        className="px-8 h-14 border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all order-2 md:order-1"
+                                        className="px-4 h-8 border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all order-2 md:order-1"
                                     >
                                         Skip for now
                                     </Button>

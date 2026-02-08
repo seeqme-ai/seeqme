@@ -213,9 +213,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             onDragLeave={() => setIsDragging(false)}
             onDrop={(e: any) => { e.preventDefault(); setIsDragging(false); }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 animate-[spin_4s_linear_infinite]" style={{ opacity: isRecording || isUploading ? 1 : 0.3 }}></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 animate-[spin_4s_linear_infinite] opacity-[0.2]"></div>
             <div className="bg-card/80 backdrop-blur-3xl p-4 flex flex-col items-stretch gap-4 relative rounded-3xl">
-
               <div className="flex-1 w-full relative">
                 <textarea
                   value={inputValue}
@@ -223,35 +222,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   placeholder="Describe your career goals or paste your experience..."
                   className="w-full bg-transparent border-none focus:outline-none py-6 px-4 md:px-8 text-xl font-medium placeholder:text-muted-foreground/20 resize-none h-32 md:h-40 no-scrollbar"
                 />
-
-                {/* <div className="flex items-center gap-3 px-4 md:px-8 py-4 border-t border-border/10">
-                  <Linkedin className="w-5 h-5 text-muted-foreground/40 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={linkedInUrl}
-                    onChange={(e) => setLinkedInUrl(e.target.value)}
-                    placeholder="LinkedIn URL (optional)"
-                    className="flex-1 bg-transparent border-none focus:outline-none text-xs font-semibold uppercase tracking-widest placeholder:text-muted-foreground/30"
-                  />
-                </div> */}
-
-                <div className="absolute right-6 -bottom-2 flex items-center gap-2">
-                  <button
-                    onClick={startVoice}
-                    className={`p-2 rounded-2xl transition-all ${isRecording ? 'text-rose-500 bg-rose-500/10 animate-pulse' : 'text-slate-400 hover:text-teal-400 hover:bg-teal-500/10'}`}
-                    title="Voice Command"
-                  >
-                    <Mic className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-2 text-xs flex rounded text-slate-400 text-teal-400 bg-teal-500/10 transition-all"
-                    title="Upload CV"
-                  >
-                    Upload CV {isUploading ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} accept=".pdf,.doc,.docx,image/*,.txt" />
-                  </button>
-                </div>
               </div>
 
               <AnimatePresence>
@@ -277,10 +247,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </AnimatePresence>
 
               <div className="px-4 md:px-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className={`flex items-center gap-4 transition-opacity ${inputValue || selectedFile ? 'opacity-100' : 'opacity-20'}`}>
-                  <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
+                <div className="flex items-center gap-4">
+                  {/* Mic Button */}
+                  <button
+                    onClick={startVoice}
+                    className={`p-2 rounded-2xl transition-all ${isRecording ? 'text-rose-500 bg-rose-500/10 animate-pulse' : 'text-slate-400 hover:text-teal-400 hover:bg-teal-500/10'}`}
+                    title="Voice Command"
+                  >
+                    <Mic className="w-4 h-4" />
+                  </button>
+
+                  {/* Upload CV Button */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-2xl text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 hover:text-teal-300 transition-all"
+                    title="Upload CV"
+                  >
+                    <span>Upload CV</span>
+                    {isUploading ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} accept=".pdf,.doc,.docx,image/*,.txt" />
+                  </button>
 
                 </div>
+
                 <button
                   onClick={handleBuild}
                   className="w-full font-bold md:w-auto px-10 py-5 bg-teal-500 text-white rounded-2xl text-[10px] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
@@ -291,7 +280,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </div>
           </MotionDiv>
         </div>
-
         {/* Partner Marquee */}
         <section className="w-full overflow-hidden py-4 border-y border-border relative">
           <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent z-10"></div>
@@ -336,7 +324,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   <button
                     key={n}
                     onClick={() => setSelectedNiche(n)}
-                    className={`px-6 py-3 rounded-full text-xs font-semibold tracking-wide transition-all border whitespace-nowrap ${selectedNiche === n ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/20' : 'bg-white border-border text-muted-foreground hover:text-foreground'}`}
+                    className={`px-4 py-3  rounded-full text-xs font-semibold tracking-wide transition-all border whitespace-nowrap ${selectedNiche === n ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/20' : 'bg-white border-border text-muted-foreground hover:text-foreground'}`}
                   >
                     {n}
                   </button>

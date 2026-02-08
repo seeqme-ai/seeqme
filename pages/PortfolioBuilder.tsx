@@ -234,7 +234,7 @@ const PortfolioBuilder: React.FC = () => {
           if (!scChanged && !htmlChanged && !cssChanged) return;
 
           try {
-            console.log('[PortfolioBuilder] Auto-saving changes to backend...');
+          
             await portfolioService.updatePortfolio(portfolioId, {
               structuredContent: data.structuredContent,
               html: data.html,
@@ -569,10 +569,9 @@ const PortfolioBuilder: React.FC = () => {
         }
       }
 
-      console.log('[PortfolioBuilder] Submitting refinement:', { prompt: finalPrompt, data });
+     
       const updated = await refinePortfolio(data, finalPrompt, file ? [file] : undefined);
-      console.log('[PortfolioBuilder] Refinement successful:', updated);
-
+  
       timeouts.forEach(clearTimeout);
       setProgress(100);
 

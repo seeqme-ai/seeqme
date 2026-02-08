@@ -18,8 +18,6 @@ export function getAnonymousId(): string {
         const randomStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         anonId = `dev_${timestamp}_${randomStr}`;
         localStorage.setItem(SEEQME_ANON_ID_KEY, anonId);
-
-        console.log('[Identity] Generated new production-grade anonymous ID:', anonId);
     }
 
     return anonId;

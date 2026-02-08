@@ -189,7 +189,6 @@ function extractStructuredContentFromHtml(html: string): any {
       structuredContent.sectionTitles = sectionTitles;
     }
 
-    console.log('[PortfolioAIService] Extracted structuredContent from HTML:', structuredContent);
     return structuredContent;
   } catch (e) {
     console.warn('[PortfolioAIService] Failed to extract structuredContent from HTML:', e);
@@ -246,7 +245,6 @@ export async function generatePortfolio(input: { type: string, value: string, ba
     if (response.data) {
       try {
         aiCode = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-        console.log('[PortfolioAIService] Parsed AI Code:', aiCode);
       } catch (e) {
         console.error("[PortfolioAIService] Failed to parse AI code data:", e);
       }
@@ -265,12 +263,12 @@ export async function generatePortfolio(input: { type: string, value: string, ba
 
     // CRITICAL: If the entire aiCode object looks like a Manifest (has sections), use it as structuredContent
     if (!structuredContent && aiCode && aiCode.sections && Array.isArray(aiCode.sections)) {
-      console.log('[PortfolioAIService] Detected Manifest structure in response data. Using as structuredContent.');
+
       structuredContent = aiCode;
     }
 
     if (!structuredContent || Object.keys(structuredContent).length === 0) {
-      console.log('[PortfolioAIService] No structuredContent in response, extracting from HTML...');
+    
       structuredContent = extractStructuredContentFromHtml(html);
     }
 
@@ -292,16 +290,16 @@ export async function generatePortfolio(input: { type: string, value: string, ba
         sections: normalizedSections,
         metadata: structuredContent.metadata || { version: '1.0', niche: 'General', generatedAt: new Date().toISOString() }
       };
-      console.log('[PortfolioAIService] Manifest format detected and normalized,', normalizedSections.length, 'sections.');
+     
     } else {
       // Flat content format, needs normalization
       sc = normalizeToManifest(structuredContent, 'MODERN_VERTICAL');
-      console.log('[PortfolioAIService] Flat content normalized to Manifest.');
+    
     }
 
     // Generate HTML from structured content if not provided by AI
     if ((!html || html.length < 100) && sc) {
-      console.log('[PortfolioAIService] HTML missing or too short, generating from Manifest...');
+   
       try {
         html = renderManifest(sc);
       } catch (err) {
@@ -321,7 +319,7 @@ export async function generatePortfolio(input: { type: string, value: string, ba
       templates: extractedTemplates // Include extracted templates
     };
 
-    console.log('[PortfolioAIService] Transformed PortfolioData:', portfolioData);
+
     return portfolioData;
   } catch (error: any) {
     console.error(error);
@@ -396,7 +394,7 @@ export async function redesignLayout(currentData: PortfolioData) {
     } as any);
 
 
-    console.log('ai response', response)
+  
     // Parse the stringified code data from the backend
     let aiCode: any = {};
     if (response.data) {
@@ -416,7 +414,7 @@ export async function redesignLayout(currentData: PortfolioData) {
     html = html.replace(scriptRegex, '');
 
     if (!structuredContent || Object.keys(structuredContent).length === 0) {
-      console.log('[PortfolioAIService] Redesign: Extracting structuredContent from new HTML...');
+    
       structuredContent = extractStructuredContentFromHtml(html);
     }
 
@@ -424,7 +422,7 @@ export async function redesignLayout(currentData: PortfolioData) {
     // If AI changed content fields during remix, we revert them to original structuredContent
     // while keeping the new componentId and styles.
     if (structuredContent?.sections && currentData.structuredContent?.sections) {
-      console.log('[PortfolioAIService] Applying structural merge to preserve user content during remix...');
+     
       structuredContent.sections = structuredContent.sections.map((section: any) => {
         const originalSection = currentData.structuredContent.sections.find((s: any) => s.type === section.type);
         if (originalSection) {
@@ -456,7 +454,7 @@ export async function redesignLayout(currentData: PortfolioData) {
 // Internal log helper with consistent formatting
 function addLog(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : '→';
-  console.log(`[PortfolioAIService] ${prefix} ${message}`);
+ 
 }
 
 // Normalizes content fields to match what Registry components expect

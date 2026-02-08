@@ -25,8 +25,7 @@ export const cloudinaryService = {
       }
 
       const response = await uploadService.uploadFile(file);
-      console.log('[cloudinaryService] Raw upload response:', response);
-
+     
       const url = response.secure_url || response.url || response.SecureURL || response.URL;
       const publicId = response.public_id || response.PublicID;
 

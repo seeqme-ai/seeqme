@@ -26,10 +26,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-teal-500 selection:text-slate-950 overflow-x-hidden">
-      {/* Real-time Support Chat */}
       <ChatBot />
 
-      {/* --- REDESIGNED HEADER: Floating Pill Style --- */}
       <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl z-[100] px-6 py-3 flex justify-between items-center rounded-2xl border border-white/10 bg-white/60  backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all">
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
           <div className="flex items-center gap-2">
@@ -39,9 +37,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </div>
 
-        <nav className="hidden lg:flex gap-8 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/80">
+        <nav className="hidden lg:flex gap-8 text-[11px] font-bold uppercase text-muted-foreground/80">
           <button onClick={() => navigate('/dashboard')} className="hover:text-teal-500 transition-colors">Projects</button>
-          <button onClick={() => navigate('/#templates')} className="hover:text-teal-500 transition-colors">Templates</button>
+          <button onClick={() => navigate('/templates')} className="hover:text-teal-500 transition-colors">Templates</button>
           <button onClick={() => navigate('/contact')} className="hover:text-teal-500 transition-colors">Contact Us</button>
           {user?.role === 'admin' && (
             <button onClick={() => navigate('/admin')} className="text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1">
@@ -76,7 +74,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <MotionDiv initial={{ opacity: 0, y: '-100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '-100%' }} className="fixed inset-0 z-[110] bg-white flex flex-col items-center justify-center gap-10 text-center">
             <button onClick={() => setMobileMenuOpen(false)} className="absolute top-10 right-10 p-4 rounded-full bg-teal-500/10 text-teal-500 hover:bg-teal-500/20 transition-all font-bold"><X className="w-5 h-5" /></button>
             <button onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }} className="text-3xl font-bold tracking-tight hover:text-teal-500 transition-colors">DASHBOARD</button>
-            <button onClick={() => { navigate('/#templates'); setMobileMenuOpen(false); }} className="text-3xl font-bold tracking-tight hover:text-teal-500 transition-colors">TEMPLATES</button>
+            <button onClick={() => { navigate('/templates'); setMobileMenuOpen(false); }} className="text-3xl font-bold tracking-tight hover:text-teal-500 transition-colors">TEMPLATES</button>
             <button onClick={() => { navigate('/contact'); setMobileMenuOpen(false); }} className="text-3xl font-bold tracking-tight hover:text-teal-500 transition-colors">CONTACT US</button>
             {!isAuthenticated && (
               <div className="flex flex-col gap-6 mt-8">
