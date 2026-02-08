@@ -40,30 +40,8 @@ export const FOOTER_SOCIAL_HEAVY = (content: any) => `
 
 export const FOOTER_NEWSLETTER = (content: any) => `
   <footer class="py-20 px-6 bg-gradient-to-t from-[var(--surface)] to-transparent">
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-      <div class="space-y-4">
-        <h3 class="text-3xl md:text-4xl font-black" data-field="footer-newsletter-title">
-          ${content.newsletterTitle || 'Stay Updated'}
-        </h3>
-        <p class="text-lg opacity-60" data-field="footer-newsletter-desc">
-          ${content.newsletterDesc || 'Get notified about new projects and insights.'}
-        </p>
-      </div>
-      <form class="flex gap-3">
-        <input type="email" placeholder="your@email.com" 
-               class="flex-1 px-6 py-4 rounded-full bg-[var(--bg)] border border-[var(--text)]/20 focus:border-[var(--primary)] outline-none transition-all" />
-        <button type="submit" 
-                class="px-8 py-4 rounded-full bg-[var(--primary)] text-[var(--bg)] font-bold hover:scale-105 transition-transform whitespace-nowrap">
-          Subscribe
-        </button>
-      </form>
-    </div>
     <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-[var(--text)]/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm opacity-40">
       <p>© ${new Date().getFullYear()} ${content.name}</p>
-      <div class="flex gap-6">
-        <a href="#privacy" class="hover:opacity-100 transition-opacity">Privacy</a>
-        <a href="#terms" class="hover:opacity-100 transition-opacity">Terms</a>
-      </div>
     </div>
   </footer>
 `;
@@ -140,22 +118,6 @@ export const FOOTER_DARK_DETAILED = (content: any) => `
              ${(content.socials || []).map((s: any) => `<a href="${s.url}" target="_blank" rel="noopener" class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[var(--primary)] transition-all"><i class="fab fa-${s.platform.toLowerCase()}"></i></a>`).join('')}
           </div>
        </div>
-       <div class="md:col-span-2 space-y-6">
-          <h5 class="text-xs font-black uppercase tracking-[0.3em] opacity-40">Resources</h5>
-          <ul class="space-y-4 text-sm font-bold opacity-60">
-             <li><a href="#" class="hover:text-[var(--primary)] transition-colors">Documentation</a></li>
-             <li><a href="#" class="hover:text-[var(--primary)] transition-colors">Case Studies</a></li>
-             <li><a href="#" class="hover:text-[var(--primary)] transition-colors">Open Source</a></li>
-          </ul>
-       </div>
-       <div class="md:col-span-2 space-y-6">
-          <h5 class="text-xs font-black uppercase tracking-[0.3em] opacity-40">System</h5>
-          <ul class="space-y-4 text-sm font-bold opacity-60">
-             <li><a href="#" class="hover:text-[var(--primary)] transition-colors">Privacy Policy</a></li>
-             <li><a href="#" class="hover:text-[var(--primary)] transition-colors">Terms of Service</a></li>
-             <li><a href="#" class="hover:text-[var(--primary)] transition-colors">Status</a></li>
-          </ul>
-       </div>
        <div class="md:col-span-4 p-8 bg-zinc-900 rounded-3xl border border-white/5">
           <h5 class="text-lg font-black mb-4">Start a conversation</h5>
           <p class="text-sm text-gray-400 mb-6 font-medium">Ready to discuss your next project? Drop me a line.</p>
@@ -164,7 +126,6 @@ export const FOOTER_DARK_DETAILED = (content: any) => `
     </div>
     <div class="max-w-7xl mx-auto pt-8 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-30">
        <p>© ${new Date().getFullYear()} ${content.name}</p>
-       <p>Built with SeeqMe AI</p>
     </div>
   </footer>
 `;
@@ -192,7 +153,7 @@ export const FOOTER_BRAND_FOCUS = (content: any) => `
        <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
           <p>© ${new Date().getFullYear()} ${content.name || 'Brand'}</p>
           <a href="mailto:${content.email || 'contact@brand.com'}" class="hover:text-[var(--primary)] transition-colors">${content.email || 'contact@brand.com'}</a>
-          <p>Portfolio v1.0</p>
+
        </div>
     </div>
   </footer>
