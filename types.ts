@@ -71,6 +71,7 @@ export interface Portfolio {
   niche?: string;
   status?: 'draft' | 'completed' | 'failed';
   subdomain?: string;
+  domain?: string;
   githubRepo?: string;
   createdAt?: Date | string;
   html?: string;

@@ -195,9 +195,30 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 		}
 	}
 
+	// AUTO-DETECT NICHE from CV content if not explicitly provided
+	detectedNiche := req.Niche
+	if detectedNiche == "" && len(promptWithFiles) > 0 {
+		detectedNiche = services.DetectNiche(promptWithFiles)
+		streamLog(fmt.Sprintf("Niche auto-detected: %s", detectedNiche), "info")
+	}
+
 	// Add niche and theme context to prompt
-	if req.Niche != "" {
-		promptWithFiles += fmt.Sprintf("\n\nNiche/Profession: %s", req.Niche)
+	if detectedNiche != "" {
+		promptWithFiles += fmt.Sprintf("\n\nNiche/Profession: %s", detectedNiche)
+
+		// Add template-based architectural guidance
+		// Build template library from registry blueprints
+		templateLibrary := services.BuildTemplateLibraryFromRegistry()
+		if templateLibrary != nil && len(templateLibrary.Blueprints) > 0 {
+			templateGuidance := services.GenerateManifestGuidance(templateLibrary, detectedNiche)
+			promptWithFiles += fmt.Sprintf("\n\n%s", templateGuidance)
+			streamLog(fmt.Sprintf("Applied template-based architecture for %s using %d blueprints", detectedNiche, len(templateLibrary.Blueprints)), "info")
+		} else {
+			// Fallback to niche blueprint if template library not available
+			blueprint := services.GetNicheBlueprint(detectedNiche)
+			promptWithFiles += fmt.Sprintf("\n\n%s", blueprint)
+			streamLog(fmt.Sprintf("Applied niche-based guidance for %s", detectedNiche), "info")
+		}
 	}
 	if req.Theme != "" {
 		promptWithFiles += fmt.Sprintf("\n\nTheme Preference: %s", req.Theme)
@@ -263,8 +284,13 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 		userObjID, _ := primitive.ObjectIDFromHex(userID.(string))
 		portfolioDoc["userId"] = userObjID
 	}
-	if req.Niche != "" {
-		portfolioDoc["niche"] = req.Niche
+	// Save detected niche (takes precedence, fallback to req.Niche if needed)
+	nicheToSave := detectedNiche
+	if nicheToSave == "" && req.Niche != "" {
+		nicheToSave = req.Niche
+	}
+	if nicheToSave != "" {
+		portfolioDoc["niche"] = nicheToSave
 	}
 	if req.Theme != "" {
 		portfolioDoc["theme"] = req.Theme
@@ -528,7 +554,7 @@ Structure: %s`, selectedPersona, string(structuredContentJSON))
 
 	if req.PortfolioID != "" {
 		websocket.BroadcastToPortfolio(req.PortfolioID, "portfolio_log", gin.H{
-			"message":   "AI Code Synthesis: Compiling visual logic and professional DNA...",
+			"message":   "AI Code Synthesis: Compiling visual logic...",
 			"type":      "info",
 			"timestamp": time.Now().Format("15:04:05"),
 		})
@@ -537,7 +563,7 @@ Structure: %s`, selectedPersona, string(structuredContentJSON))
 		subID, _ := c.Get("subjectId")
 		if subID != nil {
 			websocket.BroadcastToUser(subID.(string), "portfolio_log", gin.H{
-				"message":   "AI Code Synthesis: Compiling visual logic and professional DNA...",
+				"message":   "AI Code Synthesis: Compiling visual logic...",
 				"type":      "info",
 				"timestamp": time.Now().Format("15:04:05"),
 			})

@@ -230,14 +230,24 @@ function extractTemplatesFromHtml(html: string): Record<string, string> {
   return templates;
 }
 
-export async function generatePortfolio(input: { type: string, value: string, baseHtml?: string, files?: any[], sessionId?: string, portfolioId?: string }) {
+export async function generatePortfolio(input: {
+  type: string,
+  value: string,
+  baseHtml?: string,
+  files?: any[],
+  sessionId?: string,
+  portfolioId?: string,
+  templateId?: string,
+  niche?: string
+}) {
   try {
     const response = await aiService.generatePortfolio({
       value: input.value,
       template: input.baseHtml,
       files: input.files,
       sessionId: input.sessionId,
-      portfolioId: input.portfolioId
+      portfolioId: input.portfolioId,
+      niche: input.niche
     });
 
     // Parse the stringified code data from the backend
@@ -268,7 +278,7 @@ export async function generatePortfolio(input: { type: string, value: string, ba
     }
 
     if (!structuredContent || Object.keys(structuredContent).length === 0) {
-    
+
       structuredContent = extractStructuredContentFromHtml(html);
     }
 
@@ -290,16 +300,16 @@ export async function generatePortfolio(input: { type: string, value: string, ba
         sections: normalizedSections,
         metadata: structuredContent.metadata || { version: '1.0', niche: 'General', generatedAt: new Date().toISOString() }
       };
-     
+
     } else {
       // Flat content format, needs normalization
       sc = normalizeToManifest(structuredContent, 'MODERN_VERTICAL');
-    
+
     }
 
     // Generate HTML from structured content if not provided by AI
     if ((!html || html.length < 100) && sc) {
-   
+
       try {
         html = renderManifest(sc);
       } catch (err) {
@@ -394,7 +404,7 @@ export async function redesignLayout(currentData: PortfolioData) {
     } as any);
 
 
-  
+
     // Parse the stringified code data from the backend
     let aiCode: any = {};
     if (response.data) {
@@ -414,7 +424,7 @@ export async function redesignLayout(currentData: PortfolioData) {
     html = html.replace(scriptRegex, '');
 
     if (!structuredContent || Object.keys(structuredContent).length === 0) {
-    
+
       structuredContent = extractStructuredContentFromHtml(html);
     }
 
@@ -422,7 +432,7 @@ export async function redesignLayout(currentData: PortfolioData) {
     // If AI changed content fields during remix, we revert them to original structuredContent
     // while keeping the new componentId and styles.
     if (structuredContent?.sections && currentData.structuredContent?.sections) {
-     
+
       structuredContent.sections = structuredContent.sections.map((section: any) => {
         const originalSection = currentData.structuredContent.sections.find((s: any) => s.type === section.type);
         if (originalSection) {
@@ -454,7 +464,7 @@ export async function redesignLayout(currentData: PortfolioData) {
 // Internal log helper with consistent formatting
 function addLog(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : '→';
- 
+
 }
 
 // Normalizes content fields to match what Registry components expect

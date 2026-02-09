@@ -207,14 +207,41 @@ func (h *Handler) GetMe(c *gin.Context) {
 		return
 	}
 
+	db := database.Client.Database(database.DBName)
 	var user models.User
-	err = database.Client.Database(database.DBName).Collection("users").FindOne(c.Request.Context(), bson.M{"_id": objectID}).Decode(&user)
+	err = db.Collection("users").FindOne(c.Request.Context(), bson.M{"_id": objectID}).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	c.JSON(http.StatusOK, userResponse(user))
+	// Fetch user's subscription
+	var subscription models.Subscription
+	subErr := db.Collection("subscriptions").FindOne(c.Request.Context(), bson.M{"userId": objectID, "status": "active"}).Decode(&subscription)
+
+	// Determine subscription type (default to "free" if no active subscription)
+	subscriptionType := "free"
+	if subErr == nil {
+		subscriptionType = subscription.PlanID
+	}
+
+	c.JSON(http.StatusOK, userResponseWithSubscription(user, subscriptionType))
+}
+
+// userResponseWithSubscription formats user data with subscription for API responses
+func userResponseWithSubscription(user models.User, subscription string) gin.H {
+	return gin.H{
+		"id":           user.ID.Hex(),
+		"email":        user.Email,
+		"fullName":     user.FullName,
+		"roles":        user.Roles,
+		"isActive":     user.IsActive,
+		"isVerified":   user.IsVerified,
+		"avatarUrl":    user.AvatarURL,
+		"country":      user.Country,
+		"authProvider": user.AuthProvider,
+		"subscription": subscription,
+	}
 }
 
 // VerifyGoogleIDToken handles the verification of a Google ID token and user provisioning.

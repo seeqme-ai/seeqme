@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ICONS } from '@/constants';
 import { PORTFOLIO_TEMPLATES } from '@/templates';
@@ -17,9 +17,39 @@ const Templates: React.FC = () => {
     const [displayLimit, setDisplayLimit] = useState(12);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const loaderRef = useRef<HTMLDivElement>(null);
+    const [searchParams] = useSearchParams();
 
     const { setSelectedTemplateId, setSynthesisInput } = useTemplate();
     const navigate = useNavigate();
+
+    // Check for template ID in URL and redirect to builder
+    const templateIdFromUrl = searchParams.get('id');
+
+    useEffect(() => {
+        if (templateIdFromUrl) {
+            const template = PORTFOLIO_TEMPLATES.find(t => t.id === templateIdFromUrl);
+            if (template) {
+                // Update document title for SEO
+                document.title = `${template.name} Template - Seeqme AI`;
+
+                // Set template context and redirect to builder
+                setSelectedTemplateId(template.id);
+                setSynthesisInput('');
+                navigate("/builder", {
+                    state: {
+                        initialData: {
+                            type: 'template',
+                            value: template.id,
+                            templateId: template.id,
+                            templateName: template.name,
+                            templateNiche: template.niche
+                        }
+                    },
+                    replace: true // Replace history so back button goes to previous page, not /templates?id=...
+                });
+            }
+        }
+    }, [templateIdFromUrl, navigate, setSelectedTemplateId, setSynthesisInput]);
 
     const filteredTemplates = useMemo(() => {
         return PORTFOLIO_TEMPLATES.filter(tpl => {
@@ -84,7 +114,7 @@ const Templates: React.FC = () => {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         className="text-center space-y-6"
                     >
-                      
+
                         <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-950 leading-[0.9]">
                             Designed <br /> to <span className="text-transparent bg-clip-text bg-teal-600">Inspire</span>
                         </h1>

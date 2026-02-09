@@ -54,7 +54,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[480px] z-[999] rounded-3xl bg-white dark:bg-slate-950 shadow-2xl overflow-hidden">
+            <DialogContent className="sm:max-w-[480px] z-[999] rounded-[2.5rem] bg-white dark:bg-slate-950 shadow-2xl overflow-hidden">
                 <div className="flex flex-col items-center gap-8 px-8 pt-10 pb-8 text-center">
                 
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800">

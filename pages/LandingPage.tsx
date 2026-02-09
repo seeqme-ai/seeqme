@@ -146,7 +146,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         url: ''
       });
 
-      toast.success(`File analyzed: ${file.name}`);
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || 'Failed to analyze file');

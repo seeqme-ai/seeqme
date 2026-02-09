@@ -115,7 +115,7 @@ const AnalyticsDashboard: React.FC = () => {
         <DashboardLayout>
             <div className="h-full flex flex-col items-center justify-center gap-4 text-rose-500">
                 <Activity className="w-12 h-12 opacity-20" />
-                <p className="text-sm font-black uppercase tracking-widest">{error}</p>
+                <p className="text-sm font-black  ">{error}</p>
                 <button onClick={() => navigate('/dashboard')} className="text-xs font-bold underline opacity-60">Return to Grid</button>
             </div>
         </DashboardLayout>
@@ -183,6 +183,7 @@ const AnalyticsDashboard: React.FC = () => {
             };
         });
 
+
     return (
         <DashboardLayout>
             <div className="max-w-7xl mx-auto space-y-8 pb-20">
@@ -190,30 +191,30 @@ const AnalyticsDashboard: React.FC = () => {
                 {/* Header Section */}
                 <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 font-bold text-xs uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 font-bold text-xs  tracking-[0.2em]">
                             <TrendingUp className="w-4 h-4" />
                             Live Insights
                         </div>
-                                                   <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                                                   <h1 className="text-3xl font-bold text-zinc-900 dark:text-white ">
                         </h1>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                         <div className="relative group w-full sm:w-72">
                             <Select value={selectedId} onValueChange={handlePortfolioChange}>
-                                <SelectTrigger className="w-full bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 h-14 rounded-2xl shadow-sm focus:ring-teal-500/20 px-6">
+                                <SelectTrigger className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 text-zinc-900 dark:text-white dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors h-14 rounded-2xl shadow-sm focus:ring-teal-500/20 px-6">
                                     <div className="flex items-center gap-3">
                                         <Layout className="w-4 h-4 text-teal-500" />
                                         <div className="text-left">
-                                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none mb-1">Project</p>
+                                            <p className="text-[10px]  leading-none mb-1">Project</p>
                                             <SelectValue placeholder="Select Project" />
                                         </div>
                                     </div>
                                 </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-zinc-200 dark:border-zinc-800 p-2">
-                                    {portfolios.map(p => (
+                                <SelectContent className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white p-2">
+                                    {portfolios.filter(p => p.status === 'completed').map(p => (
                                         <SelectItem key={p.id} value={p.id!} className="rounded-xl p-3 focus:bg-teal-50 dark:focus:bg-teal-950/30">
-                                            <span className="font-bold">{p.name || p.title}</span>
+                                            <span className="font-bold text-gray-500">{p.subdomain}</span>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -239,8 +240,7 @@ const AnalyticsDashboard: React.FC = () => {
                             <Activity className="w-10 h-10 text-teal-500/20" />
                         </div>
                         <div className="max-w-xs mx-auto">
-                            <h3 className="text-xl font-bold mb-2">Awaiting Telemetry</h3>
-                            <p className="text-sm text-zinc-500">Deploy this project to start receiving real-time visitor data and engagement metrics.</p>
+                            <h3 className="text-xl font-bold mb-2">Awaiting Telemetry...</h3>
                         </div>
                     </div>
                 ) : (
@@ -287,17 +287,17 @@ const AnalyticsDashboard: React.FC = () => {
 
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 relative z-10">
                                         <div>
-                                            <h3 className="text-xl font-black tracking-tight">Traffic Volume</h3>
-                                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Daily engagement metrics</p>
+                                            <h3 className="text-xl font-black ">Traffic Volume</h3>
+                                            <p className="text-xs text-zinc-400 mt-1">Daily engagement metrics</p>
                                         </div>
                                         <div className="flex items-center gap-6 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-2xl px-5 border border-zinc-100 dark:border-zinc-800">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                                                <span className="text-[10px] font-black uppercase text-zinc-500 tracking-tighter">Views</span>
+                                                <span className="text-[10px] font-black  text-zinc-500 er">Views</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                                <span className="text-[10px] font-black uppercase text-zinc-500 tracking-tighter">Visits</span>
+                                                <span className="text-[10px] font-black  text-zinc-500 er">Visits</span>
                                             </div>
                                         </div>
                                     </div>
@@ -372,7 +372,7 @@ const AnalyticsDashboard: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-bold">{country.name}</p>
-                                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{country.value} visitors</p>
+                                                        <p className="text-[10px] text-zinc-400 ">{country.value} visitors</p>
                                                     </div>
                                                 </div>
                                                 <div className="h-1.5 w-16 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -401,7 +401,7 @@ const AnalyticsDashboard: React.FC = () => {
                                                             type === 'Mobile' ? <Smartphone className="w-5 h-5 text-zinc-400" /> :
                                                                 <Tablet className="w-5 h-5 text-zinc-400" />}
                                                     </div>
-                                                    <p className="text-[10px] font-black uppercase text-zinc-400 mb-1">{type}</p>
+                                                    <p className="text-[10px] text-zinc-400 mb-1">{type}</p>
                                                     <p className="text-lg font-black text-zinc-900 dark:text-white">{perc}%</p>
                                                 </div>
                                             );
@@ -429,19 +429,19 @@ const MetricCard = ({ title, value, trend, icon, color }: { title: string, value
     return (
         <motion.div
             whileHover={{ y: -5 }}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[2rem] shadow-sm flex flex-col justify-between"
         >
             <div className="flex justify-between items-start mb-6">
                 <div className={`p-4 rounded-2xl border ${colorClasses[color]}`}>
                     {icon}
                 </div>
-                <div className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${trend.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'} ${trend === 'Stable' ? 'bg-zinc-50 text-zinc-400' : ''}`}>
+                <div className={`text-[10px] font-black  px-2 py-0.5 rounded-md ${trend.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'} ${trend === 'Stable' ? 'bg-zinc-50 text-zinc-400' : ''}`}>
                     {trend}
                 </div>
             </div>
             <div>
-                <p className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.1em] mb-1">{title}</p>
-                <p className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white leading-none">
+                <p className="text-[10px]  text-zinc-400 tracking-[0.1em] mb-1">{title}</p>
+                <p className="text-3xl font-black  text-zinc-900 dark:text-white leading-none">
                     {typeof value === 'number' ? value.toLocaleString() : value}
                 </p>
             </div>
@@ -455,7 +455,7 @@ const GlassCard = ({ title, children, icon }: { title: string, children: React.R
             <div className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800">
                 {icon}
             </div>
-            <h3 className="font-bold tracking-tight">{title}</h3>
+            <h3 className="font-bold ">{title}</h3>
         </div>
         {children}
     </div>

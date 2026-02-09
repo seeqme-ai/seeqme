@@ -234,7 +234,7 @@ const PortfolioBuilder: React.FC = () => {
           if (!scChanged && !htmlChanged && !cssChanged) return;
 
           try {
-          
+
             await portfolioService.updatePortfolio(portfolioId, {
               structuredContent: data.structuredContent,
               html: data.html,
@@ -383,7 +383,9 @@ const PortfolioBuilder: React.FC = () => {
         baseHtml: template?.html,
         files: files,
         sessionId: builderSessionId,
-        portfolioId: persistentId
+        portfolioId: persistentId,
+        templateId: selectedTemplateId || undefined,
+        niche: template?.niche || template?.structuredContent?.metadata?.niche || selectedNiche || undefined
       } as any);
 
       timeouts.forEach(clearTimeout);
@@ -569,9 +571,9 @@ const PortfolioBuilder: React.FC = () => {
         }
       }
 
-     
+
       const updated = await refinePortfolio(data, finalPrompt, file ? [file] : undefined);
-  
+
       timeouts.forEach(clearTimeout);
       setProgress(100);
 
@@ -686,9 +688,9 @@ const PortfolioBuilder: React.FC = () => {
 
       addLog(`Portfolio saved.`, 'success');
 
-      // 1. Set up WebSocket for real-time deployment updates BEFORE triggering deployment
+      //  Set up WebSocket for real-time deployment updates BEFORE triggering deployment
       socketService.connect(undefined, user?.id);
-      socketService.subscribeToPortfolio(portfolioId);
+      socketService.subscribeToPortfolio(portfolioId as string);
 
       socketService.setCallbacks(
         // onLog - real-time deployment progress
@@ -706,7 +708,7 @@ const PortfolioBuilder: React.FC = () => {
           addLog(`✅ Deployed! Site live at ${deployedUrl}`, 'success');
           toast.success('Portfolio deployed successfully!');
           localStorage.removeItem('seeqme_portfolio_draft');
-          socketService.unsubscribeFromPortfolio(portfolioId);
+          socketService.unsubscribeFromPortfolio(portfolioId as string);
         },
         // onFailure - deployment failed
         (errorData: any) => {
@@ -714,34 +716,33 @@ const PortfolioBuilder: React.FC = () => {
           const errorMsg = errorData.error || errorData.message || 'Deployment failed';
           addLog(`❌ Deployment failed: ${errorMsg}`, 'error');
           toast.error(`Deployment failed: ${errorMsg}`);
-          socketService.unsubscribeFromPortfolio(portfolioId);
+          socketService.unsubscribeFromPortfolio(portfolioId as string);
         }
       );
 
-      // 2. Open drawer immediately to show initial progress
+      //  Open drawer immediately to show initial progress
       addLog(`Connecting to deployment service...`, 'info');
       setIsSuccessDrawerOpen(true);
 
-      // 3. Now trigger the deployment (WebSocket is already listening)
+      // Now trigger the deployment (WebSocket is already listening)
       addLog(`Broadcasting to ${subdomain}.seeqme.com...`, 'info');
 
       // Allow time for WS subscription to propagate
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (useSubdomain) {
-        await deploymentService.deployPortfolio(portfolioId, subdomain);
+        await deploymentService.deployPortfolio(portfolioId as string, subdomain);
       } else if (customDomain) {
-        await deploymentService.deployPortfolio(portfolioId, undefined, selectedDomainId);
+        await deploymentService.deployPortfolio(portfolioId as string, undefined, selectedDomainId);
       }
 
       addLog(`Deployment workflow initiated.`, 'info');
-      toast.info(`Preparing deployment to ${subdomain}.seeqme.com...`);
 
       // Fallback timeout in case WebSocket events don't arrive
       setTimeout(() => {
         if (status === 'deploying') {
           addLog('Checking deployment status via fallback...', 'warn');
-          deploymentService.getDeploymentStatus(portfolioId).then((statusData) => {
+          deploymentService.getDeploymentStatus(portfolioId as string).then((statusData) => {
             if (statusData.status === 'completed') {
               const deployedUrl = statusData.url || `https://${subdomain}.seeqme.com`;
               setStatus('completed');
@@ -833,7 +834,7 @@ const PortfolioBuilder: React.FC = () => {
           content: content,
           url: ''
         });
-        toast.success(`File analyzed: ${file.name}`);
+       
       } catch (error: any) {
         toast.error(error.message || 'Failed to analyze file');
         setSelectedFile(null);
@@ -850,6 +851,8 @@ const PortfolioBuilder: React.FC = () => {
     if (newTheme && newTheme !== currentTheme) {
       setCurrentTheme(newTheme);
     }
+
+    if (!data) return;
 
     const isV2 = newContent.metadata?.version === '2.0';
 
@@ -1233,7 +1236,7 @@ const PortfolioBuilder: React.FC = () => {
         logs={logs}
         isCollapsed={isTerminalCollapsed}
         onToggle={() => setIsTerminalCollapsed(!isTerminalCollapsed)}
-        code={data?.html || ''}
+        code={data ? getUpdatedHtml(data) : ''}
         onCodeChange={handleCodeUpdate}
         isPaid={user?.subscription && user.subscription !== 'free'}
       />
@@ -1281,7 +1284,7 @@ const PortfolioBuilder: React.FC = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-xl bg-white  border border-border rounded-3xl p-8 md:p-10 shadow-2xl"
+              className="w-full max-w-xl bg-white  border border-border rounded-3xl p-8 md:p-10 shadow-0"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -1295,69 +1298,6 @@ const PortfolioBuilder: React.FC = () => {
 
               <div className="space-y-6">
                 <div>
-
-                  <div className="grid sm:grid-cols-2 gap-3 mb-6">
-                    <button
-                      onClick={() => setSelectedDomainId('subdomain')}
-                      className={`p-4 rounded-xl border text-left transition-all relative overflow-hidden ${selectedDomainId === 'subdomain' ? 'border-teal-500 bg-teal-500/5' : 'border-border hover:border-teal-500/30'}`}
-                    >
-                      <div className="flex flex-col gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedDomainId === 'subdomain' ? 'bg-teal-500 text-white' : 'bg-muted text-muted-foreground'}`}>
-                          <ICONS.Globe className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold">Free Subdomain</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">.seeqme.com</p>
-                        </div>
-                      </div>
-                      {selectedDomainId === 'subdomain' && (
-                        <div className="absolute top-2 right-2">
-                          <Check className="w-3 h-3 text-teal-500" />
-                        </div>
-                      )}
-                    </button>
-
-                    {availableDomains.filter(d => d.isVerified).map(domain => (
-                      <button
-                        key={domain.id}
-                        onClick={() => setSelectedDomainId(domain.id)}
-                        className={`p-4 rounded-xl border text-left transition-all relative overflow-hidden ${selectedDomainId === domain.id ? 'border-teal-500 bg-teal-500/5' : 'border-border hover:border-teal-500/30'}`}
-                      >
-                        <div className="flex flex-col gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedDomainId === domain.id ? 'bg-teal-500 text-white' : 'bg-muted text-muted-foreground'}`}>
-                            <ShieldCheck className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold truncate max-w-[140px]">{domain.domain}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Custom Domain</p>
-                          </div>
-                        </div>
-                        {selectedDomainId === domain.id && (
-                          <div className="absolute top-2 right-2">
-                            <Check className="w-3 h-3 text-teal-500" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-
-                    {availableDomains.filter(d => d.isVerified).length === 0 && (
-                      <button
-                        disabled
-                        className="p-4 rounded-2xl border border-border border-dashed opacity-50 text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl border border-dashed flex items-center justify-center">
-                            <ICONS.Plus className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold">Custom Domain</p>
-                            <p className="text-xs text-muted-foreground">Add and verify in Dashboard</p>
-                          </div>
-                        </div>
-                      </button>
-                    )}
-                  </div>
-
                   {selectedDomainId === 'subdomain' && (
                     <div className="space-y-3">
                       <label className="text-xs font-semibold text-muted-foreground ml-1">Configure Subdomain</label>

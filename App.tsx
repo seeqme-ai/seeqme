@@ -132,14 +132,14 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/dashboard/domains"
           element={
             <ProtectedRoute>
               <DomainsPage />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/dashboard/settings"
           element={

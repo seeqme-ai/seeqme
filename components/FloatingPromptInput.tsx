@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, ArrowUp, X, FileText, Image as ImageIcon, Loader2, Code, Code2 } from 'lucide-react';
+import { Paperclip, ArrowUp, X, FileText, Image as ImageIcon, Loader, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadService } from '@/services/apiService';
 
@@ -31,6 +31,11 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // Reset file input after selection
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
 
         setIsUploading(true);
         try {
@@ -76,6 +81,24 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
 
     return (
         <div className={`fixed bottom-14 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-40 ${className}`}>
+            {/* File Indicator - Shows above input */}
+            <AnimatePresence>
+                {selectedFile && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        className="mb-3 bg-white rounded-lg p-2 flex items-center gap-2 border border-slate-200 shadow-lg"
+                    >
+                        {selectedFile.type === 'image' ? <ImageIcon className="w-4 h-4 text-purple-500" /> : <FileText className="w-4 h-4 text-teal-500" />}
+                        <span className="text-xs font-medium max-w-[150px] truncate text-slate-700">{selectedFile.name}</span>
+                        <button type="button" onClick={() => setSelectedFile(null)} className="p-1 hover:bg-slate-100 rounded-full text-slate-400 hover:text-rose-500 ml-auto">
+                            <X className="w-3 h-3" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <motion.div
                 layout
                 className={`bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-2xl overflow-hidden transition-all ${isExpanded ? 'rounded-3xl' : 'rounded-full'}`}
@@ -109,24 +132,6 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
                         )}
                     </AnimatePresence>
 
-                    {/* Attached File Preview */}
-                    <AnimatePresence>
-                        {selectedFile && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="absolute -top-12 left-0 bg-white rounded-lg p-2 flex items-center gap-2 border border-slate-200 shadow-lg text-slate-700"
-                            >
-                                {selectedFile.type === 'image' ? <ImageIcon className="w-4 h-4 text-purple-500" /> : <FileText className="w-4 h-4 text-teal-500" />}
-                                <span className="text-xs font-medium max-w-[150px] truncate">{selectedFile.name}</span>
-                                <button type="button" onClick={() => setSelectedFile(null)} className="p-1 hover:bg-slate-100 rounded-full text-slate-400 hover:text-rose-500">
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
                     <div className="flex items-end gap-2 p-2">
 
                         {onToggleTerminal && (
@@ -155,7 +160,7 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
                                 disabled={isUploading || isGenerating}
                                 className="p-3 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
                             >
-                                {isUploading ? <Loader2 className="w-5 h-5 animate-spin text-teal-500" /> : <Paperclip className="w-5 h-5" />}
+                                {isUploading ? <Loader className="w-5 h-5 animate-spin text-teal-500" /> : <Paperclip className="w-5 h-5" />}
                             </button>
                         </div>
 
@@ -165,7 +170,6 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             onFocus={() => setIsExpanded(true)}
-                            // onBlur={() => !prompt && !selectedFile && setIsExpanded(false)} // Optional: auto-collapse
                             onKeyDown={handleKeyDown}
                             placeholder={mode === 'refine' ? "Ask AI to change colors, layout, or content..." : "Describe your new portfolio niche & style..."}
                             className="flex-1 bg-transparent border-0 focus:ring-0 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 py-3 max-h-[200px] resize-none"
@@ -180,7 +184,7 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
                             className={`p-3 rounded-full transition-all duration-300 shadow-lg ${(!prompt.trim() && !selectedFile) ? 'bg-slate-100 text-slate-300' : 'bg-teal-500  text-white hover:shadow-teal-500/25'
                                 }`}
                         >
-                            {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-5 h-5" />}
+                            {isGenerating ? <Loader className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-5 h-5" />}
                         </button>
                     </div>
                 </form>

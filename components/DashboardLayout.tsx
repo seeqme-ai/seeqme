@@ -44,7 +44,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const navItems = [
     { name: 'Dashboard', icon: Layers, path: '/dashboard' },
     { name: 'Analytics', icon: Activity, path: '/dashboard/analytics' },
-    { name: 'Domains', icon: Globe, path: '/dashboard/domains' },
+    //{ name: 'Domains', icon: Globe, path: '/dashboard/domains' },
     { name: 'Settings', icon: Settings, path: '/dashboard/settings' },
   ];
 
@@ -168,7 +168,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-11 flex items-center gap-3 px-3 rounded-2xl bg-white  border border-border shadow-sm hover:bg-muted transition-all">
+                  <Button variant="ghost" className="relative h-11 flex items-center gap-3 px-3 rounded-2xl bg-white  hover:bg-muted transition-all">
                     <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-teal-500/20 bg-teal-500/10 flex items-center justify-center">
                       {user.avatarUrl ? (
                         <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
