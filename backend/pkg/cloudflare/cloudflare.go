@@ -136,7 +136,7 @@ func (s *CloudflareService) CreateSubdomain(subdomain, targetURL string) (string
 		"name":    subdomain,
 		"content": targetURL,
 		"ttl":     3600,
-		"proxied": true,
+		"proxied": false,
 	}
 
 	respBody, err := s.doRequest("POST", url, body)

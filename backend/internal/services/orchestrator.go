@@ -174,7 +174,7 @@ func (o *Orchestrator) Deploy(projectName, domain, srcDir, userEmail string, str
 		// CASE: SYSTEM SUBDOMAIN (e.g., app.seeqme.com)
 		//  Create Internal DNS Record in our Zone
 		streamLog("Propagating DNS records...", "info")
-		dnsRecordID, err := o.cloudflare.AddDNSRecord(o.config.CloudflareZoneID, domain, projectName, true)
+		dnsRecordID, err := o.cloudflare.AddDNSRecord(o.config.CloudflareZoneID, domain, projectName, false)
 		if err != nil {
 			// Code 81053: "An A, AAAA, or CNAME record with that host already exists"
 			if strings.Contains(err.Error(), "81053") {

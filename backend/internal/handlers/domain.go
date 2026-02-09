@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"time"
@@ -142,7 +143,11 @@ func (h *Handler) CreateDomain(c *gin.Context) {
 		// Also try to add the domain to the Pages project if portfolio is attached
 		if !portfolioObjectID.IsZero() {
 			projectName := fmt.Sprintf("portfolio-%s", portfolioObjectID.Hex())
-			cfClient.AddDomain(projectName, fullDomain)
+			if err := cfClient.AddDomain(projectName, fullDomain); err != nil {
+				log.Printf("[Domain] WARNING: Failed to attach subdomain %s to project %s: %v", fullDomain, projectName, err)
+			} else {
+				log.Printf("[Domain] Successfully attached subdomain %s to project %s", fullDomain, projectName)
+			}
 		}
 
 		dnsRecords := []map[string]interface{}{
@@ -383,17 +388,19 @@ func (h *Handler) VerifyDomain(c *gin.Context) {
 	}
 
 	// If DNS is verified, add the domain to the Cloudflare Pages project
-
 	cfg := h.Config
 	cfClient := cloudflare.NewClient(cfg)
 	projectName := fmt.Sprintf("portfolio-%s", portfolio.ID.Hex())
 	if err := cfClient.AddDomain(projectName, domain.Domain); err != nil {
+		// Log specific error for 1014 debugging
+		log.Printf("[VerifyDomain] Failed to activate domain %s on Pages project %s: %v", domain.Domain, projectName, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Failed to add custom domain to Cloudflare project.",
+			"error":   "Failed to activate custom domain on our edge network. Please ensure the project exists.",
 			"details": err.Error(),
 		})
 		return
 	}
+	log.Printf("[VerifyDomain] Successfully activated domain %s on Pages project %s", domain.Domain, projectName)
 
 	// Finally, update the database (Domain)
 	_, err = database.Client.Database(database.DBName).Collection("domains").UpdateOne(
