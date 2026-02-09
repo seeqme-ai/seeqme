@@ -90,7 +90,7 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl"
+                    className="absolute inset-0  backdrop-blur-xl"
                     onClick={onClose}
                 />
 
@@ -107,9 +107,9 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                         <div className="relative z-10 space-y-2">
                             <div className="flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full border border-white/20 w-fit">
                                 <Globe className="w-3 h-3 text-white" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white">Domain Setup</span>
+                                <span className="text-[9px] font-black uppercase  text-white">Domain Setup</span>
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+                            <h2 className="text-2xl md:text-3xl font-black ">
                                 {step === 'input' ? 'Connect Domain' : 'DNS Settings'}
                             </h2>
                             <p className="text-slate-400 text-[10px] md:text-xs font-medium">Linking to <span className="text-white font-bold">{portfolioName}</span></p>
@@ -121,12 +121,12 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                     </div>
 
                     {/* Content */}
-                    <div className="p-2 space-y-8 flex-1 overflow-y-auto max-h-[70vh] no-scrollbar bg-white">
+                    <div className="p-4 space-y-8 flex-1 overflow-y-auto max-h-[70vh] no-scrollbar bg-white">
                         {step === 'input' ? (
                             <form onSubmit={handleInitialSubmit} className="space-y-6 md:space-y-8">
                                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-6">
                                     <div className="space-y-3">
-                                        <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Enter Domain</Label>
+                                        <Label className="text-[10px] font-bold uppercase  text-slate-400 ml-1">Enter Domain</Label>
                                         <div className="relative group">
                                             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-teal-600 transition-colors">
                                                 <Globe className="w-5 h-5" />
@@ -152,7 +152,7 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                 <Button
                                     type="submit"
                                     disabled={isSubmitting || !domain}
-                                    className="w-full h-14 md:h-16 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs md:text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-teal-500/10 transition-all active:scale-95 disabled:opacity-50"
+                                    className="w-full h-14 md:h-16 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs md:text-sm uppercase  rounded-xl shadow-lg shadow-teal-500/10 transition-all active:scale-95 disabled:opacity-50"
                                 >
                                     {isSubmitting ? <Loader className="w-5 h-5 animate-spin" /> : <>Connect Domain <ArrowRight className="w-4 h-4 ml-2" /></>}
                                 </Button>
@@ -169,15 +169,15 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">DNS Records</Label>
+                                    <Label className="text-[10px] font-bold uppercase  text-slate-400 ml-1">DNS Record</Label>
                                     <div className="bg-slate-50 rounded-2xl p-6 md:p-8 space-y-6">
                                         <div className="grid grid-cols-2 gap-8 md:gap-12">
                                             <div className="space-y-2">
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Type</p>
-                                                <p className="text-lg font-bold text-slate-900">{isRootDomain(domain) ? 'A' : 'CNAME'}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase ">Type</p>
+                                                <p className="text-lg font-bold text-slate-900">CNAME</p>
                                             </div>
                                             <div className="space-y-2">
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Host</p>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase ">Host</p>
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-lg font-bold text-slate-900 truncate max-w-[80px] md:max-w-none">{isRootDomain(domain) ? '@' : domain.split('.')[0]}</p>
                                                     <button onClick={() => copyToClipboard(isRootDomain(domain) ? '@' : domain.split('.')[0], 'dns-host')} className="p-2 text-teal-400 hover:text-teal-300">
@@ -188,13 +188,13 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                         </div>
 
                                         <div className="pt-4 border-t border-slate-200 space-y-3">
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Value</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase ">Value</p>
                                             <div className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl">
                                                 <p className="text-[11px] md:text-sm font-mono font-bold text-slate-600 truncate mr-4">
-                                                    {isRootDomain(domain) ? '172.66.44.17' : `portfolio-${portfolioId}.pages.dev`}
+                                                    portfolio-{portfolioId}.pages.dev
                                                 </p>
                                                 <button
-                                                    onClick={() => copyToClipboard(isRootDomain(domain) ? '172.66.44.17' : `portfolio-${portfolioId}.pages.dev`, 'dns-value')}
+                                                    onClick={() => copyToClipboard(`portfolio-${portfolioId}.pages.dev`, 'dns-value')}
                                                     className="p-2 bg-teal-500 text-white rounded-lg shadow-md shadow-teal-500/10 active:scale-95"
                                                 >
                                                     <Copy className="w-3.5 h-3.5" />
@@ -204,18 +204,18 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex p-2 flex-col md:flex-row gap-4">
                                     <Button
                                         onClick={() => setIsPolling(true)}
                                         disabled={isPolling}
-                                        className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-teal-500/10 transition-all active:scale-95 order-1 md:order-2"
+                                        className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase  rounded-xl shadow-lg shadow-teal-500/10 transition-all active:scale-95 order-1 md:order-2"
                                     >
                                         {isPolling ? <><Loader className="w-4 h-4 animate-spin mr-2" /> Verifying...</> : 'Verify Connection'}
                                     </Button>
                                     <Button
                                         variant="outline"
                                         onClick={onClose}
-                                        className="px-4 h-8 border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all order-2 md:order-1"
+                                        className="px-4 h-8 border-slate-200 text-slate-500 font-bold text-xs uppercase  rounded-xl hover:bg-slate-50 transition-all order-2 md:order-1"
                                     >
                                         Skip for now
                                     </Button>

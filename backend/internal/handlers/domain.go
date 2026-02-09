@@ -110,7 +110,7 @@ func (h *Handler) CreateDomain(c *gin.Context) {
 			{
 				"type":  "CNAME",
 				"name":  "@",
-				"value": "seeqme.com",
+				"value": h.Config.DNSProviderDomain,
 				"ttl":   3600,
 			},
 		}
@@ -120,7 +120,10 @@ func (h *Handler) CreateDomain(c *gin.Context) {
 	} else {
 		cfg := h.Config
 		cfClient := cloudflare.NewClient(cfg)
-		targetURL := "seeqme-pages.pages.dev"
+		targetURL := fmt.Sprintf("portfolio-%s.pages.dev", portfolioObjectID.Hex())
+		if portfolioObjectID.IsZero() {
+			targetURL = "seeqme-pages.pages.dev" // Default fallback if no portfolio is attached yet
+		}
 
 		recordID, err := cfClient.CreateSubdomain(subdomain, targetURL)
 		if err != nil {
@@ -131,15 +134,22 @@ func (h *Handler) CreateDomain(c *gin.Context) {
 			return
 		}
 
-		fullDomain := subdomain + ".seeqme.com"
+		fullDomain := subdomain + "." + cfg.DNSProviderDomain
 		domain.Domain = fullDomain
 		domain.IsVerified = true
 		domain.Status = "active"
+
+		// Also try to add the domain to the Pages project if portfolio is attached
+		if !portfolioObjectID.IsZero() {
+			projectName := fmt.Sprintf("portfolio-%s", portfolioObjectID.Hex())
+			cfClient.AddDomain(projectName, fullDomain)
+		}
 
 		dnsRecords := []map[string]interface{}{
 			{
 				"type":     "CNAME",
 				"recordID": recordID,
+				"value":    targetURL,
 			},
 		}
 		recordsJSON, _ := json.Marshal(dnsRecords)

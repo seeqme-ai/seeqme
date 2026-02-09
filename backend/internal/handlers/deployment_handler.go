@@ -333,7 +333,7 @@ func (h *Handler) DeployPortfolio(c *gin.Context) {
 		"message":      "Deployment workflow initiated. Watch terminal for real-time progress.",
 		"initiated":    true,
 		"subdomain":    subdomain,
-		"url":          fmt.Sprintf("https://%s.seeqme.com", subdomain),
+		"url":          fmt.Sprintf("https://%s.%s", subdomain, h.Config.DNSProviderDomain),
 		"deploymentId": deploymentID.Hex(),
 	})
 }
@@ -817,12 +817,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		log.Printf("[Deploy] Failed to write sitemap.xml: %v", err)
 	}
 
-	// Sanitize user email for repo name
-	emailParts := strings.Split(userEmail, "@")
-	emailPrefix := emailParts[0]
-	sanitizedEmail := strings.ReplaceAll(emailPrefix, ".", "-")
-
-	repoName := fmt.Sprintf("portfolio-%s-%s", sanitizedEmail, portfolioObjectID.Hex())
+	repoName := fmt.Sprintf("portfolio-%s", portfolioObjectID.Hex())
 
 	// Initialize orchestrator
 	orchestrator := services.NewOrchestrator(cfg)
