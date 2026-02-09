@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { produce } from 'immer';
 import set from 'lodash/set';
+import debounce from 'lodash/debounce';
 import { ICONS } from '@/constants';
 import { FileText, Trash2, Type, Eye, EyeOff, Loader2, Loader, ChevronUp, ChevronDown, ChevronRight, RefreshCw, Layers, Pencil } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -316,26 +317,58 @@ const JsonNodeEditor = ({ path, node, onContentChange }) => {
     return <SmartInput path={path} value={node} onContentChange={onContentChange} />;
 };
 
-// --- Main Section Editor ---
-
 const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpdate, isOpen, onClose }) => {
+    // Local state to keep track of changes before syncing to parent
+    const [localContent, setLocalContent] = useState(structuredContent);
+
     // Default to expanding the last section in the list (most likely the one just added)
     const [expandedSection, setExpandedSection] = useState<string | null>(
-        structuredContent?.sections?.length > 0 ? structuredContent.sections[structuredContent.sections.length - 1].id : null
+        localContent?.sections?.length > 0 ? localContent.sections[localContent.sections.length - 1].id : null
     );
 
-    const isV1 = structuredContent?.metadata?.version === '1.0';
+    // Sync local state when external content changes (e.g. when opening)
+    useEffect(() => {
+        if (isOpen) {
+            setLocalContent(structuredContent);
+        }
+    }, [isOpen, structuredContent]);
+
+    // Debounced update function to prevent excessive parent re-renders
+    const debouncedUpdate = useRef(
+        debounce((content: any) => {
+            onUpdate(content);
+        }, 500)
+    ).current;
+
+    // Cleanup debounce on unmount and ensure final changes are saved
+    useEffect(() => {
+        return () => {
+            debouncedUpdate.cancel();
+        };
+    }, [debouncedUpdate]);
+
+    const isV1 = localContent?.metadata?.version === '1.0';
 
     const handleContentChange = (path: string, value: any) => {
-        const newContent = produce(structuredContent, (draft: any) => {
+        const newContent = produce(localContent, (draft: any) => {
             set(draft, path, value);
         });
-        onUpdate(newContent);
+
+        // 1. Update local state immediately for snappy UI
+        setLocalContent(newContent);
+
+        // 2. Schedule parent update with debounce
+        debouncedUpdate(newContent);
+    };
+
+    const handleSaveAndClose = () => {
+        debouncedUpdate.flush(); // Force any pending updates
+        onClose();
     };
 
     const reorderSection = (index: number, direction: 'up' | 'down') => {
         if (!isV1) return;
-        const newSections = [...structuredContent.sections];
+        const newSections = [...localContent.sections];
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
         if (targetIndex < 0 || targetIndex >= newSections.length) return;
 
@@ -348,7 +381,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
 
     const swapComponent = (index: number) => {
         if (!isV1) return;
-        const section = structuredContent.sections[index];
+        const section = localContent.sections[index];
         const available = getAvailableComponents(section.type as any);
         if (available.length <= 1) {
             toast.info(`Only one ${section.type} style available in registry`);
@@ -370,7 +403,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
 
     const confirmDeleteSection = () => {
         if (sectionToDelete === null) return;
-        const newSections = [...structuredContent.sections];
+        const newSections = [...localContent.sections];
         newSections.splice(sectionToDelete, 1);
         handleContentChange('sections', newSections);
         setSectionToDelete(null);
@@ -380,7 +413,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm" onClick={handleSaveAndClose}>
                     <MotionDiv
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
@@ -394,14 +427,14 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                             <div>
                                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-teal-600" />
-                                    {isV1 ? 'Blueprint Editor' : 'Content Editor'}
+                                    Content Editor
                                     <span className="text-[10px] font-medium text-teal-700 bg-teal-100 px-2 py-0.5 rounded-full ml-2 border border-teal-200">Auto-saved</span>
                                 </h2>
                                 <p className="text-xs text-slate-500 mt-1">
                                     Customize your content
                                 </p>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors">
+                            <button onClick={handleSaveAndClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors">
                                 <ICONS.X className="w-5 h-5" />
                             </button>
                         </div>
@@ -421,7 +454,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">Creative Direction</label>
                                                 <div className="relative">
                                                     <select
-                                                        value={structuredContent.globalConfig.theme}
+                                                        value={localContent.globalConfig.theme}
                                                         onChange={(e) => handleContentChange('globalConfig.theme', e.target.value)}
                                                         className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 text-xs focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-bold text-slate-900 appearance-none cursor-pointer shadow-sm"
                                                     >
@@ -451,11 +484,11 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 pl-2">Layout Sections</h3>
-                                            <span className="text-[10px] font-bold text-slate-600 px-2 py-0.5 border border-slate-200 rounded-full">{structuredContent.sections.length} Units</span>
+                                            <span className="text-[10px] font-bold text-slate-600 px-2 py-0.5 border border-slate-200 rounded-full">{localContent.sections.length} Units</span>
                                         </div>
 
                                         <div className="space-y-4">
-                                            {structuredContent.sections.map((section: any, idx: number) => (
+                                            {localContent.sections.map((section: any, idx: number) => (
                                                 <div key={section.id} className="relative group/section">
                                                     <div className={`p-4 rounded-2xl border transition-all ${expandedSection === section.id ? 'bg-white shadow-md border-teal-500' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
                                                         <div className="flex items-center gap-4">
@@ -520,7 +553,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                 </>
                             ) : (
                                 <>
-                                    {structuredContent && Object.entries(structuredContent).map(([key, value]) => (
+                                    {localContent && Object.entries(localContent).map(([key, value]) => (
                                         <div key={key} className="space-y-4">
                                             <div className="flex items-center gap-3 sticky top-0 bg-white/95 backdrop-blur-md py-3 z-[5] -mx-2 px-2 border-b border-slate-100 mb-4 shadow-sm">
                                                 <div className="w-1 h-4 bg-teal-500 rounded-full" />
@@ -528,16 +561,16 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                                 <div className="flex-1" />
                                                 <button
                                                     onClick={() => {
-                                                        const currentSections = structuredContent.settings?.sections || {};
+                                                        const currentSections = localContent.settings?.sections || {};
                                                         const isVisible = currentSections[key] !== false;
                                                         handleContentChange(`settings.sections.${key}`, !isVisible);
                                                     }}
-                                                    className={`p-1.5 rounded-md transition-all ${(structuredContent.settings?.sections?.[key] !== false)
+                                                    className={`p-1.5 rounded-md transition-all ${(localContent.settings?.sections?.[key] !== false)
                                                         ? 'text-teal-600 hover:bg-teal-50'
                                                         : 'text-slate-400 hover:bg-slate-100'
                                                         }`}
                                                 >
-                                                    {structuredContent.settings?.sections?.[key] !== false ? (
+                                                    {localContent.settings?.sections?.[key] !== false ? (
                                                         <Eye className="w-4 h-4" />
                                                     ) : (
                                                         <EyeOff className="w-4 h-4" />
@@ -555,7 +588,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
 
                         {/* Footer */}
                         <div className="p-6 border-t border-slate-100 bg-slate-50">
-                            <button onClick={onClose} className="w-full bg-teal-600 hover:bg-teal-500 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-teal-900/10 transition-all flex items-center justify-center gap-2">
+                            <button onClick={handleSaveAndClose} className="w-full bg-teal-600 hover:bg-teal-500 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-teal-900/10 transition-all flex items-center justify-center gap-2">
                                 <ICONS.Check className="w-4 h-4" /> Save Changes
                             </button>
                         </div>
