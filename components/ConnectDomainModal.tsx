@@ -164,7 +164,8 @@ const ConnectDomainModal: React.FC<ConnectDomainModalProps> = ({ isOpen, onClose
                                         <AlertCircle className="w-5 h-5" />
                                     </div>
                                     <p className="text-[11px] md:text-sm font-bold text-slate-700 leading-relaxed">
-                                        Add these records to your DNS provider. Propagation can take up to 24 hours, but usually happens in minutes.
+                                        Add these records to your DNS provider.
+                                        <span className="block text-teal-600 mt-1">IMPORTANT: If you use Cloudflare, set "Proxy Status" to "DNS Only" (Gray Cloud) to avoid Error 1014.</span>
                                     </p>
                                 </div>
 
