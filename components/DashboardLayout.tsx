@@ -23,6 +23,7 @@ import {
 } from './ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
 import { motion, AnimatePresence } from 'framer-motion';
+import Footer from './Footer';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -225,7 +226,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               {children}
             </motion.div>
           </AnimatePresence>
-          <Footer />
+          <Footer/>
         </main>
       </div>
     </div>
