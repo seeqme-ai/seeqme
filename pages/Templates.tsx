@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ICONS } from '@/constants';
 import { PORTFOLIO_TEMPLATES } from '@/templates';
 import { useTemplate } from '@/context/template-context';
@@ -9,7 +9,7 @@ import MainLayout from '@/components/MainLayout';
 
 const MotionDiv = motion.div as any;
 
-const NICHES = ['All', 'Engineering', 'Creative', 'Business', 'Finance', 'Student'];
+const NICHES = ['All', ...new Set(PORTFOLIO_TEMPLATES.map(p => p.niche))]
 
 const Templates: React.FC = () => {
     const [selectedNiche, setSelectedNiche] = useState('All');
@@ -167,7 +167,7 @@ const Templates: React.FC = () => {
                                     setSynthesisInput('');
                                     handleTempClick({ type: 'template', value: tpl.id, templateId: tpl.id });
                                 }}
-                                className="w-full max-w-[320px] shrink-0 group rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 hover:shadow-2xl hover:-translate-y-3 cursor-pointer"
+                                className="w-full shrink-0 group rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 hover:shadow-2xl hover:-translate-y-3 cursor-pointer"
                             >
                                 <div className="relative aspect-[4/5] overflow-hidden">
                                     <img src={tpl.preview} alt={tpl.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />

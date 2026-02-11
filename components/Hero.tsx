@@ -55,7 +55,7 @@ const HeroSection = () => {
                 <h1 className="text-5xl md:text-[7vw] font-black tracking-tighter leading-[0.85] mb-8 uppercase text-slate-900">
                     Build your <br />
                     <span className="relative">
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-emerald-500 to-cyan-500">
+                        <span className="text-transparent bg-clip-text bg-teal-600">
                             Identity
                         </span>
                         <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">

@@ -256,8 +256,8 @@ export const subscriptionService = {
     const response = await apiClient.get('/subscription');
     return response.data;
   },
-  verifyPayment: async (reference: string, plan: string, gateway: string, period: string) => {
-    const response = await apiClient.post('/subscription/verify', { reference, plan, gateway, period });
+  verifyPayment: async (reference: string, plan: string, gateway: string, period: string, amount: number, currency: string) => {
+    const response = await apiClient.post('/subscription/verify', { reference, plan, gateway, period, amount, currency });
     return response.data;
   },
 };

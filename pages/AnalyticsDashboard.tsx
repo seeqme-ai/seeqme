@@ -186,7 +186,7 @@ const AnalyticsDashboard: React.FC = () => {
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto space-y-8 pb-20">
+            <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header Section */}
                 <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -195,7 +195,7 @@ const AnalyticsDashboard: React.FC = () => {
                             <TrendingUp className="w-4 h-4" />
                             Live Insights
                         </div>
-                                                   <h1 className="text-3xl font-bold text-zinc-900">
+                        <h1 className="text-3xl font-bold text-zinc-900">
                         </h1>
                     </div>
 

@@ -63,7 +63,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-12 pb-20 text-left">
+      <div className="max-w-4xl mx-auto space-y-12 text-left">
         {/* Header Section */}
         <header>
           <h1 className="text-4xl font-bold tracking-tight mb-2">Account Settings</h1>
@@ -123,7 +123,7 @@ const SettingsPage: React.FC = () => {
               <CardHeader className="p-8 pb-0">
                 <CardTitle className="text-lg font-semibold tracking-tight">Security Credentials</CardTitle>
                 <CardDescription className="text-xs font-medium text-muted-foreground">
-                Change Your Password
+                  Change Your Password
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">

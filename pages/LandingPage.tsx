@@ -13,7 +13,8 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 const MotionDiv = motion.div as any;
 
-const NICHES = ['All', 'Engineering', 'Creative', 'Business', 'Finance', 'Student',];
+const NICHES = ['All', ...new Set(PORTFOLIO_TEMPLATES.map(p => p.niche))]
+
 
 const PARTNERS = [
   { name: 'Paystack', logo: 'PAYSTACK' },
@@ -120,6 +121,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     const file = e.target.files?.[0];
     if (file) {
       await uploadFile(file);
+      // Clear input so selecting the same file again triggers onChange
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -137,6 +140,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       clearInterval(progressInterval);
       setUploadProgress(100);
+
+      console.log(`[LandingPage] Extracted CV content for ${file.name}:`, content?.substring(0, 100) + '...');
 
       setSelectedFile({
         name: file.name,
@@ -245,7 +250,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 )}
               </AnimatePresence>
 
-              <div className="px-4 md:px-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="px-2 md:px-4 pb-4 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                   {/* Mic Button */}
                   <button
@@ -259,7 +264,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   {/* Upload CV Button */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-2xl text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 hover:text-teal-300 transition-all"
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-2xl text-teal-700 bg-teal-400/10 transition-all"
                     title="Upload CV"
                   >
                     <span>Upload CV</span>
@@ -345,7 +350,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   setSynthesisInput('');
                   onGetStarted({ type: 'template', value: tpl.id, templateId: tpl.id });
                 }}
-                className="w-full max-w-[320px] shrink-0 group rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 hover:shadow-2xl hover:-translate-y-3 cursor-pointer"
+                className="w-full shrink-0 group rounded-[2.5rem] overflow-hidden bg-slate-100 border border-slate-200 transition-all duration-700 hover:shadow-2xl hover:-translate-y-3 cursor-pointer"
               >
                 <div className="relative aspect-[4/5] overflow-hidden">
                   <img src={tpl.preview} alt={tpl.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />

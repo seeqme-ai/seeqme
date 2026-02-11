@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -88,35 +89,40 @@ func (h *Handler) VerifySubscription(c *gin.Context) {
 	db := database.Client.Database(database.DBName)
 	ctx := context.Background()
 
-	// Upsert Subscription
-	sub := models.Subscription{
-		ID:                 primitive.NewObjectID(),
-		UserID:             userObjectID,
-		PlanID:             req.Plan,
-		Status:             "active",
-		CurrentPeriodStart: time.Now(),
-		CurrentPeriodEnd:   time.Now().AddDate(1, 0, 0), // Default
-		Amount:             req.Amount,
-		Currency:           req.Currency,
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
+	log.Printf("[Subscription] Updating subscription for user: %s (Plan: %s, Period: %s)", userID.(string), req.Plan, req.Period)
+
+	filter := bson.M{"userId": userObjectID}
+
+	currentPeriodEnd := time.Now().AddDate(1, 0, 0)
+	if req.Period == "monthly" {
+		currentPeriodEnd = time.Now().AddDate(0, 1, 0)
 	}
 
-	if req.Period == "monthly" {
-		sub.CurrentPeriodEnd = time.Now().AddDate(0, 1, 0)
-	} else if req.Period == "yearly" {
-		sub.CurrentPeriodEnd = time.Now().AddDate(1, 0, 0)
+	update := bson.M{
+		"$set": bson.M{
+			"planId":             req.Plan,
+			"status":             "active",
+			"currentPeriodStart": time.Now(),
+			"currentPeriodEnd":   currentPeriodEnd,
+			"amount":             req.Amount,
+			"currency":           req.Currency,
+			"updatedAt":          time.Now(),
+		},
+		"$setOnInsert": bson.M{
+			"_id":       primitive.NewObjectID(),
+			"createdAt": time.Now(),
+		},
 	}
 
 	opts := options.Update().SetUpsert(true)
-	filter := bson.M{"userId": userObjectID}
-	update := bson.M{"$set": sub}
-
 	_, err = db.Collection("subscriptions").UpdateOne(ctx, filter, update, opts)
 	if err != nil {
+		log.Printf("[Subscription] Error updating subscription for user %s: %v", userID.(string), err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update subscription"})
 		return
 	}
+
+	log.Printf("[Subscription] Successfully updated subscription for user %s", userID.(string))
 
 	// Send Email Notification
 	var user models.User

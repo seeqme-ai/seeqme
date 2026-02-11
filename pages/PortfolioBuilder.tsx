@@ -349,6 +349,8 @@ const PortfolioBuilder: React.FC = () => {
     }
 
     setStatus('synthesizing');
+    setData(null); // Clear previous portfolio data for a fresh build
+    setLogs([]);   // Clear logs for fresh build
     setProgress(5);
     setIsTerminalCollapsed(false);
     addLog(`Creating your professional portfolio...`, 'info');
@@ -834,7 +836,7 @@ const PortfolioBuilder: React.FC = () => {
           content: content,
           url: ''
         });
-       
+
       } catch (error: any) {
         toast.error(error.message || 'Failed to analyze file');
         setSelectedFile(null);

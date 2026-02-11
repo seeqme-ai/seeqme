@@ -89,12 +89,18 @@ const Plans: React.FC = () => {
 
     const handlePaystackSuccess = async (reference: any, planId: string) => {
         setIsSyncing(true);
+        const plan = PLANS.find(p => p.id === planId);
+        const basePrice = currency === 'USD' ? plan?.price.usd : plan?.price.ngn;
+        const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 12 : (basePrice || 0);
+
         try {
             await subscriptionService.verifyPayment(
                 reference.reference,
                 planId,
                 'paystack',
-                billingCycle
+                billingCycle,
+                finalPrice,
+                currency
             );
             toast.success('Subscription activated successfully!');
             navigate(-1);

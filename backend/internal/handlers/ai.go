@@ -45,7 +45,9 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	if userID != nil {
 		userObjID, _ := primitive.ObjectIDFromHex(userID.(string))
 		subCollection := database.Client.Database(database.DBName).Collection("subscriptions")
-		subCount, _ := subCollection.CountDocuments(context.Background(), bson.M{"userId": userObjID, "status": "active"})
+		subCount, subErr := subCollection.CountDocuments(context.Background(), bson.M{"userId": userObjID, "status": "active"})
+
+		log.Printf("[AI] Checking subscription for user %s. Count: %d, Error: %v", userID.(string), subCount, subErr)
 
 		if subCount == 0 {
 			userCollection := database.Client.Database(database.DBName).Collection("users")
@@ -369,6 +371,11 @@ func (h *Handler) EditPortfolioWithAI(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	log.Printf("[AI Edit] Received EditPortfolio request. Instruction length: %d, Files: %d", len(req.Instruction), len(req.Files))
+	for i, f := range req.Files {
+		log.Printf("[AI Edit] File %d: %s (%s), content length: %d", i, f.Filename, f.Type, len(f.Content))
 	}
 
 	userID, exists := c.Get("userId")
