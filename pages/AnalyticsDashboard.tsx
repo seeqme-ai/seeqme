@@ -191,18 +191,18 @@ const AnalyticsDashboard: React.FC = () => {
                 {/* Header Section */}
                 <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 font-bold text-xs  tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-teal-600  font-bold text-xs  tracking-[0.2em]">
                             <TrendingUp className="w-4 h-4" />
                             Live Insights
                         </div>
-                                                   <h1 className="text-3xl font-bold text-zinc-900 dark:text-white ">
+                                                   <h1 className="text-3xl font-bold text-zinc-900">
                         </h1>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                         <div className="relative group w-full sm:w-72">
                             <Select value={selectedId} onValueChange={handlePortfolioChange}>
-                                <SelectTrigger className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 text-zinc-900 dark:text-white dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors h-14 rounded-2xl shadow-sm focus:ring-teal-500/20 px-6">
+                                <SelectTrigger className="w-full bg-zinc-50 border border-zinc-200 text-zinc-900 hover:bg-zinc-100 transition-colors h-14 rounded-2xl shadow-sm focus:ring-teal-500/20 px-6">
                                     <div className="flex items-center gap-3">
                                         <Layout className="w-4 h-4 text-teal-500" />
                                         <div className="text-left">
@@ -211,9 +211,9 @@ const AnalyticsDashboard: React.FC = () => {
                                         </div>
                                     </div>
                                 </SelectTrigger>
-                                <SelectContent className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white p-2">
+                                <SelectContent className="rounded-2xl border border-zinc-200 bg-white  text-zinc-900 p-2">
                                     {portfolios.filter(p => p.status === 'completed').map(p => (
-                                        <SelectItem key={p.id} value={p.id!} className="rounded-xl p-3 focus:bg-teal-50 dark:focus:bg-teal-950/30">
+                                        <SelectItem key={p.id} value={p.id!} className="rounded-xl p-3 focus:bg-teal-50">
                                             <span className="font-bold text-gray-500">{p.subdomain}</span>
                                         </SelectItem>
                                     ))}
@@ -226,7 +226,7 @@ const AnalyticsDashboard: React.FC = () => {
                                 href={`https://${currentPortfolio.subdomain}.seeqme.com`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex items-center gap-2 bg-teal-500 dark:bg-white text-white dark:text-zinc-900 px-6 h-14 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-transform shadow-lg shadow-zinc-900/10"
+                                className="flex items-center gap-2 bg-teal-500 text-white px-6 h-14 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-transform shadow-lg shadow-zinc-900/10"
                             >
                                 View Site <ArrowUpRight className="w-4 h-4" />
                             </a>
@@ -235,8 +235,8 @@ const AnalyticsDashboard: React.FC = () => {
                 </header>
 
                 {!data ? (
-                    <div className="py-20 text-center space-y-6 bg-zinc-50 dark:bg-zinc-900/50 rounded-[2.5rem] border border-dashed border-zinc-200 dark:border-zinc-800">
-                        <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl mx-auto flex items-center justify-center">
+                    <div className="py-20 text-center space-y-6 bg-zinc-50 rounded-[2.5rem] border border-dashed border-zinc-200">
+                        <div className="w-20 h-20 bg-white rounded-3xl shadow-xl mx-auto flex items-center justify-center">
                             <Activity className="w-10 h-10 text-teal-500/20" />
                         </div>
                         <div className="max-w-xs mx-auto">
@@ -280,7 +280,7 @@ const AnalyticsDashboard: React.FC = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* main chart */}
                             <div className="lg:col-span-2 group">
-                                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-shadow duration-500 overflow-hidden relative">
+                                <div className="bg-white border border-zinc-200  rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-shadow duration-500 overflow-hidden relative">
                                     <div className="absolute top-0 right-0 p-10 opacity-5">
                                         <Activity className="w-40 h-40 text-teal-500" />
                                     </div>
@@ -290,7 +290,7 @@ const AnalyticsDashboard: React.FC = () => {
                                             <h3 className="text-xl font-black ">Traffic Volume</h3>
                                             <p className="text-xs text-zinc-400 mt-1">Daily engagement metrics</p>
                                         </div>
-                                        <div className="flex items-center gap-6 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-2xl px-5 border border-zinc-100 dark:border-zinc-800">
+                                        <div className="flex items-center gap-6 bg-zinc-50 p-3 rounded-2xl px-5 border border-zinc-100">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
                                                 <span className="text-[10px] font-black  text-zinc-500 er">Views</span>
@@ -367,7 +367,7 @@ const AnalyticsDashboard: React.FC = () => {
                                         {countryData.length > 0 ? countryData.map((country, i) => (
                                             <div key={country.name} className="flex items-center justify-between group/item">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[10px] font-black group-hover/item:bg-teal-500 group-hover/item:text-white transition-colors">
+                                                    <div className="w-8 h-8 rounded-xl bg-zinc-100  border border-zinc-200 flex items-center justify-center text-[10px] font-black group-hover/item:bg-teal-500 group-hover/item:text-white transition-colors">
                                                         {i + 1}
                                                     </div>
                                                     <div>
@@ -375,7 +375,7 @@ const AnalyticsDashboard: React.FC = () => {
                                                         <p className="text-[10px] text-zinc-400 ">{country.value} visitors</p>
                                                     </div>
                                                 </div>
-                                                <div className="h-1.5 w-16 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                                <div className="h-1.5 w-16 bg-zinc-100 rounded-full overflow-hidden">
                                                     <div
                                                         className="h-full bg-teal-500"
                                                         style={{ width: `${(country.value / countryData[0].value) * 100}%` }}
@@ -395,14 +395,14 @@ const AnalyticsDashboard: React.FC = () => {
                                             const total = Object.values(data.deviceTypes || {}).reduce((a, b) => a + b, 0) || 1;
                                             const perc = Math.round((count / total) * 100);
                                             return (
-                                                <div key={type} className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl text-center border border-zinc-100 dark:border-zinc-800 transition-transform hover:scale-105">
+                                                <div key={type} className="bg-zinc-50 p-4 rounded-2xl text-center border border-zinc-100 transition-transform hover:scale-105">
                                                     <div className="flex justify-center mb-3">
                                                         {type === 'Desktop' ? <Monitor className="w-5 h-5 text-zinc-400" /> :
                                                             type === 'Mobile' ? <Smartphone className="w-5 h-5 text-zinc-400" /> :
                                                                 <Tablet className="w-5 h-5 text-zinc-400" />}
                                                     </div>
                                                     <p className="text-[10px] text-zinc-400 mb-1">{type}</p>
-                                                    <p className="text-lg font-black text-zinc-900 dark:text-white">{perc}%</p>
+                                                    <p className="text-lg font-black text-zinc-900">{perc}%</p>
                                                 </div>
                                             );
                                         })}
@@ -420,16 +420,16 @@ const AnalyticsDashboard: React.FC = () => {
 
 const MetricCard = ({ title, value, trend, icon, color }: { title: string, value: string | number, trend: string, icon: any, color: string }) => {
     const colorClasses: Record<string, string> = {
-        teal: 'bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-100 dark:border-teal-500/20',
-        blue: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20',
-        orange: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-500/20',
-        emerald: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20'
+        teal: 'bg-teal-50 text-teal-600  border-teal-100',
+        blue: 'bg-blue-50  text-blue-600 border-blue-100',
+        orange: 'bg-orange-50  text-orange-600  border-orange-100 ',
+        emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100'
     };
 
     return (
         <motion.div
             whileHover={{ y: -5 }}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[2rem] shadow-sm flex flex-col justify-between"
+            className="bg-white border border-zinc-200 p-8 rounded-[2rem] shadow-sm flex flex-col justify-between"
         >
             <div className="flex justify-between items-start mb-6">
                 <div className={`p-4 rounded-2xl border ${colorClasses[color]}`}>
@@ -441,7 +441,7 @@ const MetricCard = ({ title, value, trend, icon, color }: { title: string, value
             </div>
             <div>
                 <p className="text-[10px]  text-zinc-400 tracking-[0.1em] mb-1">{title}</p>
-                <p className="text-3xl font-black  text-zinc-900 dark:text-white leading-none">
+                <p className="text-3xl font-black  text-zinc-900 leading-none">
                     {typeof value === 'number' ? value.toLocaleString() : value}
                 </p>
             </div>
@@ -450,9 +450,9 @@ const MetricCard = ({ title, value, trend, icon, color }: { title: string, value
 };
 
 const GlassCard = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: any }) => (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 shadow-sm">
+    <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800">
+            <div className="p-2 rounded-xl bg-zinc-50 border border-zinc-100">
                 {icon}
             </div>
             <h3 className="font-bold ">{title}</h3>

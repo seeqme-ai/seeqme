@@ -225,6 +225,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               {children}
             </motion.div>
           </AnimatePresence>
+          <Footer />
         </main>
       </div>
     </div>

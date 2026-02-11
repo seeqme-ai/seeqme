@@ -7,7 +7,7 @@ import { ICONS } from '@/constants';
 import { FileText, Trash2, Type, Eye, EyeOff, Loader2, Loader, ChevronUp, ChevronDown, ChevronRight, RefreshCw, Layers, Pencil } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import cloudinaryService from '@/services/cloudinaryService';
-import { toast } from 'sonner';
+import { toast } from 'sonner';  
 import { RegistryMetadata } from '@/registry/metadata';
 
 const MotionDiv = motion.div as any;
