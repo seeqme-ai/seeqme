@@ -3,7 +3,9 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 // TemplateBlueprint represents the architectural structure of a template
@@ -227,7 +229,15 @@ func GetNicheTemplateExamples(library *TemplateLibrary, niche string, limit int)
 	examples := make([]TemplateBlueprint, 0)
 
 	if templates, ok := library.NicheTemplates[niche]; ok {
-		for _, templateID := range templates {
+		// Shuffle niche template IDs to ensure variety
+		shuffledIDs := make([]string, len(templates))
+		copy(shuffledIDs, templates)
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(shuffledIDs), func(i, j int) {
+			shuffledIDs[i], shuffledIDs[j] = shuffledIDs[j], shuffledIDs[i]
+		})
+
+		for _, templateID := range shuffledIDs {
 			for _, blueprint := range library.Blueprints {
 				if blueprint.TemplateID == templateID {
 					examples = append(examples, blueprint)

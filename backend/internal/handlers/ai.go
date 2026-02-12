@@ -2,25 +2,35 @@ package handlers
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"regexp"
-	"strings"
-	"time"
-
 	"seeqmeai/backend/internal/database"
 	"seeqmeai/backend/internal/models"
 	"seeqmeai/backend/internal/services"
 	"seeqmeai/backend/internal/websocket"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var DesignPersonas = []string{
+	"MINIMALIST_LUXURY: Clean whitespaces, high-end typography, subtle shadows, and a focus on premium aesthetics.",
+	"NEO_BRUTALIST: High contrast, bold borders, vibrant accent colors, and raw, industrial layout patterns.",
+	"CYBER_NEON: Dark theme, neon glow effects, monospaced fonts, and futuristic UI elements.",
+	"PLAYFUL_VIBRANT: Rounded corners, organic shapes, bright gradients, and friendly interaction cues.",
+	"PROFESSIONAL_EXECUTIVE: Deep blues/slates, traditional layouts, authoritative typography, and a sense of trust and scale.",
+	"CREATIVE_VIGOR: Unconventional grid placements, overlapping elements, artistic backgrounds, and bold visual storytelling.",
+}
 
 func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	var req GenerateRequest
@@ -197,6 +207,12 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 		}
 	}
 
+	// Pick a random design persona/mission to ensure variety
+	rand.Seed(time.Now().UnixNano())
+	mission := DesignPersonas[rand.Intn(len(DesignPersonas))]
+	log.Printf("[AI] Selected Design Mission for this generation: %s", mission)
+	promptWithFiles += fmt.Sprintf("\n\n--- DESIGN MISSION ---\nApply this specific design vibe to the entire portfolio: %s\nEnsure the color palette and typography choices reflect this mission.", mission)
+
 	// AUTO-DETECT NICHE from CV content if not explicitly provided
 	detectedNiche := req.Niche
 	if detectedNiche == "" && len(promptWithFiles) > 0 {
@@ -273,7 +289,7 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	portfolioDoc := bson.M{
 		"_id":               portfolioID,
 		"name":              "AI Generated Portfolio",
-		"slug":              primitive.NewObjectID().Hex()[:8],
+		"slug":              generateRandomSlug(8),
 		"structuredContent": manifest, // The Manifest is now the structured content
 		"html":              "",       // Will be populated by frontend renderer
 		"css":               "",
@@ -309,12 +325,26 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 			}},
 		)
 	} else {
-		// Insert new
-		portfolioDoc["_id"] = portfolioID
-		_, err = database.Client.Database(database.DBName).Collection("portfolios").InsertOne(
-			context.Background(),
-			portfolioDoc,
-		)
+		// Insert new with retry logic for slug collisions
+		maxRetries := 3
+		for i := 0; i < maxRetries; i++ {
+			portfolioDoc["_id"] = portfolioID
+			_, err = database.Client.Database(database.DBName).Collection("portfolios").InsertOne(
+				context.Background(),
+				portfolioDoc,
+			)
+			if err == nil {
+				break
+			}
+			// If it's a duplicate key error on slug, try a new slug
+			if strings.Contains(err.Error(), "duplicate key error") && strings.Contains(err.Error(), "slug") {
+				log.Printf("[AI] Slug collision detected, retrying with new slug (attempt %d/%d)", i+1, maxRetries)
+				portfolioDoc["slug"] = generateRandomSlug(8)
+				continue
+			}
+			// Other errors should break and be handled below
+			break
+		}
 	}
 	if err != nil {
 		log.Printf("[AI] DB Insert error: %v", err)
@@ -614,4 +644,14 @@ Structure: %s`, selectedPersona, string(structuredContentJSON))
 	}
 
 	c.JSON(http.StatusOK, generatedCode)
+}
+
+// generateRandomSlug creates a random hex string of length n
+func generateRandomSlug(n int) string {
+	b := make([]byte, n/2)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback to timestamp if random fails (extremely unlikely)
+		return fmt.Sprintf("%x", time.Now().Unix())[:n]
+	}
+	return hex.EncodeToString(b)
 }

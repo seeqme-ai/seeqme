@@ -120,6 +120,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const isSupported = /\.(pdf|doc|docx|txt)$/i.test(file.name);
+      if (!isSupported) {
+        toast.error('Unsupported file type. Please upload a PDF, DOC, or TXT file.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
       await uploadFile(file);
       // Clear input so selecting the same file again triggers onChange
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -212,13 +219,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className={`relative p-[1px] rounded-3xl overflow-hidden transition-all duration-700 ${isDragging ? 'scale-[1.02] shadow-[0_0_80px_rgba(20,184,166,0.3)]' : 'shadow-2xl'}`}
+            className={`relative p-[1px] rounded-3xl overflow-hidden transition-all duration-700 ${isDragging ? 'scale-[1.02] shadow-[0_0_80px_rgba(20,184,166,0.3)]' : 'shadow-md'}`}
             onDragOver={(e: any) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={(e: any) => { e.preventDefault(); setIsDragging(false); }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 animate-[spin_4s_linear_infinite] opacity-[0.2]"></div>
-            <div className="bg-card/80 backdrop-blur-3xl p-4 flex flex-col items-stretch gap-4 relative rounded-3xl">
+
+            <div className="bg-card/80 backdrop-blur-2xl border p-4 flex flex-col items-stretch gap-4 relative rounded-3xl">
               <div className="flex-1 w-full relative">
                 <textarea
                   value={inputValue}
@@ -269,7 +276,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   >
                     <span>Upload CV</span>
                     {isUploading ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} accept=".pdf,.doc,.docx,image/*,.txt" />
+                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} accept=".pdf,.doc,.docx,.txt" />
                   </button>
 
                 </div>
