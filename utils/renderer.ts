@@ -198,9 +198,18 @@ export const renderManifest = (manifest: Manifest, isFree: boolean = false): str
     : '';
 
   //  Assemble Sections
+  const typeCounters: Record<string, number> = {};
   const renderedSections = sections
     .filter(s => s.settings?.isVisible !== false)
     .map((section: ManifestSection) => {
+      // Ensure section ID exists for navigation
+      if (!section.id) {
+        const type = section.type || 'section';
+        typeCounters[type] = (typeCounters[type] || 0) + 1;
+        section.id = type === 'section' ? `section-${typeCounters[type]}` : type;
+        if (typeCounters[type] > 1) section.id += `-${typeCounters[type]}`;
+      }
+
       // Check for Generative Template (Custom AI View)
       if (section.template) {
         try {
@@ -287,15 +296,34 @@ export const renderManifest = (manifest: Manifest, isFree: boolean = false): str
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="transition-colors duration-500 relative min-h-screen">
+<body class="transition-colors duration-500 relative min-h-screen font-body">
     <main>
       ${renderedSections}
     </main>
     ${brandingHTML}
     <script>
-       // Minimal hydration/interaction script
+       // Unified smooth-scroll and animation script
        document.addEventListener('DOMContentLoaded', () => {
-          // Add intersection observers for animations
+          // Global smooth-scroll listener for all anchor links
+          document.body.addEventListener('click', function(e) {
+             const link = e.target.closest('a[href^="#"]');
+             if (link) {
+                const targetId = link.getAttribute('href').substring(1);
+                if (!targetId) return;
+                const target = document.getElementById(targetId);
+                if (target) {
+                   e.preventDefault();
+                   target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                   // Close mobile menus if they exist (standard class)
+                   const mobileMenu = document.querySelector('[data-mobile-menu]');
+                   if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                      mobileMenu.classList.add('hidden');
+                   }
+                }
+             }
+          });
+
+          // Intersection observer for entrance animations
           const observer = new IntersectionObserver((entries) => {
              entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -304,7 +332,7 @@ export const renderManifest = (manifest: Manifest, isFree: boolean = false): str
              });
           }, { threshold: 0.1 });
           
-          document.querySelectorAll('section').forEach(s => observer.observe(s));
+          document.querySelectorAll('section, [data-section]').forEach(s => observer.observe(s));
        });
     </script>
 </body>

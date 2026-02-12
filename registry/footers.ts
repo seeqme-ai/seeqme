@@ -109,23 +109,26 @@ export const FOOTER_STICKY_CTA = (content: any) => `
 `;
 
 export const FOOTER_DARK_DETAILED = (content: any) => `
-  <footer class="py-24 px-6 bg-[#0a0a0a] text-white border-t border-white/5">
+  <footer class="py-24 px-6 bg-[var(--bg)] text-[var(--text)] border-t border-[var(--text)]/5 transition-colors duration-500">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-16 mb-20">
        <div class="md:col-span-4 space-y-8">
-          <h4 class="text-3xl font-black italic tracking-tighter">${content.name || 'Company Name'}</h4>
-          <p class="text-gray-500 leading-relaxed text-lg">${content.tagline || 'Engineering high-impact digital solutions for global industry leaders.'}</p>
+          <h4 class="text-3xl font-black italic tracking-tighter text-[var(--heading)]">${content.name || 'Portfolio'}</h4>
+          <p class="opacity-60 leading-relaxed text-lg">${content.tagline || 'Engineering high-impact digital solutions.'}</p>
           <div class="flex gap-4">
-             ${(content.socials || []).map((s: any) => `<a href="${s.url}" target="_blank" rel="noopener" class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[var(--primary)] transition-all"><i class="fab fa-${s.platform.toLowerCase()}"></i></a>`).join('')}
+             ${(content.socials || []).map((s: any) => `
+               <a href="${s.url}" target="_blank" rel="noopener" class="w-12 h-12 rounded-xl bg-[var(--text)]/5 flex items-center justify-center hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all">
+                 <i class="fab fa-${s.platform.toLowerCase()}"></i>
+               </a>`).join('')}
           </div>
        </div>
-       <div class="md:col-span-4 p-8 bg-zinc-900 rounded-3xl border border-white/5">
-          <h5 class="text-lg font-black mb-4">Start a conversation</h5>
-          <p class="text-sm text-gray-400 mb-6 font-medium">Ready to discuss your next project? Drop me a line.</p>
+       <div class="md:col-span-4 p-8 bg-[var(--surface)] rounded-3xl border border-[var(--text)]/5">
+          <h5 class="text-lg font-black mb-4 text-[var(--heading)]">Start a conversation</h5>
+          <p class="text-sm opacity-60 mb-6 font-medium">Ready to discuss your next project? Drop me a line.</p>
           <a href="mailto:${content.email || 'hello@example.com'}" class="text-[var(--primary)] font-black uppercase tracking-widest text-xs underline decoration-2 underline-offset-8">Send Email ↗</a>
        </div>
     </div>
-    <div class="max-w-7xl mx-auto pt-8 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-30">
-       <p>© ${new Date().getFullYear()} ${content.name}</p>
+    <div class="max-w-7xl mx-auto pt-8 border-t border-[var(--text)]/5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] opacity-30">
+       <p>© ${new Date().getFullYear()} ${content.name || 'Portfolio'}</p>
     </div>
   </footer>
 `;
@@ -161,32 +164,32 @@ export const FOOTER_BRAND_FOCUS = (content: any) => `
 
 
 export const FOOTER_DARK_SASS = (content: any) => `
-     <footer class="py-12 px-6 bg-[#0f172a] text-center text-slate-600 text-xs font-mono border-t border-slate-800">
-         <a href="mailto:${content.footerEmail || content.email}" class="block mb-8 text-xl text-slate-400 hover:text-cyan-400 transition-colors">${content.footerEmail || content.email}</a>
-         <h3 class="font-bold text-white mb-4 text-sm">${content.footerHeading || content.name || 'SYSTEM'}</h3>
-        <p>${content.copyright || `© ${new Date().getFullYear()} ${content.name || 'SYSTEM'}. ALL RIGHTS RESERVED.`}</p>
+     <footer class="py-12 px-6 bg-[var(--bg)] text-center text-[var(--text)]/60 text-xs font-mono border-t border-[var(--text)]/5 transition-colors duration-500">
+         <a href="mailto:${content.footerEmail || content.email || ''}" class="block mb-8 text-xl text-[var(--text)]/80 hover:text-[var(--primary)] transition-colors">${content.footerEmail || content.email || 'Contact'}</a>
+         <h3 class="font-bold text-[var(--heading)] mb-4 text-sm">${content.footerHeading || content.name || 'SYSTEM'}</h3>
+        <p>${content.copyright || `© ${new Date().getFullYear()} ${content.name || 'Portfolio'}. ALL RIGHTS RESERVED.`}</p>
      </footer>
 `;
 
 export const FOOTER_AGENCY_BOLD = (content: any) => `
-    <footer data-section="footer" class="bg-black text-white py-16 px-6 text-center">
-         <h2 class="text-4xl md:text-6xl font-black mb-8" data-field="cta-text">${content.ctaText || 'Ready to grow?'}</h2>
-         <a href="mailto:${content.email}" target="_blank" rel="noopener" class="text-2xl md:text-4xl text-red-500 hover:text-white transition-colors underline decoration-2 underline-offset-8" data-field="email">${content.email}</a>
+    <footer data-section="footer" class="bg-[var(--bg)] text-[var(--text)] py-16 px-6 text-center border-t border-[var(--text)]/5 transition-colors duration-500">
+         <h2 class="text-4xl md:text-6xl font-black mb-8 text-[var(--heading)]" data-field="cta-text">${content.ctaText || 'Ready to grow?'}</h2>
+         <a href="mailto:${content.email || ''}" target="_blank" rel="noopener" class="text-2xl md:text-4xl text-[var(--primary)] hover:text-[var(--heading)] transition-colors underline decoration-2 underline-offset-8" data-field="email">${content.email || 'Contact'}</a>
          
          <div class="flex justify-center gap-8 mt-12 text-2xl">
             ${(content.socials || []).map((social: any) => `
-            <a href="${social.url}" target="_blank" rel="noopener" class="hover:text-red-500"><i class="${social.icon}"></i></a>
+            <a href="${social.url}" target="_blank" rel="noopener" class="text-[var(--text)]/60 hover:text-[var(--primary)] transition-all"><i class="fab fa-${social.platform.toLowerCase()}"></i></a>
             `).join('')}
          </div>
-         <div class="mt-16 text-gray-600 text-sm uppercase tracking-widest" data-field="copyright">
-            &copy; ${content.year || new Date().getFullYear()} ${content.copyright || 'All rights reserved'}.
+         <div class="mt-16 opacity-40 text-sm uppercase tracking-widest" data-field="copyright">
+            &copy; ${content.year || new Date().getFullYear()} ${content.name || 'Portfolio'}. ${content.copyright || 'All rights reserved'}.
          </div>
     </footer>
 `;
 
 export const FOOTER_MINIMAL_SIMPLE = (content: any) => `
-    <footer data-section="footer" class="py-12 text-center text-xs text-stone-400 bg-stone-900 border-t border-stone-800">
-        <p>&copy; ${content.year || new Date().getFullYear()} ${content.copyright || 'All rights reserved'}. All rights reserved.</p>
+    <footer data-section="footer" class="py-12 text-center text-xs opacity-40 bg-[var(--bg)] border-t border-[var(--text)]/5 transition-colors duration-500">
+        <p>&copy; ${content.year || new Date().getFullYear()} ${content.name || 'Portfolio'}. All rights reserved.</p>
     </footer>
 `;
 

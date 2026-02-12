@@ -5,7 +5,6 @@ export const HERO_TYPOGRAPHIC_BOLD = (content: any) => `
     <section id="hero" data-section="hero" class="min-h-screen px-6 py-20 flex flex-col justify-between border-b-2 border-black">
          <nav class="flex justify-between items-center mb-20">
             <div class="font-bold tracking-tight" data-field="nav-logo">${content.logo || 'ALEX.CONTENT'}</div>
-            <a href="#contact" target="_blank" rel="noopener" onclick="event.preventDefault()" class="underline decoration-1 underline-offset-4 hover:bg-black hover:text-white transition-colors px-2 py-1" data-field="nav-cta">${content.availability || 'Currently Accepting Clients'}</a>
          </nav>
          
          <div class="max-w-5xl">

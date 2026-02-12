@@ -21,7 +21,7 @@ export const HEADER_MINIMALIST = (content: any) => `
                 <i class="fas fa-bars text-xl transition-all" id="menu-icon-min"></i>
             </button>
         </div>
-        <div id="mobile-menu-min" class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-min" data-mobile-menu class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
             ${(content.navLinks || []).map((nav: any) => `
             <a href="${nav.link}" class="mobile-link text-2xl font-serif text-[var(--heading)] hover:text-[var(--primary)] transition-all transform translate-y-4 opacity-0">
                 ${nav.label}
@@ -57,19 +57,6 @@ export const HEADER_MINIMALIST = (content: any) => `
                         icon.classList.add('fa-bars');
                     }));
                 }
-                
-                // Event delegation for smooth scrolling
-                document.body.addEventListener('click', function(e) {
-                    const link = e.target.closest('a[href^="#"]');
-                    if (link) {
-                        const targetId = link.getAttribute('href').substring(1);
-                        const target = targetId ? document.getElementById(targetId) : null;
-                        if (target) {
-                            e.preventDefault();
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                });
             })();
         </script>
     </header>
@@ -96,7 +83,7 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
                 <i class="fas fa-bars text-xl transition-all" id="menu-icon-agc"></i>
             </button>
         </div>
-        <div id="mobile-menu-agc" class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-agc" data-mobile-menu class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
             ${(content.navLinks || []).map((nav: any) => `
             <a href="${nav.link}" class="mobile-link text-4xl font-black uppercase tracking-tighter text-[var(--heading)] hover:text-[var(--primary)] transition-all transform translate-y-8 opacity-0">
                 ${nav.label}
@@ -138,19 +125,6 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
                         document.body.style.overflow = '';
                     }));
                 }
-                
-                // Event delegation for smooth scrolling
-                document.body.addEventListener('click', function(e) {
-                    const link = e.target.closest('a[href^="#"]');
-                    if (link) {
-                        const targetId = link.getAttribute('href').substring(1);
-                        const target = targetId ? document.getElementById(targetId) : null;
-                        if (target) {
-                            e.preventDefault();
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                });
             })();
         </script>
     </header>
@@ -179,7 +153,7 @@ export const HEADER_TECH_GLOW = (content: any) => `
                 <i class="fas fa-bars text-lg transition-all" id="menu-icon-tech"></i>
             </button>
         </div>
-        <div id="mobile-menu-tech" class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-6 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-tech" data-mobile-menu class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-6 opacity-0 pointer-events-none transition-all duration-300">
              ${(content.navLinks || []).map((nav: any) => `
             <a href="${nav.link}" class="mobile-link text-xl font-mono font-bold text-[var(--text)] hover:text-[var(--primary)] transition-all transform translate-x-10 opacity-0 flex items-center gap-2">
                 <span class="text-[var(--primary)]">></span> ${nav.label}
@@ -215,19 +189,6 @@ export const HEADER_TECH_GLOW = (content: any) => `
                         icon.classList.add('fa-bars');
                      }));
                  }
-                 
-                 // Event delegation for smooth scrolling
-                 document.body.addEventListener('click', function(e) {
-                     const link = e.target.closest('a[href^="#"]');
-                     if (link) {
-                         const targetId = link.getAttribute('href').substring(1);
-                         const target = targetId ? document.getElementById(targetId) : null;
-                         if (target) {
-                             e.preventDefault();
-                             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                         }
-                     }
-                 });
              })();
          </script>
      </header>
@@ -305,25 +266,25 @@ export const HEADER_MINIMALIST_CREATOR = (content: any) => `
  `;
 
 export const HEADER_DARK_SASS = (content: any) => `
-    <header class="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 backdrop-blur-md border-b border-white/5 transition-all duration-300" id="main-header">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)]/90 backdrop-blur-md border-b border-[var(--text)]/5 transition-all duration-300" id="main-header">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="#" class="text-xl font-bold tracking-tight text-white hover:text-cyan-400 transition-colors relative z-50">
+            <a href="#" class="text-xl font-bold tracking-tight text-[var(--heading)] hover:text-[var(--primary)] transition-colors relative z-50">
                 ${content.username || content.name || 'SYSTEM'}
             </a>
             <nav class="hidden md:flex items-center gap-8">
                 ${(content.navLinks || []).map((nav: any) => `
-                <a href="${nav.link}" class="text-sm font-medium text-slate-400 hover:text-violet-400 transition-colors">
+                <a href="${nav.link}" class="text-sm font-medium text-[var(--text)]/60 hover:text-[var(--primary)] transition-colors">
                     ${nav.label}
                 </a>
                 `).join('')}
             </nav>
-            <button id="mobile-menu-btn-ds" class="md:hidden text-white z-50 relative w-10 h-10 flex items-center justify-center">
+            <button id="mobile-menu-btn-ds" class="md:hidden text-[var(--text)] z-50 relative w-10 h-10 flex items-center justify-center">
                 <i class="fas fa-bars text-xl transition-all" id="menu-icon-ds"></i>
             </button>
         </div>
-        <div id="mobile-menu-ds" class="fixed inset-0 bg-[#0f172a] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-ds" data-mobile-menu class="fixed inset-0 bg-[var(--bg)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
             ${(content.navLinks || []).map((nav: any) => `
-            <a href="${nav.link}" class="mobile-link text-3xl font-bold text-slate-300 hover:text-cyan-400 transition-all transform translate-y-4 opacity-0">
+            <a href="${nav.link}" class="mobile-link text-3xl font-bold text-[var(--text)]/80 hover:text-[var(--primary)] transition-all transform translate-y-4 opacity-0">
                 ${nav.label}
             </a>
             `).join('')}
@@ -357,19 +318,6 @@ export const HEADER_DARK_SASS = (content: any) => `
                         icon.classList.add('fa-bars');
                     }));
                 }
-                
-                // Event delegation for smooth scrolling
-                document.body.addEventListener('click', function(e) {
-                    const link = e.target.closest('a[href^="#"]');
-                    if (link) {
-                        const targetId = link.getAttribute('href').substring(1);
-                        const target = targetId ? document.getElementById(targetId) : null;
-                        if (target) {
-                            e.preventDefault();
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                });
             })();
         </script>
     </header>

@@ -225,7 +225,7 @@ export const CONTACT_NEON_MODERN = (content: any) => `
     <div class="max-w-4xl mx-auto relative z-10 text-center space-y-16">
       <div class="space-y-4">
         <h2 class="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white" data-field="contact-title">${content.title || "Ready to Start?"}</h2>
-        <p class="text-xl text-slate-400 font-medium max-w-2xl mx-auto" data-field="contact-bio">${content.bio || 'Available for global collaborations and high-impact projects.'}</p>
+        <p class="text-xl text-slate-400 font-medium max-w-2xl mx-auto" data-field="contact-bio">${content.bio || 'Crafting excellence for global high-impact projects.'}</p>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">

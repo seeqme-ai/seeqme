@@ -54,9 +54,6 @@ export const HERO_CYBER_MONO = (content: any) => `
    <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 1px 1px, var(--primary) 1px, transparent 0); background-size: 40px 40px;"></div>
     <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-12 items-center relative z-10">
       <div class="lg:col-span-1 space-y-6">
-        <div class="inline-block px-3 py-1 bg-[var(--primary)] text-[var(--bg)] text-xs font-bold uppercase">
-          PROTOCOL: SECURE_ID
-        </div>
         <h1 class="text-4xl md:text-7xl font-black tracking-tighter uppercase" data-field="hero-name">
            <span class="text-[var(--primary)]">></span> ${content.name || 'USER_ID'}
         </h1>
@@ -64,7 +61,6 @@ export const HERO_CYBER_MONO = (content: any) => `
            <pre class="text-xs md:text-sm leading-relaxed overflow-x-auto"><code class="text-[var(--text)]">
 {
   "role": "${content.title || 'Developer'}",
-  "status": "Available",
   "location": "Distributed",
   "bio": "${content.bio || 'System ready.'}"
 }
@@ -268,10 +264,6 @@ export const HERO_DYNAMIC_GRADIENT = (content: any) => `
       </div>
 
       <div class="relative z-10 max-w-7xl mx-auto px-6 text-center space-y-12">
-         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--surface)] border border-[var(--text)]/10 backdrop-blur-md">
-            <span class="w-2 h-2 rounded-full bg-[var(--primary)] animate-ping"></span>
-            <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">${content.status || 'Available for Projects'}</span>
-         </div>
 
          <h1 class="text-7xl md:text-[12vw] font-black tracking-tighter leading-[0.8] uppercase flex flex-col">
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--heading)] to-[var(--primary)]">${content.name?.split(' ')[0]}</span>
@@ -337,36 +329,36 @@ export const HERO_MINIMAL_ELEGANCE = (content: any) => `
 `;
 
 export const HERO_TERMINAL_STYLE = (content: any) => `
-   <section data-section="hero" class="min-h-screen bg-[#0d1117] text-[#58a6ff] font-mono p-6 md:p-12 flex items-center">
-      <div class="max-w-4xl mx-auto w-full bg-[#161b22] rounded-xl border border-[#30363d] shadow-2xl overflow-hidden">
-         <div class="bg-[#21262d] px-4 py-2 flex gap-2 border-b border-[#30363d]">
-            <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-            <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-            <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-            <span class="ml-4 text-[10px] text-gray-500 uppercase tracking-widest">seeqme_cli_v1.0</span>
+   <section data-section="hero" class="min-h-screen bg-[var(--bg)] text-[var(--primary)] font-mono p-6 md:p-12 flex items-center transition-colors duration-500">
+      <div class="max-w-4xl mx-auto w-full bg-[var(--surface)] rounded-xl border border-[var(--text)]/10 shadow-2xl overflow-hidden">
+         <div class="bg-[var(--text)]/5 px-4 py-2 flex gap-2 border-b border-[var(--text)]/10">
+            <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+            <span class="ml-4 text-[10px] opacity-40 uppercase tracking-widest">seeqme_cli_v1.0</span>
          </div>
          <div class="p-8 md:p-12 space-y-4">
             <div class="flex gap-4">
-               <span class="text-[#8b949e]">$</span>
-               <span class="text-white">whoami</span>
+               <span class="opacity-40">$</span>
+               <span class="text-[var(--heading)]">whoami</span>
             </div>
             <div class="pl-8">
-               <h1 class="text-3xl md:text-5xl font-bold text-[#58a6ff]" data-field="hero-name">${content.name}</h1>
+               <h1 class="text-3xl md:text-5xl font-bold text-[var(--primary)]" data-field="hero-name">${content.name || 'USER_ID'}</h1>
             </div>
             <div class="flex gap-4 pt-4">
-               <span class="text-[#8b949e]">$</span>
-               <span class="text-white">describe --profile professional</span>
+               <span class="opacity-40">$</span>
+               <span class="text-[var(--heading)]">describe --profile professional</span>
             </div>
-            <div class="pl-8 text-[#8b949e] leading-relaxed">
-               <p class="mb-2"><span class="text-[#d2a8ff]">Title:</span> ${content.title}</p>
-               <p><span class="text-[#d2a8ff]">Bio:</span> ${content.bio}</p>
+            <div class="pl-8 opacity-60 leading-relaxed">
+               <p class="mb-2"><span class="text-[var(--primary)]">Title:</span> ${content.title || 'Developer'}</p>
+               <p><span class="text-[var(--primary)]">Bio:</span> ${content.bio || 'System ready.'}</p>
             </div>
             <div class="flex gap-4 pt-8">
-               <span class="text-[#8b949e]">$</span>
-               <span class="text-white">execute contact</span>
+               <span class="opacity-40">$</span>
+               <span class="text-[var(--heading)]">execute contact</span>
             </div>
             <div class="pl-8">
-               <a href="${content.cta?.link || '#'}" class="inline-block px-6 py-2 border border-[#58a6ff] text-[#58a6ff] hover:bg-[#58a6ff] hover:text-white transition-all cursor-pointer">
+               <a href="${content.cta?.link || '#'}" class="inline-block px-6 py-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all cursor-pointer">
                   ./run_callback.sh
                </a>
             </div>
@@ -376,21 +368,21 @@ export const HERO_TERMINAL_STYLE = (content: any) => `
 `;
 
 export const HERO_VIDEO_BG = (content: any) => `
-   <section data-section="hero" class="relative h-screen flex items-center justify-center text-center overflow-hidden bg-black">
+   <section data-section="hero" class="relative min-h-screen flex items-center justify-center text-center overflow-hidden bg-[var(--bg)] transition-colors duration-500">
       <div class="absolute inset-0 z-0">
          <!-- Fallback image as video placeholder -->
          <img src="${content.image || 'https://images.unsplash.com/photo-1492691523567-6170f0275df1?w=1600'}" class="w-full h-full object-cover opacity-40 scale-105" data-field="hero-image" />
-         <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
+         <div class="absolute inset-0 bg-gradient-to-b from-[var(--bg)]/60 via-transparent to-[var(--bg)]/80"></div>
       </div>
       <div class="relative z-10 max-w-5xl px-6 space-y-12">
-         <h1 class="text-6xl md:text-[10vw] font-black tracking-tighter leading-none text-white uppercase italic" data-field="hero-name">${content.name}</h1>
+         <h1 class="text-6xl md:text-[10vw] font-black tracking-tighter leading-none text-[var(--heading)] uppercase italic" data-field="hero-name">${content.name || 'Visionary'}</h1>
          <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-            <p class="text-xl md:text-2xl font-bold text-teal-400 uppercase tracking-widest border-y border-teal-400/30 py-4" data-field="hero-title">${content.title}</p>
-            <div class="h-px w-12 bg-white/20 hidden md:block"></div>
-            <p class="text-lg text-white/60 max-w-md font-medium" data-field="hero-bio">${content.bio}</p>
+            <p class="text-xl md:text-2xl font-bold text-[var(--primary)] uppercase tracking-widest border-y border-[var(--primary)]/30 py-4" data-field="hero-title">${content.title || 'Portfolio'}</p>
+            <div class="h-px w-12 bg-[var(--text)]/20 hidden md:block"></div>
+            <p class="text-lg text-[var(--text)] opacity-60 max-w-md font-medium" data-field="hero-bio">${content.bio || 'Exploring new horizons.'}</p>
          </div>
-         <a href="${content.cta?.link || '#'}" class="inline-flex items-center gap-4 text-sm font-black uppercase tracking-[0.4em] text-white hover:text-teal-400 transition-colors group">
-            <span class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:border-teal-400">▶</span>
+         <a href="${content.cta?.link || '#'}" class="inline-flex items-center gap-4 text-sm font-black uppercase tracking-[0.4em] text-[var(--heading)] hover:text-[var(--primary)] transition-colors group">
+            <span class="w-12 h-12 rounded-full border border-[var(--text)]/20 flex items-center justify-center group-hover:border-[var(--primary)]">▶</span>
             ${content.ctaText || 'Watch Showreel'}
          </a>
       </div>
@@ -398,32 +390,32 @@ export const HERO_VIDEO_BG = (content: any) => `
 `;
 
 export const HERO_MAGAZINE = (content: any) => `
-   <section data-section="hero" class="min-h-screen bg-[#f8f5f0] text-[#1a1a1a] p-6 md:p-12 font-serif">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 border-t-8 border-black pt-12">
+   <section data-section="hero" class="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 md:p-12 font-serif transition-colors duration-500">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 border-t-8 border-[var(--heading)] pt-12">
          <div class="lg:col-span-8">
-            <h1 class="text-[15vw] lg:text-[12vw] font-black leading-[0.8] uppercase tracking-tighter mb-8" data-field="hero-name">
-               ${content.name}
+            <h1 class="text-[15vw] lg:text-[12vw] font-black leading-[0.8] uppercase tracking-tighter mb-8 text-[var(--heading)]" data-field="hero-name">
+               ${content.name || 'Name'}
             </h1>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start mt-12">
                <div class="space-y-6">
-                  <p class="text-3xl font-bold uppercase" data-field="hero-title">${content.title}</p>
-                  <p class="text-xl leading-relaxed opacity-80" data-field="hero-bio">${content.bio}</p>
+                  <p class="text-3xl font-bold uppercase" data-field="hero-title">${content.title || 'Title'}</p>
+                  <p class="text-xl leading-relaxed opacity-60" data-field="hero-bio">${content.bio || 'Bio'}</p>
                </div>
                <div class="h-full flex flex-col justify-end items-end">
-                  <p class="text-sm font-bold uppercase tracking-widest transform rotate-90 origin-right whitespace-nowrap mb-24 opacity-20">ISSUE NO.001 // SEEQME EDITORIAL</p>
-                  <a href="${content.cta?.link || '#'}" class="px-12 py-6 bg-black text-white rounded-full font-black uppercase italic tracking-widest text-xs hover:scale-105 transition-transform shadow-2xl">
+                  <p class="text-sm font-bold uppercase tracking-widest transform rotate-90 origin-right whitespace-nowrap mb-24 opacity-20">${new Date().getFullYear()} // SEEQME EDITORIAL</p>
+                  <a href="${content.cta?.link || '#'}" class="px-12 py-6 bg-[var(--heading)] text-[var(--bg)] rounded-full font-black uppercase italic tracking-widest text-xs hover:scale-105 transition-transform shadow-2xl">
                      Full Feature
                   </a>
                </div>
             </div>
          </div>
          <div class="lg:col-span-4 relative">
-            <div class="aspect-[3/4] overflow-hidden shadow-[20px_20px_0_0_#1a1a1a]">
+            <div class="aspect-[3/4] overflow-hidden shadow-[20px_20px_0_0_var(--heading)]">
                <img src="${content.image}" class="w-full h-full object-cover" data-field="hero-image" />
             </div>
-            <div class="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl max-w-[200px]">
+            <div class="absolute -bottom-6 -left-6 bg-[var(--surface)] p-6 shadow-xl max-w-[200px] border border-[var(--text)]/5">
                <p class="text-xs font-black uppercase tracking-widest mb-2 opacity-40">Location</p>
-               <p class="text-sm font-bold">Based in London, UK. Working Globally.</p>
+               <p class="text-sm font-bold">${content.location || 'Working Globally.'}</p>
             </div>
          </div>
       </div>
@@ -440,7 +432,6 @@ export const HERO_PARALLAX_LAYERS = (content: any) => `
       
       <div class="relative z-10 h-full max-w-7xl mx-auto px-6 flex flex-col items-center justify-center text-center">
          <div class="relative inline-block mb-12">
-            <span class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-[0.5em] text-indigo-400">Pioneer of Digital Realm</span>
             <h1 class="text-8xl md:text-[14vw] font-black leading-none uppercase tracking-tighter text-white mix-blend-difference" data-field="hero-name">
                ${content.name}
             </h1>
@@ -498,10 +489,6 @@ export const HERO_SPLIT_DIAGONAL = (content: any) => `
       
       <div class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
          <div class="space-y-10">
-            <div class="inline-flex items-center gap-3 px-4 py-2 bg-[var(--surface)] border border-[var(--text)]/10 rounded-full">
-               <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-               <span class="text-[10px] font-black uppercase tracking-widest">Live Portfolio</span>
-            </div>
             <h1 class="text-7xl md:text-[8vw] font-black leading-[0.8] uppercase tracking-tighter" data-field="hero-name">
                ${content.name?.split(' ').map((n: string, i: number) => i === 0 ? `<span>${n}</span>` : `<span class="block text-[var(--primary)]">${n}</span>`).join('')}
             </h1>
@@ -526,25 +513,23 @@ export const HERO_SPLIT_DIAGONAL = (content: any) => `
 `;
 
 export const HERO_GRADIENT_TEXT = (content: any) => `
-   <section data-section="hero" class="min-h-screen flex items-center justify-center text-center p-6 bg-black overflow-hidden relative">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.05)_0%,transparent_70%)]"></div>
+   <section data-section="hero" class="min-h-screen flex items-center justify-center text-center p-6 bg-[var(--bg)] overflow-hidden relative transition-colors duration-500">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary)/0.05_0%,transparent_70%)]"></div>
       <div class="max-w-7xl mx-auto space-y-16 relative z-10">
          <h1 class="text-8xl md:text-[18vw] font-black uppercase leading-[0.75] tracking-tightest mix-blend-screen" data-field="hero-name">
-            <span class="bg-clip-text text-transparent bg-gradient-to-br from-white via-slate-400 to-slate-800">${content.name}</span>
+            <span class="bg-clip-text text-transparent bg-gradient-to-br from-[var(--heading)] via-[var(--text)]/80 to-[var(--text)]/40">${content.name || 'Identity'}</span>
          </h1>
          <div class="max-w-3xl mx-auto space-y-8">
-            <p class="text-2xl md:text-4xl font-bold text-white uppercase tracking-tighter" data-field="hero-title">${content.title}</p>
-            <p class="text-xl text-slate-500 leading-relaxed" data-field="hero-bio">${content.bio}</p>
+            <p class="text-2xl md:text-4xl font-bold text-[var(--heading)] uppercase tracking-tighter" data-field="hero-title">${content.title || 'Architect'}</p>
+            <p class="text-xl opacity-60 leading-relaxed" data-field="hero-bio">${content.bio || 'Designing the future of digital presence.'}</p>
             <div class="pt-8">
                <a href="${content.cta?.link || '#'}" class="group relative px-12 py-6 inline-block overflow-hidden rounded-full font-black uppercase text-xs tracking-[0.2em]">
-                  <div class="absolute inset-0 bg-white group-hover:bg-[#00f2ff] transition-colors"></div>
-                  <span class="relative z-10 text-black">Start Discovery</span>
+                  <div class="absolute inset-0 bg-[var(--heading)] group-hover:bg-[var(--primary)] transition-colors"></div>
+                  <span class="relative z-10 text-[var(--bg)]">Start Discovery</span>
                </a>
             </div>
          </div>
       </div>
-      <!-- Decorative background text -->
-      <div class="absolute -bottom-20 -left-20 text-[30vw] font-black text-white/[0.02] select-none leading-none uppercase">BUILD</div>
    </section>
 `;
 
@@ -668,15 +653,10 @@ export const HERO_SMOOTH_SWEEP = (content: any) => `
       <div class="absolute inset-y-0 left-0 w-1/2 bg-white opacity-[0.02] transform -skew-x-12 -translate-x-1/2"></div>
       <div class="relative z-10 max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
          <div class="space-y-12">
-            <span class="text-xs font-black uppercase tracking-[0.5em] text-[var(--primary)] animate-pulse">Identity Standard v1.0</span>
             <h1 class="text-7xl md:text-9xl font-black text-white leading-none tracking-tighter" data-field="hero-name">${content.name}</h1>
             <p class="text-2xl opacity-40 leading-relaxed max-w-md font-medium" data-field="hero-bio">${content.bio}</p>
             <div class="flex items-center gap-8">
                <a href="${content.cta?.link || '#'}" class="px-12 py-5 bg-[var(--primary)] text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform">Get Started</a>
-               <div class="space-y-1">
-                  <p class="text-[10px] font-black uppercase tracking-widest opacity-20">Availability</p>
-                  <p class="text-xs font-bold text-green-500 uppercase tracking-widest">Active for Hire</p>
-               </div>
             </div>
          </div>
          <div class="relative aspect-[4/5] rounded-[4rem] overflow-hidden group">
@@ -691,9 +671,6 @@ export const HERO_GRID_PORTRAIT = (content: any) => `
    <section data-section="hero" class="h-screen bg-white text-black p-6 md:p-12 flex flex-col">
       <div class="flex justify-between items-center mb-12">
          <span class="font-black text-2xl tracking-tighter uppercase">${content.name?.split(' ')[0]}.</span>
-         <div class="flex gap-4">
-            <span class="text-[10px] font-black uppercase border border-black px-3 py-1 rounded-full">Archive 2024</span>
-         </div>
       </div>
       <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
          <div class="md:col-span-4 space-y-8 pb-12">
@@ -714,37 +691,28 @@ export const HERO_GRID_PORTRAIT = (content: any) => `
 
 
 export const HERO_AGENCY_VIBRANT = (content: any) => `
-    <section data-section="hero" class="min-h-screen grid grid-cols-1 md:grid-cols-2">
+    <section data-section="hero" class="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-[var(--bg)] transition-colors duration-500">
         <div class="flex flex-col justify-center px-8 md:px-24 order-2 md:order-1 py-16 md:py-0">
-             <div class="inline-flex items-center gap-2 mb-8 bg-black/5 w-fit px-4 py-1 rounded-full">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span class="text-xs font-bold tracking-widest uppercase text-gray-600" data-field="hero-availability">${content.availability || 'Open for Clients'}</span>
-             </div>
-             <h1 class="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight" data-field="hero-heading">
-                ${content.heading || 'I TURN<br/><span class="text-red-500">ATTENTION</span><br/>INTO REVENUE.'}
+             <h1 class="text-5xl md:text-7xl font-black leading-tight mb-8 tracking-tight text-[var(--heading)] uppercase" data-field="hero-heading">
+                ${content.heading || `I TURN<br/><span class="text-[var(--primary)]">ATTENTION</span><br/>INTO REVENUE.`}
              </h1>
-             <p class="text-lg md:text-xl text-gray-500 max-w-md mb-12 leading-relaxed font-medium" data-field="hero-bio">
+             <p class="text-lg md:text-xl opacity-60 max-w-md mb-12 leading-relaxed font-medium" data-field="hero-bio">
                 ${content.bio || 'Digital alchemist transforming ideas into gold.'}
              </p>
              <div class="flex flex-col md:flex-row gap-6">
-                <a href="${content.ctaPrimaryLink || '#packages'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 bg-black text-white font-bold hover:bg-red-600 transition-colors uppercase tracking-wider text-sm text-center">
+                <a href="${content.ctaPrimaryLink || '#packages'}" onclick="event.preventDefault()" class="px-8 py-4 bg-[var(--heading)] text-[var(--bg)] font-bold hover:bg-[var(--primary)] transition-colors uppercase tracking-wider text-sm text-center shadow-lg">
                     ${content.ctaPrimaryText || 'View Packages'}
                 </a>
-                 <a href="${content.ctaSecondaryLink || '#results'}" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-4 border-2 border-black text-black font-bold hover:bg-black hover:text-white transition-colors uppercase tracking-wider text-sm text-center">
+                 <a href="${content.ctaSecondaryLink || '#results'}" onclick="event.preventDefault()" class="px-8 py-4 border-2 border-[var(--heading)] text-[var(--heading)] font-bold hover:bg-[var(--heading)] hover:text-[var(--bg)] transition-all uppercase tracking-wider text-sm text-center">
                     ${content.ctaSecondaryText || 'See Results'}
                 </a>
-             </div>
-             <div class="mt-12 flex gap-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all">
-                <span class="font-bold">Trusted by:</span>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2560px-Google_2015_logo.svg.png" class="h-6" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-4" />
              </div>
         </div>
         <div class="relative order-1 md:order-2 h-[50vh] md:h-auto overflow-hidden">
              <img src="${content.image}" class="w-full h-full object-cover transition-transform duration-1000 hover:scale-105" data-field="hero-image" />
-             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent md:hidden"></div>
-             <div class="absolute bottom-8 left-8 text-white z-10 md:hidden">
-                <div class="text-4xl font-black">${content.name || 'Agency'}</div>
+             <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/50 to-transparent md:hidden"></div>
+             <div class="absolute bottom-8 left-8 text-[var(--heading)] z-10 md:hidden">
+                <div class="text-4xl font-black">${content.name || 'Portfolio'}</div>
              </div>
         </div>
     </section>
@@ -767,12 +735,6 @@ export const HERO_MINIMAL_CREATOR = (content: any) => `
                 <a href="#contact" target="_blank" rel="noopener" onclick="event.preventDefault()" class="px-8 py-3 bg-white text-stone-900 border border-stone-200 rounded-full font-bold hover:border-stone-400 transition-colors">Book Discovery Call</a>
             </div>
             
-            ${content.availability ? `
-            <div class="mt-16 flex items-center justify-center gap-2 text-sm text-stone-500">
-                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                ${content.availability}
-            </div>
-            ` : ''}
         </div>
     </section>
 `;
@@ -782,7 +744,6 @@ export const HERO_MINIMALIST_CREATOR = (content: any) => `
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
             <div class="order-2 md:order-1 space-y-8">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)] mb-6">${content.statusTag || 'Available'}</p>
                     <h1 class="text-5xl md:text-7xl font-serif text-[var(--heading)] mb-8 leading-tight" data-field="hero-name">
                         ${content.name || 'Your Name'}
                     </h1>
@@ -798,9 +759,6 @@ export const HERO_MINIMALIST_CREATOR = (content: any) => `
                         Speak with Me
                     </a>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--text)]/40">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Currently Accepting Projects
                 </div>
             </div>
             <div class="order-1 md:order-2 relative aspect-[3/4] md:aspect-square w-full">

@@ -28,7 +28,7 @@ export const CTA_SPLIT_VISUAL = (content: any) => `
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <div class="space-y-6">
         <div class="inline-block px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-black uppercase tracking-wider">
-          ${content.badge || 'Limited Availability'}
+          ${content.badge || 'Professional Service'}
         </div>
         <h2 class="text-4xl md:text-6xl font-black leading-tight" data-field="cta-title">
           ${content.title || 'Transform Your Vision'}
@@ -58,7 +58,7 @@ export const CTA_BANNER_STICKY = (content: any) => `
             ${content.title || '🚀 Special Offer: 20% Off This Month'}
           </p>
           <p class="text-sm opacity-90" data-field="cta-banner-subtitle">
-            ${content.subtitle || 'Limited slots available for new projects.'}
+            ${content.subtitle || "Let's turn your vision into reality."}
           </p>
         </div>
         <div class="flex gap-3">

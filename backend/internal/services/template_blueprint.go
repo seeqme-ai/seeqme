@@ -323,9 +323,9 @@ AVOID (Repetition killer):
 ✗ Don't use generic GEN_TEMPLATE - use specific registry components
 ✗ Don't replicate template structure verbatim
 
-MANDATORY CONSTRAINTS:
 • Metadata.niche MUST match the detected professional niche
 • Contact/footer sections MUST be at the end
+• SMART NAVIGATION: Section "id" values (e.g., "projects", "skills") MUST exactly match the header "navLinks" link values (e.g., "#projects", "#skills") for flawless scrolling.
 • Use REAL registry components: HERO_*, PROJ_*, SKILLS_*, STATS_*, EXP_*, CONTACT_*, FOOTER_*, HEADER_*
 • Build cohesive color palettes (even if unconventional)
 • Keep section purposes aligned with niche context

@@ -42,7 +42,7 @@ export const FORM_ELEGANT_SPLIT = (content: any) => `
         <div class="text-center mb-16">
             <span class="text-[var(--primary)] font-bold tracking-widest text-xs uppercase">${content.label || 'Contact'}</span>
             <h2 class="text-4xl md:text-5xl font-black text-[var(--heading)] mt-4">${content.title || 'Get in Touch'}</h2>
-            <p class="text-[var(--text)] opacity-60 mt-4 max-w-lg mx-auto">${content.description || 'Available for freelance opportunities and collaborations.'}</p>
+            <p class="text-[var(--text)] opacity-60 mt-4 max-w-lg mx-auto">${content.description || "Let's work together."}</p>
         </div>
         <div class="bg-[var(--surface)] rounded-[2rem] p-8 md:p-12 shadow-xl border border-[var(--text)]/5">
             <form id="form-elegant-{{id}}" class="space-y-6">

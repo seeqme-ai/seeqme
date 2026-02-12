@@ -10,10 +10,6 @@ import (
 	"math/rand"
 	"net/http"
 	"regexp"
-	"seeqmeai/backend/internal/database"
-	"seeqmeai/backend/internal/models"
-	"seeqmeai/backend/internal/services"
-	"seeqmeai/backend/internal/websocket"
 	"strings"
 	"time"
 
@@ -21,6 +17,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"seeqmeai/backend/internal/database"
+	"seeqmeai/backend/internal/models"
+	"seeqmeai/backend/internal/services"
+	"seeqmeai/backend/internal/websocket"
 )
 
 var DesignPersonas = []string{
@@ -569,15 +570,8 @@ func (h *Handler) GenerateCode(c *gin.Context) {
 	}
 
 	// --- Design Persona Injection ---
-	personas := []string{
-		"Create a **Swiss International Style** portfolio. Focus on: Grid systems, asymmetric layouts, sans-serif typography (Helvetica/Inter), negative space, and high contrast. Use a strict typographic hierarchy.",
-		"Create a **Neo-Brutalism** style portfolio. Focus on: Bold layouts, high-contrast borders, raw aesthetics, vibrant (almost clashing) accent colors, and large typography. Use shadows and outlines explicitly.",
-		"Create a **Minimalist Luxury** style portfolio. Focus on: Sophisticated simplicity, serif headings (Playfair Display), plentiful whitespace, muted/monochrome color palette with gold/silver accents, and subtle micro-animations.",
-		"Create a **Glassmorphism & Gradient** style portfolio. Focus on: Translucency, frosted glass effects, vibrant background blurs, rounded cards, and modern sans-serif fonts. Give it a futuristic, tech-forward feel.",
-		"Create a **Magazine / Editorial** style portfolio. Focus on: Large imagery, interesting text wrapping, strong headlines, and a layout that feels like a high-end fashion or design magazine. Mix serif and sans-serif fonts.",
-	}
-	// Simple random selection based on time
-	selectedPersona := personas[time.Now().UnixNano()%int64(len(personas))]
+	rand.Seed(time.Now().UnixNano())
+	selectedPersona := DesignPersonas[rand.Intn(len(DesignPersonas))]
 
 	prompt := fmt.Sprintf(`Act as a Senior Identity Designer. %s
 Generate complete HTML, CSS, and JavaScript code for this portfolio structure.

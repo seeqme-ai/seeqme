@@ -80,7 +80,7 @@ export const CONTACT_NEON_MODERN = (content: any) => `
     <div class="max-w-4xl mx-auto relative z-10 text-center space-y-16">
       <div class="space-y-4">
         <h2 class="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white" data-field="contact-title">${content.title || "Ready to Start?"}</h2>
-        <p class="text-xl text-slate-400 font-medium max-w-2xl mx-auto" data-field="contact-bio">${content.bio || 'Available for global collaborations and high-impact projects.'}</p>
+        <p class="text-xl text-slate-400 font-medium max-w-2xl mx-auto" data-field="contact-bio">${content.bio || 'Crafting excellence for global high-impact projects.'}</p>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
@@ -257,7 +257,7 @@ export const FORM_ELEGANT_SPLIT = (content: any) => `
         <div class="text-center mb-16">
             <span class="text-[var(--primary)] font-bold tracking-widest text-xs uppercase">${content.label || 'Contact'}</span>
             <h2 class="text-4xl md:text-5xl font-black text-[var(--heading)] mt-4">${content.title || 'Get in Touch'}</h2>
-            <p class="text-[var(--text)] opacity-60 mt-4 max-w-lg mx-auto">${content.description || 'Available for freelance opportunities and collaborations.'}</p>
+            <p class="text-[var(--text)] opacity-60 mt-4 max-w-lg mx-auto">${content.description || "Let's work together."}</p>
         </div>
         <div class="bg-[var(--surface)] rounded-[2rem] p-8 md:p-12 shadow-xl border border-[var(--text)]/5">
             <form id="form-elegant-{{id}}" class="space-y-6">
@@ -411,14 +411,14 @@ export const CONTACT_MINIMAL_SIMPLE = (content: any) => `
 `;
 
 export const ContactRegistry: any = {
-    CONTACT_SPLIT,
-    CONTACT_NEON_MODERN,
-    CONTACT_SOCIAL_ONLY,
-    CONTACT_CARD_SIMPLE,
-    CONTACT_FORM_FULL,
-    FORM_MINIMALIST,
-    FORM_ELEGANT_SPLIT,
-    FORM_TECH_AUDIT,
-    CONTACT_DARK_SASS,
-    CONTACT_MINIMAL_SIMPLE
+  CONTACT_SPLIT,
+  CONTACT_NEON_MODERN,
+  CONTACT_SOCIAL_ONLY,
+  CONTACT_CARD_SIMPLE,
+  CONTACT_FORM_FULL,
+  FORM_MINIMALIST,
+  FORM_ELEGANT_SPLIT,
+  FORM_TECH_AUDIT,
+  CONTACT_DARK_SASS,
+  CONTACT_MINIMAL_SIMPLE
 };

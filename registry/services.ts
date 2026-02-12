@@ -46,7 +46,6 @@ export const SERVICES_GLASS_BENTO = (content: any) => {
         <div class="md:col-span-2 p-12 bg-teal-500 rounded-[3rem] text-black">
            <div class="flex justify-between items-start mb-12 font-black uppercase tracking-[0.3em] text-xs">
               <span>Primary Service</span>
-              <span>Available</span>
            </div>
            <h4 class="text-5xl font-black uppercase mb-6 leading-none">${items[1]?.title || 'Development'}</h4>
            <p class="text-xl font-medium opacity-80 leading-relaxed">${items[1]?.description}</p>
