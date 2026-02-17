@@ -14,7 +14,8 @@ import {
     Tablet,
     MousePointer2,
     Clock,
-    Loader,
+    import { Loader } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
     TrendingUp,
     Zap,
     Layout,
@@ -186,9 +187,17 @@ const AnalyticsDashboard: React.FC = () => {
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto space-y-8">
-
-                {/* Header Section */}
+            return (
+        <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-teal-500/20">
+            <Helmet>
+                <title>Analytics Dashboard - SeeqMe AI</title>
+                <meta name="description" content="View detailed analytics and insights for your portfolios on SeeqMe AI. Track performance, visitors, and engagement." />
+                <meta property="og:title" content="Analytics Dashboard - SeeqMe AI" />
+                <meta property="og:description" content="View detailed analytics and insights for your portfolios on SeeqMe AI. Track performance, visitors, and engagement." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://seeqme.ai/analytics" />
+            </Helmet>
+            {/* Header */}
                 <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 text-teal-600  font-bold text-xs  tracking-[0.2em]">

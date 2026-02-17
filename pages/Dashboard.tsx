@@ -9,6 +9,7 @@ import {
   Trash2, Edit3, BarChart3, Globe, Layers, Zap,
   Plus,  MousePointer2
 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import DashboardLayout from '../components/DashboardLayout';
 import {
   DropdownMenu,
@@ -94,6 +95,14 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
 
   return (
     <DashboardLayout>
+      <Helmet>
+        <title>Dashboard - SeeqMe AI</title>
+        <meta name="description" content="Manage all your AI-generated portfolios, track their performance, and customize your projects on SeeqMe AI." />
+        <meta property="og:title" content="Dashboard - SeeqMe AI" />
+        <meta property="og:description" content="Manage all your AI-generated portfolios, track their performance, and customize your projects on SeeqMe AI." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://seeqme.ai/dashboard" />
+      </Helmet>
       <div className="max-w-7xl mx-auto py-4 pb-24 space-y-12">
 
         {/* ENHANCED RESPONSIVE HEADER */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { ArrowRight, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +52,14 @@ const ContactUs = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-teal-500 selection:text-slate-950">
+      <Helmet>
+        <title>Contact Us - SeeqMe AI</title>
+        <meta name="description" content="Have questions or feedback for SeeqMe AI? Contact our support team for assistance with your portfolios, features, or any inquiries." />
+        <meta property="og:title" content="Contact Us - SeeqMe AI" />
+        <meta property="og:description" content="Have questions or feedback for SeeqMe AI? Contact our support team for assistance with your portfolios, features, or any inquiries." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://seeqme.ai/contact-us" />
+      </Helmet>
       <div className="max-w-4xl mx-auto px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

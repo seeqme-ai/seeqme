@@ -14,6 +14,7 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Portfolio } from '../types';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { Helmet } from 'react-helmet-async';
 // Validate domain format
 const validateDomain = (domain: string): { valid: boolean; error?: string } => {
     if (!domain || domain.trim() === '') {
@@ -191,6 +192,14 @@ const DomainsPage: React.FC = () => {
 
     return (
         <DashboardLayout>
+            <Helmet>
+                <title>Domain Management - SeeqMe AI</title>
+                <meta name="description" content="Connect and manage custom domains for your portfolios on SeeqMe AI. Ensure your projects are accessible via your own branding." />
+                <meta property="og:title" content="Domain Management - SeeqMe AI" />
+                <meta property="og:description" content="Connect and manage custom domains for your portfolios on SeeqMe AI. Ensure your projects are accessible via your own branding." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://seeqme.ai/domains" />
+            </Helmet>
             <div className="min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 py-12">
 
