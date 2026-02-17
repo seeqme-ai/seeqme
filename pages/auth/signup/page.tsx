@@ -66,14 +66,16 @@ export default function SignupPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left side: Auth Form */}
-      <div className="flex-1 flex items-center justify-center z-10">
+      <div className="flex-1 relative flex items-center justify-center z-10">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={cardVariants}
           className="w-full max-w-md"
         >
+          <div className="absolute flex justify-center items-center left-4 top-4 font-bold"><img className="h-8 w-8" src="/seeqme-logo-black.png" /> Seeqme</div>
           <Card className="border-none shadow-none overflow-hidden">
+
             <CardHeader className="space-y-1 p-6">
               <CardTitle className="text-2xl font-bold text-center bg-clip-text ">Create a Seeqme Account</CardTitle>
             </CardHeader>
@@ -108,9 +110,10 @@ export default function SignupPage() {
                     type="text"
                     placeholder="John Doe"
                     required
+                    autoFocus
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="border-gray-700 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="border-gray-700 h-12 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
                 <div className="space-y-2">
@@ -120,9 +123,10 @@ export default function SignupPage() {
                     type="email"
                     placeholder="your@example.com"
                     required
+                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className=" border-gray-700 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className=" border-gray-700 h-12 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
                 <div className="space-y-2">
@@ -131,9 +135,10 @@ export default function SignupPage() {
                     id="password"
                     type="password"
                     required
+                     autoFocus
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border-gray-700 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="border-gray-700 h-12 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
                 <Button type="submit" className="w-full text-white px-16 py-6 bg-teal-500 text-white hover:bg-teal-600 rounded-[30px] text-xs transition-all shadow-2xl" disabled={signupMutation.isPending}>

@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seeqme AI Portfolio Architect</title>
-    <meta name="description" content="Seeqme AI Portfolio Architect. Build stunning, professional portfolios in seconds with AI. The ultimate tool for creators, developers, and professionals to showcase their work." />
-    <meta name="keywords" content="AI Portfolio, Portfolio Builder, Web Design, Resume Builder, Showwcase, Developer Portfolio" />
-    
+    <meta name="description"
+        content="Seeqme AI Portfolio Architect. Build stunning, professional portfolios in seconds with AI. The ultimate tool for creators, developers, and professionals to showcase their work." />
+    <meta name="keywords"
+        content="AI Portfolio, Portfolio Builder, Web Design, Resume Builder, Showwcase, Developer Portfolio" />
+
     <!-- Favicon & App Icons -->
-    <link rel="icon" type="image/png" href="/seeqme-logo-black.png" />
-    <link rel="apple-touch-icon" href="/seeqme-logo-black.png" />
-    
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <!-- Open Graph / Social -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Seeqme AI Portfolio Architect" />
@@ -18,44 +22,57 @@
     <meta property="og:image" content="/seeqme-logo-black.png" />
     <meta property="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#0d9488" />
-    
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G89BYZD4R5"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-G89BYZD4R5');
+        gtag('config', 'G-G89BYZD4R5');
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', 'Space Grotesk', sans-serif;
             margin: 0;
             overflow-x: hidden;
         }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
         @keyframes ring-rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
+
         .animate-ring-rotate {
             animation: ring-rotate 4s linear infinite;
         }
     </style>
 
 </head>
+
 <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

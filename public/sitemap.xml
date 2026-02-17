@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     <!-- Main Pages -->
     <url>
         <loc>https://seeqme.ai/</loc>
@@ -47,116 +48,173 @@
     <!-- Templates -->
     <url>
         <loc>https://seeqme.ai/templates?id=minimalist_creator</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/minimalist_creator1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=dark_sass</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/dark_sass1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=3d_designer</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/3d_designer1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=agency_vysion</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/vysion_agency.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=retro_pop</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/retro_pop1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=grid_architect</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/grid_architect1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=typographic_bold</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/typographic_bold1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=dev_brutalist</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/developer_brutalist1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=photographer_gallery</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/photographer_gallery1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=startup_landing</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/startup_landing.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=visual_artist</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&amp;w=800</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=photography_minimal</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=800</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=executive_bold</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/executive_bold1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=product_strategy_dark</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/product_strategy1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=complete_engineering_dark</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/fullstack_engineering1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=cloud_infra_cyber</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/cloud_system1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=data_science_dark</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/datascience_ml1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=marketing_growth_light</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/marketing_growth1.png</image:loc>
+        </image:image>
     </url>
     <url>
         <loc>https://seeqme.ai/templates?id=legal_professional_formal</loc>
-        <lastmod>2026-02-08</lastmod>
+        <lastmod>2026-02-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://seeqme.ai/templates/screenshots/legal_profession1.png</image:loc>
+        </image:image>
     </url>
 </urlset>

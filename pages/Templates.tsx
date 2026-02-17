@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ICONS } from '@/constants';
 import { PORTFOLIO_TEMPLATES } from '@/templates';
 import { useTemplate } from '@/context/template-context';
-import { ArrowUpRight, Loader, Search, Filter, LayoutGrid } from 'lucide-react';
+import { ArrowUpRight, Loader } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 
 const MotionDiv = motion.div as any;

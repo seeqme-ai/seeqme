@@ -53,7 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       path.startsWith("/auth/") ||
       path.startsWith("/privacy-policy") ||
       path.startsWith("/terms-of-service") ||
-      path.startsWith("/builder")
+      path.startsWith("/builder") ||
+      path === "/templates" ||
+      path === "/contact" ||
+      path === "/plans" 
     );
   };
 
