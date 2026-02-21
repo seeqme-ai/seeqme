@@ -32,9 +32,12 @@ const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, 
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-[10000] transition-all duration-500 ease-in-out ${isCollapsed ? 'h-10 translate-y-0' : 'h-80'} bg-slate-950 border-t border-white/5 flex flex-col shadow-2xl`}>
+    <div
+      data-tour="terminal"
+      className={`fixed bottom-0 left-0 right-0 z-[10000] transition-all duration-500 ease-in-out ${isCollapsed ? 'h-10 translate-y-0' : 'h-80'} bg-slate-950 border-t border-white/5 flex flex-col shadow-2xl`}
+    >
       <div className="flex items-center justify-between px-6 py-2 bg-slate-900/50 select-none border-b border-white/5">
-        <div className="flex items-center gap-6" onClick={onToggle}>
+        <div data-tour="terminal-toggle" className="flex items-center gap-6" onClick={onToggle}>
           <div className="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer">
             {!isCollapsed && <X />} <ICONS.Terminal className="w-3 h-3 text-teal-500" />
             <span>Console</span>

@@ -101,6 +101,7 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
 
             <motion.div
                 layout
+                data-tour="floating-input"
                 className={`bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-2xl overflow-hidden transition-all ${isExpanded ? 'rounded-3xl' : 'rounded-full'}`}
             >
                 <form onSubmit={handleSubmit} className="relative">

@@ -10,7 +10,7 @@ import {
   Activity,
   User,
   Layers,
-  Menu as HamburgerMenuIcon,
+  Menu,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -68,7 +68,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-border transition-all duration-300 ease-in-out
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-border transition-all duration-300 ease-in-out relative
           ${isSidebarOpen ? 'w-72' : 'w-24'}
           ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:static shadow-xl lg:shadow-none`}
@@ -118,20 +118,27 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           ))}
         </nav>
 
-        {/* Sidebar Footer */}
+        {/* Sidebar Footer / User Info (Optional, keeping structure) */}
         <div className="p-4 bg-muted/30 border-t border-border/50">
-          <Button
-            variant="ghost"
-            className="w-full flex items-center justify-center h-12 rounded-2xl text-muted-foreground hover:text-teal-500 transition-colors hidden lg:flex"
-            onClick={toggleSidebar}
-          >
-            {isSidebarOpen ? (
-              <PanelLeftClose className="h-5 w-5" />
-            ) : (
-              <PanelLeftOpen className="h-5 w-5" />
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 font-bold shrink-0">
+              {user?.fullName?.[0] || 'U'}
+            </div>
+            {isSidebarOpen && (
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold truncate">{user?.fullName}</p>
+              </div>
             )}
-          </Button>
+          </div>
         </div>
+
+        {/* Floating Toggle Button */}
+        <button
+          onClick={toggleSidebar}
+          className="absolute -right-3 top-24 w-6 h-6 bg-teal-500 rounded-full hidden lg:flex items-center justify-center text-slate-950 shadow-lg border-2 border-white group-hover:scale-110 transition-transform z-50"
+        >
+          <Menu className="w-3 h-3" />
+        </button>
       </aside>
 
       {/* Main Content Area */}
@@ -145,9 +152,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               onClick={toggleMobileSidebar}
               className="rounded-xl"
             >
-              <HamburgerMenuIcon className="h-6 w-6" />
+              <Menu className="h-6 w-6" />
             </Button>
-             <p className="text-lg font-bold">
+            <p className="text-lg font-bold">
               {navItems.find(i => isActive(i.path))?.name || 'Dashboard'}
             </p>
           </div>

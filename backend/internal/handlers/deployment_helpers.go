@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"seeqmeai/backend/internal/database"
@@ -45,6 +46,26 @@ func (h *Handler) createPortfolioBackup(portfolioID string) error {
 	return err
 }
 
+// stripHTML removes HTML tags from a string
+func stripHTML(s string) string {
+	var builder strings.Builder
+	inTag := false
+	for _, r := range s {
+		if r == '<' {
+			inTag = true
+			continue
+		}
+		if r == '>' {
+			inTag = false
+			continue
+		}
+		if !inTag {
+			builder.WriteRune(r)
+		}
+	}
+	return strings.TrimSpace(builder.String())
+}
+
 // extractSEOData extracts hero name, title, bio, image, avatar, and social links from structured content
 func (h *Handler) extractSEOData(sc primitive.M) (string, string, string, string, string, []string) {
 	var heroName, heroTitle, heroBio, heroImage, avatarImage string
@@ -73,10 +94,30 @@ func (h *Handler) extractSEOData(sc primitive.M) (string, string, string, string
 							heroImage = image
 						} else if bgImage, bgOk := content["backgroundImage"].(string); bgOk {
 							heroImage = bgImage
+						} else if heroImg, heroImgOk := content["heroImage"].(string); heroImgOk {
+							heroImage = heroImg
 						}
+
 						if avatar, avatarOk := content["avatarImage"].(string); avatarOk {
 							avatarImage = avatar
+						} else if profilePic, profilePicOk := content["profilePic"].(string); profilePicOk {
+							avatarImage = profilePic
+						} else if logo, logoOk := content["logo"].(string); logoOk {
+							avatarImage = logo
+						} else if brandIcon, brandIconOk := content["brandIcon"].(string); brandIconOk {
+							avatarImage = brandIcon
+						} else if profileImg, profileImgOk := content["profileImage"].(string); profileImgOk {
+							avatarImage = profileImg
 						}
+
+						// Cross-fallback
+						if heroImage == "" && avatarImage != "" {
+							heroImage = avatarImage
+						}
+						if avatarImage == "" && heroImage != "" {
+							avatarImage = heroImage
+						}
+
 						// Fallback to heroTagline if bio wasn't found earlier
 						if heroBio == "" {
 							if tagline, taglineOk := content["heroTagline"].(string); taglineOk {
@@ -104,7 +145,7 @@ func (h *Handler) extractSEOData(sc primitive.M) (string, string, string, string
 		}
 	}
 
-	return heroName, heroTitle, heroBio, heroImage, avatarImage, socialLinks
+	return stripHTML(heroName), stripHTML(heroTitle), stripHTML(heroBio), heroImage, avatarImage, socialLinks
 }
 
 // getLatestBackup retrieves the most recent backup for a portfolio

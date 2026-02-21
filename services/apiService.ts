@@ -268,6 +268,10 @@ export const adminService = {
     const response = await apiClient.get('/admin/portfolios');
     return response.data;
   },
+  getStats: async () => {
+    const response = await apiClient.get('/admin/stats');
+    return response.data;
+  },
   deployOnBehalf: async (portfolioId: string) => {
     const response = await apiClient.post(`/admin/portfolios/${portfolioId}/deploy`);
     return response.data;

@@ -64,6 +64,36 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     SKILLS_AGENCY: { id: 'SKILLS_AGENCY', name: 'Agency Stack', category: 'skills', niche: ['Agency'], description: 'Tech stack icons with labels.' },
     SKILLS_DARK_SASS: { id: 'SKILLS_DARK_SASS', name: 'Dark SASS Stack', category: 'skills', niche: ['Tech'], description: 'Grid of specialized tool cards with hover states.' },
 
+    // --- ENGINEERING ---
+    SKILLS_ENG_BENTO: { id: 'SKILLS_ENG_BENTO', name: 'Engineering Bento', category: 'skills', niche: ['Engineering', 'Tech'], description: 'Bento-style grid with tech icons.' },
+    SKILLS_ENG_TERMINAL: { id: 'SKILLS_ENG_TERMINAL', name: 'Terminal Manifest', category: 'skills', niche: ['Engineering', 'DevOps'], description: 'Code-centric terminal display of skills.' },
+    SKILLS_ENG_CIRCUIT: { id: 'SKILLS_ENG_CIRCUIT', name: 'Circuit Architecture', category: 'skills', niche: ['Engineering', 'Systems'], description: 'Interconnected circuit-style skill nodes.' },
+
+    // --- CREATIVE ---
+    SKILLS_CREATIVE_MASONRY: { id: 'SKILLS_CREATIVE_MASONRY', name: 'Creative Masonry', category: 'skills', niche: ['Creative', 'Design'], description: 'Irregular masonry layout for creative tools.' },
+    SKILLS_CREATIVE_PALETTE: { id: 'SKILLS_CREATIVE_PALETTE', name: 'Tool Palette', category: 'skills', niche: ['Creative', 'Art'], description: 'Progress-style bars representing a creative palette.' },
+    SKILLS_CREATIVE_CARDS: { id: 'SKILLS_CREATIVE_CARDS', name: 'Arsenal Cards', category: 'skills', niche: ['Creative', 'General'], description: 'Vertical playing cards for skills.' },
+
+    // --- BUSINESS ---
+    SKILLS_BIZ_CARDS: { id: 'SKILLS_BIZ_CARDS', name: 'Business Competencies', category: 'skills', niche: ['Business', 'Management'], description: 'Professional cards with progress indicators.' },
+    SKILLS_BIZ_LIST: { id: 'SKILLS_BIZ_LIST', name: 'Expertise Overview', category: 'skills', niche: ['Business', 'Consulting'], description: 'Clean list with dot-based proficiency.' },
+    SKILLS_BIZ_PIE: { id: 'SKILLS_BIZ_PIE', name: 'Skill Distribution', category: 'skills', niche: ['Business', 'Data'], description: 'Circular charts showing skill distribution.' },
+
+    // --- FINANCE ---
+    SKILLS_FIN_MATRIX: { id: 'SKILLS_FIN_MATRIX', name: 'Skill Matrix', category: 'skills', niche: ['Finance', 'Data'], description: 'Data-heavy table matrix for skills.' },
+    SKILLS_FIN_TICKER: { id: 'SKILLS_FIN_TICKER', name: 'Market Ticker', category: 'skills', niche: ['Finance', 'Business'], description: 'Scrolling stock-style ticker for skills.' },
+    SKILLS_FIN_CHART: { id: 'SKILLS_FIN_CHART', name: 'Proficiency Chart', category: 'skills', niche: ['Finance', 'Analytics'], description: 'Bar chart showing skill distribution.' },
+
+    // --- MARKETING ---
+    SKILLS_MKT_FUNNEL: { id: 'SKILLS_MKT_FUNNEL', name: 'Growth Funnel', category: 'skills', niche: ['Marketing', 'Growth'], description: 'Funnel-style layout for marketing stack.' },
+    SKILLS_MKT_BUBBLES: { id: 'SKILLS_MKT_BUBBLES', name: 'Ecosystem Bubbles', category: 'skills', niche: ['Marketing', 'Social'], description: 'Interactive bubble cloud of tools.' },
+    SKILLS_MKT_CAROUSEL: { id: 'SKILLS_MKT_CAROUSEL', name: 'Platform Carousel', category: 'skills', niche: ['Marketing', 'Media'], description: 'Bold scrolling carousel of platforms.' },
+
+    // --- AGENCY ---
+    SKILLS_AGC_NEOBRUTAL: { id: 'SKILLS_AGC_NEOBRUTAL', name: 'Neobrutalist Skills', category: 'skills', niche: ['Agency', 'Creative'], description: 'High-contrast bold skill cards.' },
+    SKILLS_AGC_GLASS: { id: 'SKILLS_AGC_GLASS', name: 'Glass Prowess', category: 'skills', niche: ['Agency', 'Modern'], description: 'Glassmorphic nodes with floating blobs.' },
+    SKILLS_AGC_MINIMAL: { id: 'SKILLS_AGC_MINIMAL', name: 'Minimal Expertise', category: 'skills', niche: ['Agency', 'Minimalist'], description: 'Large typographic list with hover reveal.' },
+
     // EXPERIENCE
     EXP_TIMELINE_VERTICAL: { id: 'EXP_TIMELINE_VERTICAL', name: 'Vertical Timeline', category: 'experience', niche: ['General'], description: 'Alternating professional journey.' },
     EXP_ACCORDION_MINIMAL: { id: 'EXP_ACCORDION_MINIMAL', name: 'Collapsible List', category: 'experience', niche: ['Tech', 'Compact'], description: 'Space-saving expandable items.' },
@@ -132,7 +162,7 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     CTA_CENTERED_BOLD: { id: 'CTA_CENTERED_BOLD', name: 'Impact Prompt', category: 'cta', description: 'Fullscreen bold command.' },
     CTA_NEWSLETTER_INLINE: { id: 'CTA_NEWSLETTER_INLINE', name: 'Community Join', category: 'cta', description: 'Direct newsletter acquisition.' },
     CTA_CONTACT_MINI: { id: 'CTA_CONTACT_MINI', name: 'Shortcut Deck', category: 'cta', description: 'Compact direct link card.' },
-  
+
     // SERVICES
     SERVICES_GLOW_GRID: { id: 'SERVICES_GLOW_GRID', name: 'Neon Glow Grid', category: 'services', niche: ['Tech', 'Agency'], description: 'High-tech grid with interactive glow states.' },
     SERVICES_CARDS_INTERACTIVE: { id: 'SERVICES_CARDS_INTERACTIVE', name: 'Interactive Cards', category: 'services', description: 'Grid of floating cards with hover effects.' },

@@ -162,6 +162,7 @@ func main() {
 
 			admin.GET("/users", h.AdminGetUsers)
 			admin.GET("/portfolios", h.AdminGetAllPortfolios)
+			admin.GET("/stats", h.AdminGetStats)
 			admin.POST("/portfolios/:id/deploy", h.AdminDeployPortfolio)
 		}
 

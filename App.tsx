@@ -149,12 +149,10 @@ const App: React.FC = () => {
           }
         />
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <AdminRoute>
-              <MainLayout>
-                <AdminDashboard />
-              </MainLayout>
+              <AdminDashboard />
             </AdminRoute>
           }
         />

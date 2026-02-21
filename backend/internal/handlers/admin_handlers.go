@@ -114,6 +114,71 @@ func (h *Handler) AdminGetAllPortfolios(c *gin.Context) {
 	c.JSON(http.StatusOK, portfolios)
 }
 
+func (h *Handler) AdminGetStats(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	db := database.Client.Database(database.DBName)
+
+	// Basic Stats
+	totalUsers, _ := db.Collection("users").CountDocuments(ctx, bson.M{})
+	totalPortfolios, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{})
+	liveSites, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{"isPublished": true})
+
+	//  Revenue calculation
+	pipeline := bson.A{
+		bson.M{"$group": bson.M{"_id": nil, "total": bson.M{"$sum": "$amount"}}},
+	}
+	cursor, err := db.Collection("subscriptions").Aggregate(ctx, pipeline)
+	var totalRevenue float64
+	if err == nil && cursor.Next(ctx) {
+		var result struct {
+			Total float64 `bson:"total"`
+		}
+		if err := cursor.Decode(&result); err == nil {
+			totalRevenue = result.Total
+		}
+	}
+
+	//  User & Revenue Growth (Last 30 days)
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+
+	// User Growth Pipeline
+	userGrowthPipeline := bson.A{
+		bson.M{"$match": bson.M{"createdAt": bson.M{"$gte": thirtyDaysAgo}}},
+		bson.M{"$group": bson.M{
+			"_id":   bson.M{"$dateToString": bson.M{"format": "%Y-%m-%d", "date": "$createdAt"}},
+			"count": bson.M{"$sum": 1},
+		}},
+		bson.M{"$sort": bson.M{"_id": 1}},
+	}
+	uCursor, _ := db.Collection("users").Aggregate(ctx, userGrowthPipeline)
+	var userGrowth []bson.M
+	uCursor.All(ctx, &userGrowth)
+
+	// Revenue Growth Pipeline
+	revGrowthPipeline := bson.A{
+		bson.M{"$match": bson.M{"createdAt": bson.M{"$gte": thirtyDaysAgo}}},
+		bson.M{"$group": bson.M{
+			"_id":   bson.M{"$dateToString": bson.M{"format": "%Y-%m-%d", "date": "$createdAt"}},
+			"total": bson.M{"$sum": "$amount"},
+		}},
+		bson.M{"$sort": bson.M{"_id": 1}},
+	}
+	rCursor, _ := db.Collection("subscriptions").Aggregate(ctx, revGrowthPipeline)
+	var revenueGrowth []bson.M
+	rCursor.All(ctx, &revenueGrowth)
+
+	c.JSON(http.StatusOK, gin.H{
+		"totalUsers":      totalUsers,
+		"totalPortfolios": totalPortfolios,
+		"liveSites":       liveSites,
+		"totalRevenue":    totalRevenue,
+		"userGrowth":      userGrowth,
+		"revenueGrowth":   revenueGrowth,
+	})
+}
+
 func (h *Handler) AdminDeployPortfolio(c *gin.Context) {
 	portfolioID := c.Param("id")
 	pOID, err := primitive.ObjectIDFromHex(portfolioID)
@@ -137,16 +202,11 @@ func (h *Handler) AdminDeployPortfolio(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Owner not found or has no active profile"})
 		return
 	}
-
-	// Since we are reusing the existing PublishPortfolio logic, we set up the context and call it internally
-	// For a more robust implementation, we'd refactor PublishPortfolio into a service.
-	// However, to maintain current patterns, we'll mimic the internal flow.
-
-	// Create a new gin context with the target user's ID to "impersonate" for the publish handler
-	// WARNING: This is a shortcut for MVP. Ideally, move deployment logic to seeqmeai/backend/internal/services.
-
+	
+	// impersonate for the publish handler
 	c.Set("userId", user.ID.Hex())
 	c.Set("userEmail", user.Email)
+	c.Set("subjectId", user.ID.Hex()) // Crucial for GetPortfolio/PublishPortfolio logic
 
 	h.PublishPortfolio(c)
 }

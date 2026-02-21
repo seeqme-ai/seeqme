@@ -671,7 +671,25 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		}
 	}
 
-	finalHTML := fmt.Sprintf(`<!DOCTYPE html>
+	// Check if the HTML is already a complete document (Manifest V2)
+	isCompleteDoc := strings.Contains(strings.ToLower(html), "<!doctype")
+
+	var finalHTML string
+	if isCompleteDoc {
+		streamLog("Full document detected. Skipping redundant template wrapping.", "info")
+		finalHTML = html
+
+		// For complete docs, we still need to inject the tracking script if it exists
+		if trackingScript != "" {
+			if strings.Contains(finalHTML, "</body>") {
+				finalHTML = strings.Replace(finalHTML, "</body>", fmt.Sprintf("<script>%s</script></body>", trackingScript), 1)
+			} else {
+				finalHTML += fmt.Sprintf("<script>%s</script>", trackingScript)
+			}
+		}
+	} else {
+		// Legacy behavior: Wrap in template
+		finalHTML = fmt.Sprintf(`<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -709,13 +727,14 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
     <script>%s</script>
 </body>
 </html>`,
-		finalDocTitle, finalDescription, fullURL,
-		fullURL, finalDocTitle, finalDescription, heroImage,
-		fullURL, finalDocTitle, finalDescription, heroImage,
-		favicon, favicon,
-		socialMeta,
-		schema,
-		css, html, js, trackingScript)
+			finalDocTitle, finalDescription, fullURL,
+			fullURL, finalDocTitle, finalDescription, heroImage,
+			fullURL, finalDocTitle, finalDescription, heroImage,
+			favicon, favicon,
+			socialMeta,
+			schema,
+			css, html, js, trackingScript)
+	}
 
 	// Write files
 	streamLog("Writing build artifacts...", "info")

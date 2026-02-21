@@ -9,9 +9,9 @@ const Footer: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     {/* Branding & Socials */}
                     <div className="col-span-1 sm:col-span-2 space-y-8 mt-10">
-                        <div className="flex items-center gap-4">
-                            <img src="/seeqme-logo-black.png" alt="SeeqMe Logo" className="h-8 w-auto block" />
-                            <span className="text-lg font-bold tracking-tight text-foreground">SeeqMe</span>
+                        <div className="flex items-center gap-2">
+                            <img src="/seeqme-logo-black.png" alt="SeeqMe Logo" className="h-6 w-auto block" />
+                            <span className="text-base font-bold text-foreground">SeeqMe</span>
                         </div>
 
                         <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">

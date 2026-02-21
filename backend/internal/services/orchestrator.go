@@ -49,7 +49,7 @@ func (o *Orchestrator) Deploy(projectName, domain, srcDir, userEmail string, str
 
 	// Create or get GitHub repository.
 	// The repository name is derived from the project name.
-	repoURL, err := o.github.CreateRepo(context.Background(), projectName, false) // 'false' for public repo
+	repoURL, err := o.github.CreateRepo(context.Background(), projectName, true) // 'true' for private repo
 	if err != nil {
 		return "", fmt.Errorf("github repo operation failed: %v", err)
 	}

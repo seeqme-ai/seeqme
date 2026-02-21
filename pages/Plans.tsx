@@ -29,7 +29,7 @@ const PLANS: Plan[] = [
     {
         id: 'pro',
         name: 'Professional',
-        price: { usd: 5, ngn: 5000 },
+        price: { usd: 3, ngn: 2000 },
         recommended: true,
         features: [
             '5 Portfolio Projects',
@@ -38,16 +38,16 @@ const PLANS: Plan[] = [
             'Custom Domain Connection',
             'Unlimited AI Re-generations',
             'SEO Optimization Tools',
-            'Remove SeeqMe Branding'
+            'SeeqMe Branding'
         ],
-        limits: { portfolios: 5, customDomain: true }
+        limits: { portfolios: 2, customDomain: true }
     },
     {
         id: 'premium',
         name: 'Premium',
-        price: { usd: 15, ngn: 15000 },
+        price: { usd: 5, ngn: 5000 },
         features: [
-            'Unlimited Portfolios',
+            '5 Portfolios',
             'White-label Solution',
             '24/7 Dedicated Support',
             'Multiple Custom Domains',
@@ -55,7 +55,7 @@ const PLANS: Plan[] = [
             'Priority Feature Access',
             'API Access'
         ],
-        limits: { portfolios: 999, customDomain: true }
+        limits: { portfolios:5, customDomain: true }
     }
 ];
 
@@ -172,7 +172,7 @@ const Plans: React.FC = () => {
                     </div>
 
                     {/* Pricing Cards */}
-                    <div className="grid md:grid-cols-3 gap-8 items-start">
+                    <div className="grid md:grid-cols-2 gap-8 items-start">
                         {PLANS.map((plan) => {
                             const isYearly = billingCycle === 'yearly';
                             const basePrice = currency === 'USD' ? plan.price.usd : plan.price.ngn;

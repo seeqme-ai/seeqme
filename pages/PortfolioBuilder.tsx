@@ -12,19 +12,52 @@ import { portfolioService, deploymentService, domainService, sessionService, sub
 import Terminal from './Terminal';
 import SectionEditor from '@/components/SectionEditor';
 import SuccessDrawer from '@/components/SuccessDrawer';
-import { ArrowLeft, Loader } from 'lucide-react';
-import { socketService } from '@/services/socketService';
-import BuilderLoader from '@/components/BuilderLoader';
-import FloatingPromptInput from '@/components/FloatingPromptInput';
+import BuilderViewport from '@/components/builder/BuilderViewport';
+import BuilderHeader from '@/components/builder/BuilderHeader';
+import BuilderSidebar from '@/components/builder/BuilderSidebar';
+import DeploymentModal from '@/components/builder/DeploymentModal';
+import Joyride, { Step } from 'react-joyride';
 import TemplateSelectorDrawer from '@/components/TemplateSelectorDrawer';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import PaymentRequiredModal from '@/components/PaymentRequiredModal';
+import { socketService } from '@/services/socketService';
 import { renderManifest } from '@/utils/renderer';
 import { RegistryMetadata } from '@/registry/metadata';
-import { getAnonymousId } from '@/lib/identify';
+import FloatingPromptInput from '@/components/FloatingPromptInput';
 
-const MotionDiv = motion.div as any;
-
+const TOUR_STEPS: Step[] = [
+  {
+    target: '[data-tour="template-drawer-btn"]',
+    content: 'Open this to browse different templates or inject specific premium blocks (Skills, Projects, etc.) into your current portfolio.',
+    disableBeacon: true,
+    placement: 'right',
+  },
+  {
+    target: '[data-tour="edit-section"]',
+    content: 'Click here to customize every detail. You can edit text, swap images, and change individual section settings in real-time.',
+    placement: 'bottom',
+  },
+  {
+    target: '[data-tour="floating-input"]',
+    content: 'This is your AI command center. Ask it to "Redesign the hero" or "rewrite the bio to be more professional". Use "Build" mode to start a fresh portfolio from a prompt.',
+    placement: 'top',
+  },
+  {
+    target: '[data-tour="terminal-toggle"]',
+    content: 'Watch the AI thinking process live in the console, or switch to the "Source" tab to view and (if on Pro) edit the raw HTML/CSS/JS.',
+    placement: 'top',
+  },
+  {
+    target: '[data-tour="remix-button"]',
+    content: 'Not feeling the current look? Click Remix to let AI completely architecture a new visual design while keeping all your content.',
+    placement: 'bottom',
+  },
+  {
+    target: '[data-tour="deploy-button"]',
+    content: 'When you are ready, launch your site to a live URL. Your portfolio is built for speed and SEO.',
+    placement: 'bottom',
+  },
+];
 
 const PortfolioBuilder: React.FC = () => {
   const { user } = useAuth();
@@ -58,6 +91,26 @@ const PortfolioBuilder: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isIframeLoading, setIsIframeLoading] = useState(false);
+  const [runTour, setRunTour] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  useEffect(() => {
+    // Check if user has seen tour
+    const hasSeenTour = localStorage.getItem('seeqme_tour_seen');
+    if (!hasSeenTour) {
+      // Small delay to ensure UI is ready
+      const timer = setTimeout(() => setRunTour(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleTourComplete = (data: any) => {
+    const { status } = data;
+    if (['finished', 'skipped'].includes(status)) {
+      localStorage.setItem('seeqme_tour_seen', 'true');
+      setRunTour(false);
+    }
+  };
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const layouts = Object.values(LayoutType);
@@ -96,6 +149,7 @@ const PortfolioBuilder: React.FC = () => {
         setDeployedUrl(completeData.url);
         setStatus('completed');
         setIsSuccessDrawerOpen(true);
+        setIsDeployModalOpen(false); // Close modal on success
 
         // Ensure we update our local data with final backend state
         if (completeData.portfolioId === data?.id) {
@@ -167,6 +221,11 @@ const PortfolioBuilder: React.FC = () => {
           // Subscribe to the recovered session room for future logs
           socketService.subscribeToSession(activeSession.id);
 
+          if (activeSession.status === 'completed' || activeSession.status === 'failed') {
+            setStatus('ready');
+            return;
+          }
+
           setStatus('deploying'); // Shift to active state
           setIsTerminalCollapsed(false); // Show the progress
           return;
@@ -229,8 +288,12 @@ const PortfolioBuilder: React.FC = () => {
         const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
         if (template) {
           // Priority Check: Is there a draft, and does it match this template?
+          // BUT: If the user explicitly came from landing page with a fresh template selection, we should probably favor that.
+          // For now, only load draft if it's NOT an explicit landing page redirect (where initialData exists)
+          const isExplicitSelection = initialData?.type === 'template';
+
           const savedDraft = localStorage.getItem('seeqme_portfolio_draft');
-          if (savedDraft) {
+          if (savedDraft && !isExplicitSelection) {
             try {
               const parsed = JSON.parse(savedDraft);
               if (parsed.templateId === selectedTemplateId) {
@@ -260,6 +323,7 @@ const PortfolioBuilder: React.FC = () => {
               }
               setData(parsed);
               setStatus('ready'); // Ensure status is set correctly
+              setIsDirty(false); // Initial load is not a new change
               addLog('Resumed build from last local session.', 'info');
             } else {
               localStorage.removeItem('seeqme_portfolio_draft');
@@ -276,7 +340,7 @@ const PortfolioBuilder: React.FC = () => {
 
   // Consolidate local storage, iframe, and backend sync
   useEffect(() => {
-    if (data) {
+    if (data && isDirty) {
       localStorage.setItem('seeqme_portfolio_draft', JSON.stringify(data));
       setIsIframeLoading(true); // Trigger loader when data changes
       updateIframe(data);
@@ -369,6 +433,7 @@ const PortfolioBuilder: React.FC = () => {
 
     setData(initialPortfolio);
     setStatus('ready');
+    setIsDirty(false); // Loading a fresh template is not an "edit" yet
     addLog(`Template loaded successfully.`, 'success');
   };
 
@@ -467,6 +532,7 @@ const PortfolioBuilder: React.FC = () => {
 
       setData(completeData);
       setStatus('ready');
+      setIsDirty(true); // AI build is a major change
       setSynthesisInput('');
       setSelectedTemplateId(null);
       addLog("Build complete! Your portfolio is ready.", "success");
@@ -522,6 +588,7 @@ const PortfolioBuilder: React.FC = () => {
       if (redesigned.layout) setCurrentLayout(redesigned.layout);
       if (redesigned.theme) setCurrentTheme(redesigned.theme);
       setStatus('ready');
+      setIsDirty(true);
       addLog('Design updated successfully.', 'success');
     } catch (error: any) {
       timeouts.forEach(clearTimeout);
@@ -648,6 +715,7 @@ const PortfolioBuilder: React.FC = () => {
       setSelectedFile(null);
 
       setStatus('ready');
+      setIsDirty(true);
       addLog("Portfolio refinement successful.", "success");
 
       // Pulse effect on iframe to show it updated
@@ -789,7 +857,7 @@ const PortfolioBuilder: React.FC = () => {
           setStatus('ready');
           const errorMsg = errorData.error || errorData.message || 'Deployment failed';
           addLog(`❌ Deployment failed: ${errorMsg}`, 'error');
-      
+
           socketService.unsubscribeFromPortfolio(portfolioId as string);
         }
       );
@@ -914,6 +982,7 @@ const PortfolioBuilder: React.FC = () => {
       theme: newTheme || data.theme,
       html: updatedHtml
     });
+    setIsDirty(true);
   };
 
   const handleInjectBlock = (componentId: string) => {
@@ -1064,209 +1133,38 @@ const PortfolioBuilder: React.FC = () => {
       ...data,
       html: newHtml
     });
-  };
-
-  const handleExport = () => {
-    if (!data) return;
-    addLog(`Optimizing SEO and bundling identity artifact...`, 'info');
-
-    const pMap: Record<string, string> = {};
-
-    // Flatten structuredContent for simple placeholder replacement
-    // This is a "best effort" mapping for the legacy regex replacement in handleExport
-    // New export should ideally use the DOM-based hydration, but for now we map back to keys.
-    const flattenContent = (obj: any, prefix = '') => {
-      Object.entries(obj).forEach(([key, value]) => {
-        if (typeof value === 'string') {
-          // Heuristic to match legacy placeholder IDs if possible, or just use the path
-          // Legacy mappings:
-          // hero.name -> HERO_NAME
-          // hero.title -> HERO_TITLE
-          // hero.bio -> HERO_VAL_PROP
-          // hero.image -> HERO_IMG
-          // contact.email -> EMAIL
-          let id = prefix ? `${prefix}.${key}` : key;
-
-          if (prefix === 'hero') {
-            if (key === 'name') id = 'HERO_NAME';
-            if (key === 'title') id = 'HERO_TITLE';
-            if (key === 'bio') id = 'HERO_VAL_PROP';
-            if (key === 'image') id = 'HERO_IMG';
-          }
-          if (prefix === 'contact') {
-            if (key === 'email') id = 'EMAIL';
-            if (key === 'phone') id = 'PHONE';
-            if (key === 'location') id = 'LOCATION';
-          }
-          pMap[id] = value;
-          pMap[prefix ? `${prefix}_${key}`.toUpperCase() : key.toUpperCase()] = value; // Also support generic keys
-        } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          flattenContent(value, prefix ? `${prefix}.${key}` : key);
-        }
-      });
-    };
-
-    if (data.structuredContent) {
-      flattenContent(data.structuredContent);
-    }
-
-    const summaryText = (pMap['HERO_VAL_PROP'] || '').substring(0, 160);
-    const profileImg = pMap['HERO_IMG'] || '';
-    const fullName = pMap['HERO_NAME'] || 'Identity';
-    const firstTitle = pMap['HERO_TITLE'] || 'Portfolio';
-
-    let finalHtml = getUpdatedHtml(data);
-
-    const firstName = fullName.split(' ')[0].toUpperCase();
-    finalHtml = finalHtml.replace(/{FIRST_NAME}/g, firstName);
-
-    const fullDoc = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${fullName} | ${firstTitle}</title>
-    <meta name="description" content="${summaryText}">
-    
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="${fullName} - Portfolio">
-    <meta property="og:description" content="${summaryText}">
-    <meta property="og:image" content="${profileImg}">
-
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="${fullName} - Portfolio">
-    <meta property="twitter:description" content="${summaryText}">
-    <meta property="twitter:image" content="${profileImg}">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-      html { scroll-behavior: smooth; }
-      body { 
-        background: ${data.theme === 'dark' ? '#020617' : '#ffffff'}; 
-        color: ${data.theme === 'dark' ? 'white' : '#020617'}; 
-        font-family: 'Space Grotesk', sans-serif; 
-        margin: 0; padding: 0; 
-      } 
-      ${data.css}
-      .break-words { word-break: break-word; overflow-wrap: break-word; }
-    </style>
-</head>
-<body>
-    ${finalHtml}
-    <script>
-      ${data.js}
-    </script>
-</body>
-</html>`;
-
-    const blob = new Blob([fullDoc], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const filename = `${fullName.toLowerCase().replace(/\s+/g, '-')}.html`;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    addLog(`Export successful: ${filename}`, 'success');
+    setIsDirty(true);
   };
 
   return (
     <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-700 ${currentTheme === 'dark' ? 'bg-background text-foreground' : 'bg-background text-foreground'}`}>
-      <MotionDiv
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="fixed top-0 w-full z-[100] border-b border-border bg-background/80 backdrop-blur-xl"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4 sm:gap-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 -ml-2 hover:bg-teal-500/10 rounded-full transition-colors"
-              title="Back to Dashboard"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-
-            <div className="h-6 w-px bg-border hidden sm:block"></div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleRemix}
-                className="flex items-center gap-2 bg-teal-500/10 border border-primary/20 px-4 py-2 rounded-full text-[11px] font-semibold hover:bg-teal-500/20 transition-all active:scale-95 shadow-sm"
-              >
-                <ICONS.Remix className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Remix Design</span>
-              </button>
-              {(history.length > 0 || (data && !data.id.startsWith('portfolio-'))) && (
-                <button
-                  onClick={handleUndo}
-                  title="Undo Last Action"
-                  className="p-2 bg-rose-500/10 border border-rose-500/20 rounded-full text-rose-500 hover:bg-rose-500/20 transition-all active:scale-95"
-                >
-                  <ICONS.Undo className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-
-            <button
-              onClick={() => setIsEditorOpen(true)}
-              className="flex items-center gap-2 bg-teal-500 text-white border border-primary/20 px-3 sm:px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-teal-600 transition-all active:scale-95 shadow-md"
-              title="Edit Content"
-            >
-              <ICONS.Settings className="w-4 h-4" /> <span className="hidden sm:inline">Edit Content</span>
-            </button>
-            <button
-              onClick={handleDeploy}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-semibold transition-all active:scale-95 shadow-md ${status === 'deploying' ? 'bg-amber-500 text-slate-950 animate-pulse' : 'bg-teal-500 text-white hover:bg-teal-600'}`}
-            >
-              {status === 'deploying' ? <ICONS.Loader className="w-4 h-4 animate-spin" /> : <ICONS.Globe className="w-4 h-4" />}
-              <span>
-                {status === 'deploying'
-                  ? 'Publishing'
-                  : (data && !data.id.startsWith('portfolio-') && ((data as any).url || (data as any).subdomain || (data as any).status === 'completed') ? 'Redeploy' : 'Publish')}
-              </span>
-            </button>
-          </div>
-        </div>
-      </MotionDiv>
+      <BuilderHeader
+        status={status}
+        data={data}
+        historyLength={history.length}
+        onRemix={handleRemix}
+        onUndo={handleUndo}
+        onDeploy={handleDeploy}
+        onOpenEditor={() => setIsEditorOpen(true)}
+      />
 
       <div className="flex-1 mt-20 sm:mt-24 relative flex flex-col">
-        <div className="flex-1 relative overflow-hidden bg-background">
-          <AnimatePresence mode="wait">
-            {((status === 'synthesizing' || status === 'generating') || (!data && status !== 'idle')) ? (
-              <BuilderLoader
-                title={status === 'generating'
-                  ? (refinementPrompt ? "Refining..." : "Remixing...")
-                  : "Building..."
-                }
-                currentStep={progress}
-                totalSteps={100}
-              />
-            ) : (
-              <MotionDiv key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative">
-                {isIframeLoading && (
-                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-all duration-500">
-                    <div className="flex flex-col items-center gap-4">
-                      <Loader className='text-teal-500 animate-spin' />
-                    </div>
-                  </div>
-                )}
-                <iframe
-                  ref={iframeRef}
-                  onLoad={() => setIsIframeLoading(false)}
-                  className="w-full h-full border-none bg-white"
-                  title="Artifact Viewport"
-                />
-              </MotionDiv>
-            )}
-          </AnimatePresence>
-        </div>
-
-
+        <BuilderViewport
+          status={status}
+          data={data}
+          progress={progress}
+          refinementPrompt={refinementPrompt}
+          isIframeLoading={isIframeLoading}
+          iframeRef={iframeRef}
+          onIframeLoad={() => setIsIframeLoading(false)}
+        />
       </div>
+
+      <BuilderSidebar
+        isTemplateSelectorOpen={isTemplateSelectorOpen}
+        onOpenTemplateSelector={() => setIsTemplateSelectorOpen(true)}
+        onStartTour={() => setRunTour(true)}
+      />
 
       <FloatingPromptInput
         onSubmit={handleFloatingSubmit}
@@ -1283,7 +1181,6 @@ const PortfolioBuilder: React.FC = () => {
         isPaid={user?.subscription && user.subscription !== 'free'}
       />
 
-      {/* Force re-render of Editor when data ID changes or structural content updates */}
       <SectionEditor
         key={data?.id || 'editor'}
         structuredContent={data?.structuredContent || {}}
@@ -1303,106 +1200,15 @@ const PortfolioBuilder: React.FC = () => {
         currentTemplateId={selectedTemplateId || data?.templateId}
       />
 
-      {/* Template Toggle Button */}
-      {!isTemplateSelectorOpen && (
-        <div className="fixed top-24 left-6 z-40">
-          <button
-            onClick={() => setIsTemplateSelectorOpen(true)}
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white p-3 rounded-xl shadow-lg transition-all group"
-            title="Change Template"
-          >
-            <ICONS.Layout className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-          </button>
-        </div>
-      )}
-
-
-
-      {/* Deployment Modal */}
-      <AnimatePresence>
-        {isDeployModalOpen && (
-          <div className="fixed inset-0 z-[9999] bg-white/95  backdrop-blur-3xl flex items-center justify-center p-6 text-foreground">
-            <MotionDiv
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-xl bg-white  border border-border rounded-3xl p-8 md:p-10 shadow-0"
-            >
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-2xl font-semibold tracking-tight mb-1">Launch to Production</h2>
-
-                </div>
-                <button onClick={() => setIsDeployModalOpen(false)} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground mr-[-8px] mt-[-8px]">
-                  <ICONS.X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  {selectedDomainId === 'subdomain' && (
-                    <div className="space-y-3">
-                      <label className="text-xs font-semibold text-muted-foreground ml-1">Configure Subdomain</label>
-                      <div className="relative group">
-                        <input
-                          type="text"
-                          value={chosenSubdomain}
-                          onChange={(e) => setChosenSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                          className="w-full bg-muted/30 border border-border rounded-xl py-3.5 px-5 text-base font-semibold text-foreground focus:border-teal-500 focus:bg-background outline-none transition-all shadow-sm"
-                          placeholder="your-name"
-                        />
-                        <div className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground/40 font-semibold pointer-events-none text-sm">
-                          .seeqme.com
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex items-center gap-2 px-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-                    <p className="text-[xs] text-muted-foreground font-medium">
-                      <span className="text-teal-600  font-semibold">
-                        {selectedDomainId === 'subdomain'
-                          ? `${chosenSubdomain || '...'}.seeqme.com`
-                          : availableDomains.find(d => d.id === selectedDomainId)?.domain
-                        }
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-teal-500/5 border border-teal-500/10 flex gap-4 items-start">
-                  <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center shrink-0">
-                    <ICONS.Globe className="w-4 h-4 text-teal-600 " />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600">Global Distribution</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Your site will be optimized and deployed to our global edge network for 99.9% uptime.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setIsDeployModalOpen(false)}
-                    className="flex-1 py-4 rounded-full text-sm font-semibold border border-border hover:bg-muted transition-all"
-                  >
-                    Not Now
-                  </button>
-                  <button
-                    onClick={() => confirmDeploy(chosenSubdomain)}
-                    disabled={selectedDomainId === 'subdomain' && !chosenSubdomain}
-                    className="flex-1 py-4 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-all shadow-xl disabled:opacity-50"
-                  >
-                    Deploy Now
-                  </button>
-                </div>
-              </div>
-            </MotionDiv>
-          </div>
-        )}
-      </AnimatePresence>
+      <DeploymentModal
+        isOpen={isDeployModalOpen}
+        onClose={() => setIsDeployModalOpen(false)}
+        onConfirm={confirmDeploy}
+        chosenSubdomain={chosenSubdomain}
+        setChosenSubdomain={setChosenSubdomain}
+        selectedDomainId={selectedDomainId}
+        availableDomains={availableDomains}
+      />
       <SuccessDrawer
         isOpen={isSuccessDrawerOpen}
         onClose={() => setIsSuccessDrawerOpen(false)}
@@ -1444,6 +1250,59 @@ const PortfolioBuilder: React.FC = () => {
         onProceed={() => {
           setIsPaymentModalOpen(false);
           navigate('/plans?redirect=/builder&autoDeploy=true');
+        }}
+      />
+      <Joyride
+        steps={TOUR_STEPS}
+        run={runTour}
+        continuous={true}
+        showProgress={true}
+        showSkipButton={true}
+        callback={(data) => {
+          handleTourComplete(data);
+          if (data.status === 'finished' || data.status === 'skipped') {
+            localStorage.setItem('seeqme_onboarding_seen', 'true');
+          }
+        }}
+        styles={{
+          options: {
+            primaryColor: '#14b8a6', // teal-500
+            textColor: '#0f172a',    // slate-900
+            zIndex: 100000,
+          },
+          buttonNext: {
+            fontSize: '12px',
+            fontWeight: 'bold',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            padding: '12px 24px',
+            borderRadius: '50px',
+          },
+          buttonBack: {
+            fontSize: '12px',
+            fontWeight: 'bold',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            color: '#64748b',
+          },
+          tooltipContainer: {
+            textAlign: 'left',
+            borderRadius: '24px',
+            padding: '10px'
+          },
+          tooltipContent: {
+            padding: '10px 0',
+            fontSize: '14px',
+            lineHeight: '1.6',
+            fontWeight: 500,
+            color: '#475569'
+          },
+          tooltipTitle: {
+            fontSize: '18px',
+            fontWeight: 800,
+            letterSpacing: '-0.02em',
+            color: '#0f172a'
+          }
         }}
       />
     </div>
