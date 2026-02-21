@@ -26,7 +26,7 @@ import MainLayout from './components/MainLayout';
 import SessionExpiredModal from './components/SessionExpiredModal';
 
 const AdminRoute = ({ children }: { children: React.ReactElement }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -36,7 +36,7 @@ const AdminRoute = ({ children }: { children: React.ReactElement }) => {
     );
   }
 
-  if (!isAuthenticated || user?.role !== 'admin') {
+  if (!isAuthenticated || !isAdmin) {
     return <Navigate to="/" />;
   }
 

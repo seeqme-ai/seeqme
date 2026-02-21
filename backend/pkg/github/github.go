@@ -21,7 +21,7 @@ import (
 type GitHubClient interface {
 	CreateRepo(ctx context.Context, repoName string, private bool) (string, error)
 	RepoExists(ctx context.Context, repoName string) (string, error)
-	DeleteRepo(ctx context.Context, repoName string) error // New method
+	DeleteRepo(ctx context.Context, repoName string) error
 }
 
 // GitHubService manages GitHub API interactions and local Git operations.
@@ -130,25 +130,21 @@ func (s *GitHubService) PushFiles(repoURL, repoName, srcDir, tempDir, userEmail 
 		return fmt.Errorf("copy files: %v", err)
 	}
 
-	// Add a Dockerfile
 	if err := os.WriteFile(filepath.Join(tempDir, "Dockerfile"), []byte("FROM nginx:alpine\nCOPY . /usr/share/nginx/html\nEXPOSE 80"), 0644); err != nil {
 		return fmt.Errorf("write Dockerfile: %v", err)
 	}
 
-	// Add owner email file
 	if userEmail != "" {
 		if err := os.WriteFile(filepath.Join(tempDir, "OWNER.txt"), []byte(userEmail), 0644); err != nil {
 			return fmt.Errorf("write OWNER.txt: %v", err)
 		}
 	}
 
-	// Stage all changes
 	logAndStream("Staging changes...")
 	if out, err := exec.Command("git", "-C", tempDir, "add", ".").CombinedOutput(); err != nil {
 		return fmt.Errorf("git add: %v (%s)", err, string(out))
 	}
 
-	// Check for changes
 	cmd := exec.Command("git", "-C", tempDir, "status", "--porcelain")
 	output, err := cmd.Output()
 	if err != nil {
@@ -162,7 +158,7 @@ func (s *GitHubService) PushFiles(repoURL, repoName, srcDir, tempDir, userEmail 
 	// Configure author identity for this repository
 	email := userEmail
 	if email == "" {
-		email = "support@brandpodmedia.com"
+		email = "support@seeqme.com"
 	}
 	exec.Command("git", "-C", tempDir, "config", "user.email", email).Run()
 	exec.Command("git", "-C", tempDir, "config", "user.name", "Seeqme AI Builder").Run()

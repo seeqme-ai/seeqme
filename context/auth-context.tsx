@@ -6,9 +6,9 @@ import apiClient from "@/services/apiService";
 interface User {
   id: string;
   email: string;
-  country?: string
+  country?: string;
   fullName: string;
-  role: string;
+  roles: string[];      
   isActive: boolean;
   isVerified: boolean;
   avatarUrl?: string;
@@ -19,6 +19,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;       // true when user has the 'admin' role
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, fullName: string) => Promise<void>;
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = location.pathname;
 
   const isAuthenticated = !!user && !!token;
+  const isAdmin = isAuthenticated && (user?.roles ?? []).includes('admin');
 
   const isPublicPage = (path: string) => {
     return (
@@ -54,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       path.startsWith("/builder") ||
       path === "/templates" ||
       path === "/contact" ||
-      path === "/plans" 
+      path === "/plans"
     );
   };
 
@@ -150,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       token,
       isAuthenticated,
+      isAdmin,
       loading,
       login,
       signup,

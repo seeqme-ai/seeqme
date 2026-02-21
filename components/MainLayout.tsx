@@ -58,7 +58,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
             </div>
           </div>
-          {user?.role === 'admin' && (
+          {user?.roles?.includes('admin') && (
             <button onClick={() => navigate('/admin')} className="text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1">
               <Shield className="w-3 h-3" /> Admin
             </button>

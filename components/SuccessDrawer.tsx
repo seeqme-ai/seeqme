@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ICONS } from '../constants';
-import { Activity, Check,Copy,ExternalLink, Loader, XCircle, X } from 'lucide-react';
+import { Activity, Check, Copy, ExternalLink, Loader, XCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 
@@ -142,7 +142,7 @@ const SuccessDrawer: React.FC<SuccessDrawerProps> = ({ isOpen, onClose, url, dom
                                         <Activity className="w-3.5 h-3.5 animate-pulse" />
                                         <span className="text-[10px] font-semibold uppercase tracking-wider">Current Status:</span>
                                     </div>
-                                    <p className="mt-2 text-sm font-medium text-foreground tracking-tight">
+                                    <p className="mt-2 text-sm font-medium text-foreground tracking-tight text-left">
                                         {logs[logs.length - 1]}
                                     </p>
                                 </MotionDiv>

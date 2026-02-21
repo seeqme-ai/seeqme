@@ -295,6 +295,18 @@ func (h *Handler) VerifyGoogleIDToken(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create new user."})
 			return
 		}
+
+		// Trigger welcome email for new Google signup
+		frontendURL := h.Config.FrontendURL
+		go func() {
+			welcomeEmailData := map[string]interface{}{
+				"FullName":      user.FullName,
+				"DashboardLink": fmt.Sprintf("%s/dashboard", frontendURL),
+			}
+			if err := h.Resend.SendEmail(user.Email, "Welcome to Seeqme!", "welcome.html", welcomeEmailData); err != nil {
+				fmt.Printf("Failed to send welcome email to %s: %v\n", user.Email, err)
+			}
+		}()
 	}
 
 	appToken, err := auth.GenerateToken(user.ID.Hex(), user.Email, user.Roles, h.Config.JWTSecret)

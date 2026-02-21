@@ -789,7 +789,7 @@ const PortfolioBuilder: React.FC = () => {
           setStatus('ready');
           const errorMsg = errorData.error || errorData.message || 'Deployment failed';
           addLog(`❌ Deployment failed: ${errorMsg}`, 'error');
-          toast.error(`Deployment failed: ${errorMsg}`);
+      
           socketService.unsubscribeFromPortfolio(portfolioId as string);
         }
       );

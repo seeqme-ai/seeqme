@@ -101,18 +101,20 @@
 
             <h1>Deployment <span class="highlight">Issue</span> Detected</h1>
         </div>
+        <div class="content">
 
         <p>Hi {{.FullName}},</p>
         <p>We encountered a technical issue while attempting to publish your portfolio:
             <strong>{{.PortfolioTitle}}</strong>.
         </p>
-        <p>Our autonomous deployment engine reported the following error:</p>
-        <div class="error-box">
-            {{.ErrorMessage}}
-        </div>
+        <p>Our autonomous deployment engine reported an error</p>
+        
         <p>Don't worry—your progress has been saved. You can try redeploying your portfolio from the builder or
             dashboard.</p>
+
+
         <a href="{{.DashboardURL}}" class="btn">Return to Dashboard</a>
+        </div>
         <p>If this issue persists, please contact our technical support team.</p>
         <p>Best regards,<br>The Seeqme Team</p>
 

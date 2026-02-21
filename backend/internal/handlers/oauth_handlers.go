@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -74,17 +75,17 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 
 	if err != nil { // User does not exist, create new user
 		user = models.User{
-			Email:      userInfo.Email,
-			FullName:   userInfo.Name,
-			GoogleID:   userInfo.ID,
-			AvatarURL:  userInfo.Picture,
-			IsVerified: true,
-			IsActive:   true,
-			Roles:      []string{"user"},
+			Email:        userInfo.Email,
+			FullName:     userInfo.Name,
+			GoogleID:     userInfo.ID,
+			AvatarURL:    userInfo.Picture,
+			IsVerified:   true,
+			IsActive:     true,
+			Roles:        []string{"user"},
 			AuthProvider: "google",
-			Country:    geoip.GetCountryFromIP(c.ClientIP()),
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
+			Country:      geoip.GetCountryFromIP(c.ClientIP()),
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
 		}
 		res, dbErr := db.Collection("users").InsertOne(context.Background(), user)
 		if dbErr != nil {
@@ -93,6 +94,17 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 		}
 		user.ID = res.InsertedID.(primitive.ObjectID)
 
+		// Trigger welcome email for new Google signup
+		frontendURL := h.Config.FrontendURL
+		go func() {
+			welcomeEmailData := map[string]interface{}{
+				"FullName":      user.FullName,
+				"DashboardLink": fmt.Sprintf("%s/dashboard", frontendURL),
+			}
+			if err := h.Resend.SendEmail(user.Email, "Welcome to Seeqme!", "welcome.html", welcomeEmailData); err != nil {
+				fmt.Printf("Failed to send welcome email to %s: %v\n", user.Email, err)
+			}
+		}()
 	} else { // User exists, update info
 		update := bson.M{
 			"$set": bson.M{

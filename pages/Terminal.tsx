@@ -80,21 +80,21 @@ const Terminal: React.FC<TerminalProps> = ({ logs, isCollapsed, onToggle, code, 
       {!isCollapsed && (
         <div className="flex-1 overflow-hidden relative">
           {mode === 'logs' ? (
-            <div className="h-full overflow-y-auto p-4 mono text-[11px] no-scrollbar space-y-2">
+            <div className="h-full overflow-y-auto p-4 mono text-[11px] no-scrollbar space-y-2 text-left">
               {logs.length === 0 && (
                 <div className="text-slate-800 animate-pulse font-bold">Waiting for engine handshake...</div>
               )}
               {logs.map((log, idx) => (
-                <div key={idx} className="flex gap-4 items-start border-l border-border pl-3 ml-2 group hover:border-teal-500/50 transition-colors">
+                <div key={idx} className="flex gap-4 items-start border-l border-border pl-3 ml-2 group hover:border-teal-500/50 transition-colors text-left">
                   <span className="text-slate-500 shrink-0 tabular-nums">{log.timestamp}</span>
-                  <span className={`font-black uppercase shrink-0${log.type === 'error' ? 'text-rose-500' :
+                  <span className={`font-black uppercase shrink-0 ${log.type === 'error' ? 'text-rose-500' :
                     log.type === 'success' ? 'text-teal-400' :
                       log.type === 'warn' ? 'text-amber-400' :
                         'text-teal-500/70'
                     }`}>
                     {log.type}
                   </span>
-                  <span className="text-slate-300  leading-relaxed font-medium">{log.message}</span>
+                  <span className="text-slate-300 leading-relaxed font-medium text-left">{log.message}</span>
                 </div>
               ))}
               <div ref={logEndRef} className="h-4" />
