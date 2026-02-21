@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
                     <div className="col-span-1 sm:col-span-2 space-y-8 mt-10">
                         <div className="flex items-center gap-4">
                             <img src="/seeqme-logo-black.png" alt="SeeqMe Logo" className="h-8 w-auto block" />
-                            <span className="text-lg font-bold tracking-tight text-foreground">SeeQMe AI</span>
+                            <span className="text-lg font-bold tracking-tight text-foreground">SeeqMe</span>
                         </div>
 
                         <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">

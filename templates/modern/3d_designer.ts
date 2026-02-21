@@ -538,9 +538,7 @@ export const THREED_DESIGNER: Manifest = {
                                     const mailtoSubject = encodeURIComponent('Inquiry: ' + subject + ' (from ' + name + ')');
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\r\n\r\nMessage:\r\n' + message);
                                     
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -567,7 +565,7 @@ export const THREED_DESIGNER: Manifest = {
                         </h2>
                         
                         <div class="flex flex-col items-center gap-8">
-                            <a href="mailto:{{footerEmail}}" class="group relative px-8 py-4 border border-white/10 rounded-full text-lg md:text-2xl font-mono text-cyan-400 hover:text-white transition-colors overflow-hidden">
+                            <a target="_blank" rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="group relative px-8 py-4 border border-white/10 rounded-full text-lg md:text-2xl font-mono text-cyan-400 hover:text-white transition-colors overflow-hidden">
                                 <span class="relative z-10">{{footerEmail}}</span>
                                 <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
                             </a>

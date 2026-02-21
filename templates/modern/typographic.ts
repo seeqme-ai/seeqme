@@ -283,7 +283,8 @@ export const TYPOGRAPHIC_BOLD: Manifest = {
                 <section class="py-32 px-6 text-center border-t border-black bg-white" id="contact">
                     <div class="max-w-2xl mx-auto">
                         <h2 class="text-6xl md:text-8xl font-serif font-black mb-12 tracking-tighter">{{heading}}</h2>
-                        <a href="mailto:{{email}}" class="inline-block text-lg font-mono uppercase tracking-widest border-b-2 border-black pb-2 hover:bg-black hover:text-white hover:px-4 transition-all duration-300">
+                        <a target="_blank"
+                         rel="noopener noreferrer" href="mailto:{{email}}" class="inline-block text-lg font-mono uppercase tracking-widest border-b-2 border-black pb-2 hover:bg-black hover:text-white hover:px-4 transition-all duration-300">
                             {{ctaText}}
                         </a>
                          <form id="contact-form-{{id}}" class="hidden">

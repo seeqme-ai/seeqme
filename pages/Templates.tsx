@@ -5,6 +5,7 @@ import { ICONS } from '@/constants';
 import { PORTFOLIO_TEMPLATES } from '@/templates';
 import { useTemplate } from '@/context/template-context';
 import { ArrowUpRight, Loader } from 'lucide-react';
+import { TemplateCardSkeleton } from '@/components/ui/TemplateSkeleton';
 import MainLayout from '@/components/MainLayout';
 
 const MotionDiv = motion.div as any;
@@ -186,6 +187,9 @@ const Templates: React.FC = () => {
                                     </div>
                                 </div>
                             </MotionDiv>
+                        ))}
+                        {isFetchingMore && Array.from({ length: 3 }).map((_, i) => (
+                            <TemplateCardSkeleton key={`skeleton-${i}`} />
                         ))}
                     </div>
 

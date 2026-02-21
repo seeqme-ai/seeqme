@@ -124,7 +124,7 @@ export const SKILLS_AGENCY = (content: any) => `
 export const FOOTER_AGENCY_BOLD = (content: any) => `
     <footer data-section="footer" class="bg-black text-white py-16 px-6 text-center">
          <h2 class="text-4xl md:text-6xl font-black mb-8" data-field="cta-text">${content.ctaText || 'Ready to grow?'}</h2>
-         <a href="mailto:${content.email}" target="_blank" rel="noopener" class="text-2xl md:text-4xl text-red-500 hover:text-white transition-colors underline decoration-2 underline-offset-8" data-field="email">${content.email}</a>
+         <a target="_blank" rel="noopener noreferrer" href="mailto:${content.email}" class="text-2xl md:text-4xl text-red-500 hover:text-white transition-colors underline decoration-2 underline-offset-8" data-field="email">${content.email}</a>
          
          <div class="flex justify-center gap-8 mt-12 text-2xl">
             ${content.socials?.map((social: any) => `

@@ -21,7 +21,6 @@ type Orchestrator struct {
 	config     *config.Config
 }
 
-// NewOrchestrator creates a new Orchestrator instance.
 // It initializes GitHub and Cloudflare services with configurations loaded from the app config.
 func NewOrchestrator(cfg *config.Config) *Orchestrator {
 	log := logrus.New()

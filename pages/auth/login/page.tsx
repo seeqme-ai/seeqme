@@ -101,7 +101,6 @@ export default function LoginPage() {
           variants={cardVariants}
           className="w-full max-w-md"
         >
-        <div className="absolute flex justify-center items-center left-4 top-4 font-bold"><img className="h-8 w-8" src="/seeqme-logo-black.png" /> Seeqme</div>
           <Card className="border-none shadow-none  overflow-hidden">
             <CardHeader className="space-y-1 p-6">
               <CardTitle className="text-2xl font-bold text-center bg-clip-text ">Welcome Back</CardTitle>
@@ -124,7 +123,7 @@ export default function LoginPage() {
                   <span className="w-full border-t border-gray-700" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-black px-2 text-gray-400">
+                  <span className="bg-black px-2 text-white">
                     Or continue with
                   </span>
                 </div>
@@ -138,7 +137,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="your@example.com"
                     required
-                     autoFocus
+                    autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="border-gray-700 h-12  placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -149,7 +148,7 @@ export default function LoginPage() {
                   <PasswordInput
                     id="password"
                     required
-                     autoFocus
+                    autoFocus
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="border-gray-700 h-12  placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"

@@ -434,9 +434,7 @@ export const PHOTOGRAPHER_GALLERY: Manifest = {
                                     const subject = 'Inquiry from ' + name;
                                     const mailtoSubject = encodeURIComponent(subject);
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\\r\\n\\r\\nMessage:\\r\\n' + message);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -465,7 +463,8 @@ export const PHOTOGRAPHER_GALLERY: Manifest = {
                         </div>
                         
                         <div class="text-right">
-                             <a href="mailto:{{footerEmail}}" class="text-xs font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-colors block mb-2">{{footerEmail}}</a>
+                             <a target="_blank"
+                             rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="text-xs font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-colors block mb-2">{{footerEmail}}</a>
                              <div class="text-[10px] text-gray-600 font-mono uppercase tracking-widest">
                                 {{copyright}}
                              </div>

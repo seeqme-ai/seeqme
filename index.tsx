@@ -7,6 +7,7 @@ import { AuthProvider } from './context/auth-context';
 import { TemplateProvider } from './context/template-context';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
+import { HelmetProvider } from 'react-helmet-async';
 
 const queryClient = new QueryClient();
 
@@ -18,17 +19,19 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || "662324437463-munkvqvh18gcbpjktqrf8tsbeb0tj62s.apps.googleusercontent.com"}>
-          <AuthProvider>
-            <TemplateProvider>
-              <Toaster richColors position="top-center" />
-              <App />
-            </TemplateProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || "662324437463-munkvqvh18gcbpjktqrf8tsbeb0tj62s.apps.googleusercontent.com"}>
+            <AuthProvider>
+              <TemplateProvider>
+                <Toaster richColors position="top-center" />
+                <App />
+              </TemplateProvider>
+            </AuthProvider>
+          </GoogleOAuthProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 );

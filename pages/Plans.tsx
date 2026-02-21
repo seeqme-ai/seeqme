@@ -27,20 +27,7 @@ interface Plan {
 
 const PLANS: Plan[] = [
     {
-        id: 'starter',
-        name: 'Starter',
-        price: { usd: 2, ngn: 2000 },
-        features: [
-            '1 Portfolio Project',
-            'Basic Customization',
-            'Standard Support',
-            'SeeqMe.com Subdomain',
-            'Limited AI Re-generations'
-        ],
-        limits: { portfolios: 1, customDomain: false }
-    },
-    {
-        id: 'professional',
+        id: 'pro',
         name: 'Professional',
         price: { usd: 5, ngn: 5000 },
         recommended: true,
@@ -56,8 +43,8 @@ const PLANS: Plan[] = [
         limits: { portfolios: 5, customDomain: true }
     },
     {
-        id: 'elite',
-        name: 'Elite',
+        id: 'premium',
+        name: 'Premium',
         price: { usd: 15, ngn: 15000 },
         features: [
             'Unlimited Portfolios',
@@ -75,6 +62,11 @@ const PLANS: Plan[] = [
 const Plans: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const redirectUrl = queryParams.get('redirect');
+    const autoDeploy = queryParams.get('autoDeploy');
+
     const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
     const [isSyncing, setIsSyncing] = useState(false);
@@ -103,7 +95,12 @@ const Plans: React.FC = () => {
                 currency
             );
             toast.success('Subscription activated successfully!');
-            navigate(-1);
+
+            if (redirectUrl) {
+                navigate(`${redirectUrl}${autoDeploy ? `?autoDeploy=${autoDeploy}` : ''}`);
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             console.error("Verification failed", error);
             toast.error('Payment successful but verification failed. Please contact support.');
@@ -117,7 +114,7 @@ const Plans: React.FC = () => {
     };
 
     const handleSubscribe = (planId: string) => {
-        if (planId === 'starter') {
+        if (planId === 'free') {
             navigate('/dashboard');
         }
     };
@@ -140,10 +137,10 @@ const Plans: React.FC = () => {
             <main className="flex-1 pt-32 pb-20 px-6">
                 {isSyncing && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
-                        <div className="bg-card border border-border p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
-                            <Loader className="w-6 h-6 text-teal-500 animate-spin" />
+                        <div className="bg-white border border-border p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
+                            <Loader className="text-teal-500 animate-spin" />
                             <div className="text-center">
-                                <h3 className="text-xl font-bold">Verifying Payment...</h3>
+                                <h3 className="text-xl text-black font-bold">Verifying Payment...</h3>
                             </div>
                         </div>
                     </div>
@@ -222,7 +219,8 @@ const Plans: React.FC = () => {
                                                 ? 'bg-teal-500 text-white hover:bg-teal-600'
                                                 : 'bg-teal-500 text-white hover:bg-teal-500/90'
                                                 }`}
-                                            publicKey={import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_cfef06cfb159308a32e160611ac6a663f43c163a'}
+                                            publicKey={window.location.hostname === 'localhost' ? (import.meta.env.VITE_PAYSTACK_TEST_PK || import.meta.env.VITE_PAYSTACK_PUBLIC_KEY) : (import.meta.env.VITE_PAYSTACK_LIVE_PK || import.meta.env.VITE_PAYSTACK_PUBLIC_KEY)}
+
                                             email={user?.email || ''}
                                             amount={Math.round(price * 1.075 * 100)} // Paystack expects lowest currency unit with 7.5% VAT
                                             currency={currency}

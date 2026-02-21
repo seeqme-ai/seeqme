@@ -211,7 +211,7 @@ export const CONTACT_SPLIT = (content: any) => `
               'Message:\n' + message
             );
             
-            window.location.href = 'mailto:${content.email}?subject=' + subject + '&body=' + body;
+            window.open('mailto:${content.email}?subject=' + subject + '&body=' + body, '_blank', 'noopener,noreferrer');
           });
         }
       })();
@@ -231,7 +231,7 @@ export const CONTACT_NEON_MODERN = (content: any) => `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
         <div class="p-10 bg-slate-900/50 border border-white/5 rounded-[3rem] backdrop-blur-xl hover:border-teal-500/30 transition-all group">
           <p class="text-[10px] font-black uppercase tracking-[0.4em] text-teal-500 mb-6">Direct Line</p>
-          <a href="mailto:${content.email}" class="text-2xl md:text-3xl font-bold text-white group-hover:text-teal-400 transition-colors break-words" data-field="contact-email">${content.email}</a>
+          <a target="_blank" rel="noopener noreferrer" href="mailto:${content.email}" class="text-2xl md:text-3xl font-bold text-white group-hover:text-teal-400 transition-colors break-words" data-field="contact-email">${content.email}</a>
           <p class="text-slate-500 mt-4 font-medium" data-field="contact-location">${content.location || 'Distributed / Remote'}</p>
         </div>
         
@@ -267,7 +267,7 @@ export const CONTACT_NEON_MODERN = (content: any) => `
               const message = document.getElementById('neon-message').value;
               const subject = encodeURIComponent('Collaboration Inquiry from ' + name);
               const body = encodeURIComponent('Name: ' + name + '\\nEmail: ' + email + '\\n\\nMessage:\\n' + message);
-              window.location.href = 'mailto:${content.email}?subject=' + subject + '&body=' + body;
+              window.open('mailto:${content.email}?subject=' + subject + '&body=' + body, '_blank', 'noopener,noreferrer');
             });
           }
         })();
@@ -461,7 +461,7 @@ export const CONTACT_FORM_FULL = (content: any) => `
                const message = document.getElementById('full-message').value;
                const mailtoSubject = encodeURIComponent('Inquiry: ' + subject + ' (from ' + name + ')');
                const mailtoBody = encodeURIComponent('Name: ' + name + '\\n\\nMessage:\\n' + message);
-               window.location.href = 'mailto:${content.email}?subject=' + mailtoSubject + '&body=' + mailtoBody;
+               window.open('mailto:${content.email}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
              });
            }
          })();

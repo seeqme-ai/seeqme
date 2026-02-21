@@ -16,7 +16,7 @@ const TermsOfService = () => {
     <div className="min-h-screen bg-white text-slate-600 selection:bg-teal-100 selection:text-teal-900 font-[Poppins] py-16 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-20"
@@ -42,7 +42,7 @@ const TermsOfService = () => {
           </aside>
 
           {/* Main Content */}
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -74,7 +74,7 @@ const TermsOfService = () => {
             <motion.section variants={itemVariants} id="section-4" className="bg-slate-50 p-8 rounded-3xl border border-slate-100">
               <h2 className="text-xl font-bold text-slate-900 mb-4">4. Service Plans and Subscriptions</h2>
               <p className="mb-6">
-                SeeqMe AI offers various subscription plans (e.g., Starter, Professional, Elite) with different features, limits, and pricing. Details of these plans are available on our "Plans" page.
+                SeeqMe AI offers various subscription plans (e.g., Free, Pro, Premium) with different features, limits, and pricing. Details of these plans are available on our "Plans" page.
               </p>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-6 list-none">
                 <li className="text-sm"><strong className="text-slate-900 block mb-1">Subscription:</strong> Your subscription will automatically renew at the end of each billing cycle (monthly or yearly) unless you cancel it.</li>
@@ -161,7 +161,8 @@ const TermsOfService = () => {
             <motion.section variants={itemVariants} id="section-14" className="pt-10 border-t border-slate-100 text-center">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">14. Contact Us</h2>
               <p className="mb-4">Questions about these Terms?</p>
-              <a href="mailto:support@seeqme.com" className="text-teal-600 font-bold text-lg hover:underline underline-offset-4 decoration-2">
+              <a target="_blank"
+                rel="noopener noreferrer" href="mailto:support@seeqme.com" className="text-teal-600 font-bold text-lg hover:underline underline-offset-4 decoration-2">
                 support@seeqme.com
               </a>
             </motion.section>

@@ -90,7 +90,7 @@ func Load() *Config {
 		GoogleClientSecret:  getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GitHubClientID:      getEnv("GITHUB_CLIENT_ID", ""),
 		GitHubClientSecret:  getEnv("GITHUB_CLIENT_SECRET", ""),
-		FrontendURL:         getEnv("FRONTEND_URL", ""),
+		FrontendURL:         getEnv("FRONTEND_URL", "https://seeqme.com"),
 		BackendURL:          getEnv("BACKEND_URL", "http://localhost:8080"),
 		GitHubToken:         getEnv("GITHUB_TOKEN", ""),
 		GitHubOwner:         getEnv("GITHUB_OWNER", ""),

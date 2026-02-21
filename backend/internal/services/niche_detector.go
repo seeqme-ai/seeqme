@@ -198,7 +198,7 @@ ARCHITECTURAL BLUEPRINT:
 - Section Flow: HEADER → HERO (CYBER/TECH theme) → STATS → SKILLS → PROJECTS → EXPERIENCE → CONTACT → FOOTER
 - Recommended Hero: HERO_CYBER_MONO or HERO_DARK_SASS for dark, technical feel
 - Recommended Projects: PROJ_GITHUB_STYLE or PROJ_BENTO_GRID for showcasing code/work
-- Recommended Skills: SKILLS_GRID_ICONS or SKILLS_DARK_SASS with tech tags
+- Recommended Skills: SKILLS_ENG_BENTO, SKILLS_ENG_TERMINAL, or SKILLS_ENG_CIRCUIT
 - Recommended Experience: EXP_TIMELINE_VERTICAL for career progression
 - Color Scheme: CYBER_NEON (dark with cyan/purple) or dark tech-focused themes
 - Typography: JetBrains Mono for code examples, Inter for body
@@ -209,7 +209,7 @@ ARCHITECTURAL BLUEPRINT:
 - Section Flow: HEADER → HERO (VISUAL theme) → ABOUT → PROJECTS/GALLERY → TESTIMONIALS → CONTACT → FOOTER
 - Recommended Hero: HERO_VISUALIST or HERO_GLASS_FLOATING with strong imagery
 - Recommended Projects: PROJ_MASONRY or GALLERY_MASONRY_GLASS to showcase visual work
-- Recommended Skills: SKILLS_TAGS_CLOUD or SKILLS_MARQUEE
+- Recommended Skills: SKILLS_CREATIVE_MASONRY, SKILLS_CREATIVE_PALETTE, or SKILLS_CREATIVE_CARDS
 - Recommended About: ABOUT_IMAGE_WRAP with strong visual emphasis
 - Recommended Contact: CONTACT_NEON_MODERN or CONTACT_SOCIAL_ONLY
 - Color Scheme: VIBRANT_BLOOM or MINIMAL_PAPER with creative color accents
@@ -222,6 +222,7 @@ ARCHITECTURAL BLUEPRINT:
 - Recommended Hero: HERO_EXECUTIVE or HERO_CENTERED_MINIMAL with professional photo
 - Recommended Stats: STATS_COUNTER_GRID or STATS_ANIMATED_COUNTERS showing impact
 - Recommended Projects: PROJ_CASE_STUDY or PROJ_AGENCY_CASE_STUDY for business results
+- Recommended Skills: SKILLS_BIZ_CARDS, SKILLS_BIZ_LIST, or SKILLS_BIZ_PIE
 - Recommended Experience: EXP_CARDS_GRID or EXP_TIMELINE_VERTICAL
 - Recommended Contact: CONTACT_FORM_FULL for lead capture
 - Color Scheme: LUXURY_GOLD or OCEANIC_MIST for corporate trust
@@ -233,6 +234,7 @@ ARCHITECTURAL BLUEPRINT:
 - Section Flow: HEADER → HERO → STATS → ABOUT → SERVICES → EXPERIENCE → CONTACT → FOOTER
 - Recommended Hero: HERO_EXECUTIVE or HERO_CENTERED_MINIMAL
 - Recommended Stats: STATS_COUNTER_GRID, STATS_LARGE_NUMBERS showing financial achievements
+- Recommended Skills: SKILLS_FIN_MATRIX, SKILLS_FIN_TICKER, or SKILLS_FIN_CHART
 - Recommended About: ABOUT_METRICS_FOCUS highlighting analytical skills
 - Recommended Services: SERVICES_LIST_MINIMAL for financial services offered
 - Recommended Contact: CONTACT_FORM_FULL
@@ -269,6 +271,7 @@ ARCHITECTURAL BLUEPRINT:
 - Section Flow: HEADER → HERO → STATS (campaigns, growth metrics) → SKILLS → PROJECTS → EXPERIENCE → CONTACT → FOOTER
 - Recommended Hero: HERO_AGENCY_VIBRANT or HERO_MODERN_SPLIT for creative energy
 - Recommended Stats: STATS_COUNTER_GRID showing campaign performance and growth metrics
+- Recommended Skills: SKILLS_MKT_FUNNEL, SKILLS_MKT_BUBBLES, or SKILLS_MKT_CAROUSEL
 - Recommended Projects: PROJ_BENTO_GRID or PROJ_MASONRY for campaign showcases
 - Recommended Experience: EXP_TIMELINE_VERTICAL for career growth
 - Recommended Contact: CONTACT_FORM_FULL for collaboration inquiries
@@ -281,6 +284,7 @@ ARCHITECTURAL BLUEPRINT:
 - Section Flow: HEADER → HERO → LOGOS/CLIENTS → SERVICES → PROJECTS → TESTIMONIALS → PROCESS → PRICING → CONTACT → FOOTER
 - Recommended Hero: HERO_AGENCY_VIBRANT or HERO_SMOOTH_SWEEP
 - Recommended Projects: PROJ_AGENCY_CASE_STUDY with client results
+- Recommended Skills: SKILLS_AGC_NEOBRUTAL, SKILLS_AGC_GLASS, or SKILLS_AGC_MINIMAL
 - Recommended Services: SERVICES_AGENCY_GRID highlighting service offerings
 - Recommended Testimonials: TESTIMONIALS_GRID_PHOTOS from past clients
 - Recommended Logos: LOGOS_STRIP_CLEAN for client credibility

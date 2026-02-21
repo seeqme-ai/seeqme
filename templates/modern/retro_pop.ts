@@ -257,9 +257,7 @@ export const RETRO_POP: Manifest = {
                                     const message = document.getElementById('message-{{id}}').value;
                                     const mailtoSubject = encodeURIComponent('Viral Collab Inquiry from ' + name);
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\r\n\r\nMessage:\r\n' + message);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -280,7 +278,8 @@ export const RETRO_POP: Manifest = {
             template: `
                 <footer class="bg-black text-white py-12 text-center font-bold uppercase tracking-widest border-t-4 border-yellow-300">
                      <p class="mb-2 italic text-pink-500 text-xl">{{footerHeading}}</p>
-                     <a href="mailto:{{footerEmail}}" class="text-pink-100 hover:text-white transition-colors block mb-4">{{footerEmail}}</a>
+                     <a target="_blank"
+                        rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="text-pink-100 hover:text-white transition-colors block mb-4">{{footerEmail}}</a>
                      <p>{{copyright}}</p>
                 </footer>
             `,

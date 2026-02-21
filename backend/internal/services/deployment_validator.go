@@ -27,14 +27,12 @@ type ValidationResult struct {
 	Timestamp    string   `json:"timestamp"`
 }
 
-// NewDeploymentValidator creates a new validator
 func NewDeploymentValidator(portfolioID string) *DeploymentValidator {
 	return &DeploymentValidator{
 		portfolioID: portfolioID,
 	}
 }
 
-// ValidateUpdate validates a portfolio update before deploying
 func (v *DeploymentValidator) ValidateUpdate(html, css, js string) (*ValidationResult, error) {
 	result := &ValidationResult{
 		IsValid:      true,
@@ -44,28 +42,20 @@ func (v *DeploymentValidator) ValidateUpdate(html, css, js string) (*ValidationR
 		Timestamp:    time.Now().Format(time.RFC3339),
 	}
 
-	//  Validate HTML structure
 	v.validateHTML(html, result)
 
-	//  Validate CSS
 	v.validateCSS(css, result)
 
-	// Validate JavaScript
 	v.validateJS(js, result)
 
-	//  Check for broken links
 	v.checkLinks(html, result)
 
-	// Validate responsiveness
 	v.validateResponsiveness(html, css, result)
 
-	// Check media files
 	v.validateMedia(html, css, result)
 
-	//  Validate accessibility
 	v.validateAccessibility(html, result)
 
-	//  Check performance issues
 	v.checkPerformance(html, css, js, result)
 
 	// Determine overall validity
@@ -76,7 +66,7 @@ func (v *DeploymentValidator) ValidateUpdate(html, css, js string) (*ValidationR
 	return result, nil
 }
 
-// validateHTML checks HTML structure
+
 func (v *DeploymentValidator) validateHTML(html string, result *ValidationResult) {
 	// Check for proper HTML structure
 	if !strings.Contains(html, "<!DOCTYPE html>") {
@@ -95,8 +85,7 @@ func (v *DeploymentValidator) validateHTML(html string, result *ValidationResult
 	// Check for unclosed tags
 	v.checkUnclosedTags(html, result)
 
-	// Check for required sections (aligned with new 8-section architecture)
-	recommendedSections := []string{"hero", "about", "skills", "projects", "experience", "testimonials", "contact", "footer"}
+	recommendedSections := []string{"header", "hero", "about", "skills", "projects", "experience", "testimonials", "contact", "footer"}
 	for _, section := range recommendedSections {
 		if !strings.Contains(strings.ToLower(html), section) {
 			result.Warnings = append(result.Warnings, fmt.Sprintf("Missing recommended section: %s", section))
@@ -292,10 +281,7 @@ func (v *DeploymentValidator) validateAccessibility(html string, result *Validat
 		}
 	}
 
-	// Check for aria attributes on interactive elements
-	if strings.Contains(html, "<button") || strings.Contains(html, "<a") {
-		// Could add more specific checks here
-	}
+	
 }
 
 // checkPerformance checks for performance issues
@@ -324,7 +310,7 @@ func (v *DeploymentValidator) checkPerformance(html, css, js string, result *Val
 
 // checkUnclosedTags checks for unclosed HTML tags
 func (v *DeploymentValidator) checkUnclosedTags(html string, result *ValidationResult) {
-	// Simple check for common unclosed tags
+	// check for common unclosed tags
 	tagsToCheck := []string{"div", "p", "span", "a", "li", "section", "article"}
 
 	for _, tag := range tagsToCheck {
@@ -360,7 +346,6 @@ func (v *DeploymentValidator) validateIframes(html string) bool {
 
 // CreateStagingPreview creates a staging preview of the portfolio
 func (v *DeploymentValidator) CreateStagingPreview(portfolioID string, html, css, js string) (string, error) {
-	// Get the portfolio from database
 	objID, err := primitive.ObjectIDFromHex(portfolioID)
 	if err != nil {
 		return "", err
@@ -396,7 +381,6 @@ func (v *DeploymentValidator) CreateStagingPreview(portfolioID string, html, css
 		return "", err
 	}
 
-	// Return staging URL
 	return fmt.Sprintf("https://%s-staging.seeqme.com", stagingID), nil
 }
 
@@ -434,10 +418,10 @@ func (v *DeploymentValidator) CompareWithLive(portfolioID string, stagingHTML, s
 
 // detectSectionChanges detects which sections were added
 func (v *DeploymentValidator) detectSectionChanges(oldHTML, newHTML string) []string {
-	// Simple implementation 
+	
 	var added []string
 
-	sections := []string{"hero", "about", "skills", "projects", "experience", "education", "contact", "testimonials"}
+	sections := []string{"header", "hero", "about", "skills", "projects", "experience", "education", "contact", "testimonials"}
 
 	for _, section := range sections {
 		if !strings.Contains(oldHTML, section) && strings.Contains(newHTML, section) {
@@ -452,7 +436,7 @@ func (v *DeploymentValidator) detectSectionChanges(oldHTML, newHTML string) []st
 func (v *DeploymentValidator) detectRemovedSections(oldHTML, newHTML string) []string {
 	var removed []string
 
-	sections := []string{"hero", "about", "skills", "projects", "experience", "education", "contact", "testimonials"}
+	sections := []string{"header", "hero", "about", "skills", "projects", "experience", "education", "contact", "testimonials"}
 
 	for _, section := range sections {
 		if strings.Contains(oldHTML, section) && !strings.Contains(newHTML, section) {

@@ -34,12 +34,12 @@ func (h *Handler) GetSubscription(c *gin.Context) {
 	// Try to find existing subscription
 	err = db.Collection("subscriptions").FindOne(context.Background(), bson.M{"userId": objectID}).Decode(&subscription)
 	if err != nil {
-		// If not found (or other error), return a default "Starter" subscription
+		// If not found (or other error), return a default "Free" subscription
 		// This prevents 404 errors on the frontend for new users
 		defaultSub := models.Subscription{
 			ID:     primitive.NewObjectID(),
 			UserID: objectID,
-			PlanID: "starter", // Default plan
+			PlanID: "free", // Default plan
 			Status: "active",
 		}
 		c.JSON(http.StatusOK, defaultSub)
@@ -138,13 +138,14 @@ func (h *Handler) VerifySubscription(c *gin.Context) {
 		} else if req.Currency == "USD" {
 			amountStr = fmt.Sprintf("$%.2f", req.Amount)
 		}
-
+        frontendURL := h.Config.FrontendURL
 		emailData := map[string]interface{}{
 			"FullName":  user.FullName,
 			"PlanName":  req.Plan,
 			"Amount":    amountStr,
 			"Reference": req.Reference,
 			"Date":      time.Now().Format("Jan 02, 2006"),
+			"DashboardLink": fmt.Sprintf("%s/dashboard", frontendURL),
 		}
 		// Send Payment Success Email
 		go func() {

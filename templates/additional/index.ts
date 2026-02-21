@@ -366,7 +366,8 @@ export const DATA_SCIENCE_DARK: Manifest = {
                             <i class="fas fa-flask text-3xl"></i>
                         </div>
                         <h2 class="text-4xl font-bold text-white mb-6">{{title}}</h2>
-                        <a href="mailto:{{email}}" class="text-2xl md:text-3xl font-mono text-emerald-400 hover:text-emerald-300 transition-colors border-b-2 border-emerald-900 hover:border-emerald-400 pb-1 inline-block mb-10">
+                        <a target="_blank"
+                rel="noopener noreferrer" href="mailto:{{email}}" class="text-2xl md:text-3xl font-mono text-emerald-400 hover:text-emerald-300 transition-colors border-b-2 border-emerald-900 hover:border-emerald-400 pb-1 inline-block mb-10">
                             {{email}}
                         </a>
                         <div class="flex justify-center gap-6">
@@ -639,7 +640,8 @@ export const MARKETING_GROWTH_LIGHT: Manifest = {
                             <h2 class="text-5xl md:text-7xl font-black italic mb-8">READY TO SCALE?</h2>
                             <p class="text-rose-100 text-xl font-bold mb-12">Limited availability for Q3. Secure your audit now.</p>
                             
-                            <a href="mailto:{{email}}" class="bg-white text-rose-600 text-2xl md:text-4xl font-black px-12 py-6 rounded-2xl hover:scale-105 transition-transform inline-block shadow-xl">
+                            <a target="_blank"
+                              rel="noopener noreferrer" href="mailto:{{email}}" class="bg-white text-rose-600 text-2xl md:text-4xl font-black px-12 py-6 rounded-2xl hover:scale-105 transition-transform inline-block shadow-xl">
                                 {{email}}
                             </a>
                             
@@ -670,7 +672,8 @@ export const MARKETING_GROWTH_LIGHT: Manifest = {
                 <footer class="py-12 text-center">
                     <div class="font-black text-2xl text-slate-200 uppercase italic mb-4">{{footerHeading}}</div>
                     <p class="text-slate-400 text-xs">{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 text-rose-600 font-bold hover:underline">{{footerEmail}}</a>
+                    <a target="_blank"
+                rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 text-rose-600 font-bold hover:underline">{{footerEmail}}</a>
                 </footer>
             `,
             content: {
@@ -927,7 +930,8 @@ export const LEGAL_PROFESSIONAL_FORMAL: Manifest = {
                 <footer class="py-12 bg-white text-center border-t border-slate-100">
                     <div class="text-slate-900 font-serif font-bold text-lg mb-2">{{footerHeading}}</div>
                     <p class="text-slate-400 text-xs uppercase tracking-widest">{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 text-slate-600 hover:text-slate-900 transition-colors text-xs">{{footerEmail}}</a>
+                    <a target="_blank"
+                          rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 text-slate-600 hover:text-slate-900 transition-colors text-xs">{{footerEmail}}</a>
                 </footer>
             `,
             content: {

@@ -24,10 +24,10 @@ func (h *Handler) ExtractCVContent(c *gin.Context) {
 		return
 	}
 
-	// 10MB limit
-	if file.Size > 10<<20 {
+	// 20MB limit
+	if file.Size > 20<<20 {
 		fmt.Printf("[CVExtract] File too large: %d bytes\n", file.Size)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File size exceeds limit of 10MB"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File size exceeds limit of 20MB"})
 		return
 	}
 

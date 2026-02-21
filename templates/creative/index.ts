@@ -251,7 +251,8 @@ export const MOCK_MANIFEST_CREATIVE: Manifest = {
                         <p class="text-indigo-200 text-xl mb-12">Ready to start a project? Let's build something extraordinary together.</p>
                         
                         <div class="flex flex-col md:flex-row justify-center gap-8 mb-16">
-                             <a href="mailto:{{email}}" class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-indigo-900 rounded-full font-bold hover:bg-indigo-50 transition-colors">
+                             <a target="_blank"
+                               rel="noopener noreferrer" href="mailto:{{email}}" class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-indigo-900 rounded-full font-bold hover:bg-indigo-50 transition-colors">
                                 <i class="fas fa-envelope"></i> {{email}}
                              </a>
                              <span class="inline-flex items-center justify-center gap-3 px-8 py-4 border border-indigo-700 rounded-full text-indigo-200">
@@ -277,7 +278,8 @@ export const MOCK_MANIFEST_CREATIVE: Manifest = {
                 <footer class="py-12 bg-indigo-950 text-indigo-400 text-center text-sm">
                     <div class="mb-4 text-white font-serif text-xl font-bold">{{footerHeading}}</div>
                     <p>{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 hover:text-white transition-colors">{{footerEmail}}</a>
+                    <a target="_blank"
+                rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 hover:text-white transition-colors">{{footerEmail}}</a>
                 </footer>
             `,
             content: {
@@ -469,7 +471,8 @@ export const PHOTOGRAPHY_MINIMAL: Manifest = {
             template: `
                 <section class="py-32 px-6 text-center" id="contact-photo">
                     <h2 class="text-5xl font-serif italic mb-8">{{title}}</h2>
-                    <a href="mailto:{{email}}" class="text-2xl md:text-5xl font-black uppercase hover:text-gray-500 transition-colors border-b-4 border-black pb-2 inline-block mb-12">
+                    <a target="_blank"
+                      rel="noopener noreferrer" href="mailto:{{email}}" class="text-2xl md:text-5xl font-black uppercase hover:text-gray-500 transition-colors border-b-4 border-black pb-2 inline-block mb-12">
                         {{email}}
                     </a>
                     <div class="flex justify-center gap-8 text-xl">

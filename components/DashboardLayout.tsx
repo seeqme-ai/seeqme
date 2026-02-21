@@ -75,15 +75,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       >
         {/* Sidebar Header */}
         <div className={`flex items-center h-20 px-4 border-b border-border/50 ${!isSidebarOpen && 'justify-center'}`}>
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
 
             <img
               src="/seeqme-logo-black.png"
               alt="SeeQMe"
-              className="h-8 w-auto block"
+              className="h-6 w-auto block"
             />
             {isSidebarOpen && (
-              <span className="text-xl font-bold tracking-tight text-foreground">SeeqMe</span>
+              <span className="text-base font-bold text-foreground">SeeqMe</span>
             )}
           </Link>
         </div>
@@ -147,20 +147,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             >
               <HamburgerMenuIcon className="h-6 w-6" />
             </Button>
-            <div className="flex items-center gap-3">
-
-              <img
-                src="/seeqme-logo-black.png"
-                alt="SeeQMe"
-                className="h-6 w-auto block"
-              />
-              <span className="text-lg font-bold tracking-tight text-foreground">SeeQMe</span>
-            </div>
+             <p className="text-lg font-bold">
+              {navItems.find(i => isActive(i.path))?.name || 'Dashboard'}
+            </p>
           </div>
 
           <div className="hidden lg:flex flex-col text-left">
 
-            <p className="text-lg font-bold tracking-tight">
+            <p className="text-lg font-bold">
               {navItems.find(i => isActive(i.path))?.name || 'Dashboard'}
             </p>
           </div>
@@ -187,7 +181,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <DropdownMenuContent align="end" className="w-72 p-2 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-border bg-white z-[100]">
                   <DropdownMenuLabel className="p-3">
                     <div className="flex flex-col space-y-1 text-left">
-                      <p className="text-sm font-bold tracking-tight leading-none">{user.fullName}</p>
+                      <p className="text-sm font-bold leading-none">{user.fullName}</p>
                       <p className="text-[10px] text-muted-foreground leading-none">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>

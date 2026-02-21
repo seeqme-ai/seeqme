@@ -339,9 +339,7 @@ export const AGENCY_VYSION: Manifest = {
                                     const message = document.getElementById('message-{{id}}').value;
                                     const mailtoSubject = encodeURIComponent('Inquiry: ' + subject + ' (from ' + name + ')');
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\r\n\r\nMessage:\r\n' + message);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -367,7 +365,7 @@ export const AGENCY_VYSION: Manifest = {
                             {{footerHeading}}
                         </h2>
                          <div class="flex flex-col items-center gap-6">
-                            <a href="mailto:{{footerEmail}}" class="text-xl md:text-2xl font-bold text-[#ff4d4d] hover:text-black transition-colors">
+                            <a target="_blank" rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="text-xl md:text-2xl font-bold text-[#ff4d4d] hover:text-black transition-colors">
                                 {{footerEmail}}
                             </a>
                         </div>

@@ -97,7 +97,7 @@ export const SERVICES_TYPOGRAPHIC_COLS = (content: any) => `
 export const CONTACT_TYPOGRAPHIC_CENTER = (content: any) => `
     <section data-section="contact" class="py-32 px-6 text-center" id="contact">
         <h2 class="text-5xl md:text-7xl font-serif mb-12" data-field="contact-heading">${content.heading || "Let's tell your story."}</h2>
-        <a href="mailto:${content.email}" target="_blank" rel="noopener" class="inline-block bg-black text-white px-12 py-5 rounded-full text-lg font-bold tracking-widest hover:scale-105 transition-transform" data-field="contact-cta">${content.ctaText || 'Get in Touch'}</a>
+        <a target="_blank" rel="noopener noreferrer" href="mailto:${content.email}" class="inline-block bg-black text-white px-12 py-5 rounded-full text-lg font-bold tracking-widest hover:scale-105 transition-transform" data-field="contact-cta">${content.ctaText || 'Get in Touch'}</a>
     </section>
 `;
 

@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +19,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type DeploymentRequest struct {
@@ -136,13 +134,14 @@ func (h *Handler) PublishUpdate(c *gin.Context) {
 	}
 
 	// Update the portfolio
+	nextVersion := h.getNextVersion(portfolio)
 	update := bson.M{
 		"$set": bson.M{
 			"html":      req.HTML,
 			"css":       req.CSS,
 			"js":        req.JS,
 			"updatedAt": primitive.NewDateTimeFromTime(time.Now()),
-			"version":   h.getNextVersion(portfolio),
+			"version":   nextVersion,
 		},
 	}
 
@@ -174,7 +173,7 @@ func (h *Handler) PublishUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success":   true,
 		"message":   "Portfolio update initiated in background",
-		"version":   h.getNextVersion(portfolio),
+		"version":   nextVersion,
 		"deployed":  portfolio["status"] == "completed",
 		"initiated": true,
 	})
@@ -245,12 +244,6 @@ func (h *Handler) DeployPortfolio(c *gin.Context) {
 
 	if !result.IsValid {
 		log.Printf("[Deploy] Validation warnings: %v (proceeding anyway for AI content)", result.Issues)
-		// TEMPORARY: Allow deployment despite validation warnings
-		// c.JSON(http.StatusBadRequest, gin.H{
-		// 	"error":  "Portfolio validation failed",
-		// 	"issues": result.Issues,
-		// })
-		// return
 	}
 
 	log.Printf("[Deploy] Validation passed, proceeding with deployment")
@@ -276,11 +269,15 @@ func (h *Handler) DeployPortfolio(c *gin.Context) {
 
 	if err == nil {
 		// Subdomain is already in use by another published portfolio
+		existingID := ""
+		if oid, ok := existingPortfolio["_id"].(primitive.ObjectID); ok {
+			existingID = oid.Hex()
+		}
 		c.JSON(http.StatusConflict, gin.H{
 			"error":               "Subdomain already in use",
 			"message":             fmt.Sprintf("The subdomain '%s' is already in use by another published portfolio. Do you want to delete the existing portfolio and use this name?", subdomain),
 			"action":              "confirm_delete_and_reassign",
-			"existingPortfolioId": existingPortfolio["_id"].(primitive.ObjectID).Hex(),
+			"existingPortfolioId": existingID,
 		})
 		return
 	} else if err != mongo.ErrNoDocuments {
@@ -415,127 +412,22 @@ func (h *Handler) RollbackDeployment(c *gin.Context) {
 	})
 }
 
-// Helper functions
-
-func (h *Handler) createPortfolioBackup(portfolioID string) error {
-	objID, err := primitive.ObjectIDFromHex(portfolioID)
-	if err != nil {
-		return err
-	}
-
-	collection := database.Client.Database(database.DBName).Collection("portfolios")
-	var portfolio bson.M
-	err = collection.FindOne(context.Background(), bson.M{"_id": objID}).Decode(&portfolio)
-	if err != nil {
-		return err
-	}
-
-	backupCollection := database.Client.Database(database.DBName).Collection("backups")
-	backup := bson.M{
-		"_id":         primitive.NewObjectID(),
-		"portfolioId": portfolioID,
-		"html":        portfolio["html"],
-		"css":         portfolio["css"],
-		"js":          portfolio["js"],
-		"version":     portfolio["version"],
-		"subdomain":   portfolio["subdomain"],
-		"status":      portfolio["status"],
-		"createdAt":   primitive.NewDateTimeFromTime(time.Now()),
-	}
-
-	_, err = backupCollection.InsertOne(context.Background(), backup)
-	return err
-}
-
-func (h *Handler) extractSEOData(sc primitive.M) (string, string, string, string, string, []string) {
-	var heroName, heroTitle, heroBio, heroImage, avatarImage string
-	var socialLinks []string
-
-	if sc == nil {
-		return "", "", "", "", "", nil
-	}
-
-	if sections, ok := sc["sections"].(primitive.A); ok {
-		for _, section := range sections {
-			if sMap, isMap := section.(primitive.M); isMap {
-				if content, contentOk := sMap["content"].(primitive.M); contentOk {
-					// Extract Hero data
-					if sType, typeOk := sMap["type"].(string); typeOk && sType == "hero" {
-						if name, nameOk := content["name"].(string); nameOk {
-							heroName = name
-						}
-						if title, titleOk := content["title"].(string); titleOk {
-							heroTitle = title
-						}
-						if bio, bioOk := content["bio"].(string); bioOk {
-							heroBio = bio
-						}
-						if image, imageOk := content["image"].(string); imageOk {
-							heroImage = image
-						} else if bgImage, bgOk := content["backgroundImage"].(string); bgOk {
-							heroImage = bgImage
-						}
-						if avatar, avatarOk := content["avatarImage"].(string); avatarOk {
-							avatarImage = avatar
-						}
-						if bio, bioOk := content["bio"].(string); bioOk {
-							heroBio = bio
-						} else if tagline, taglineOk := content["heroTagline"].(string); taglineOk {
-							heroBio = tagline
-						}
-					}
-
-					// Extract Social Links from any section (e.g., contact, footer)
-					if socials, socialsOk := content["socials"].(primitive.A); socialsOk {
-						for _, s := range socials {
-							if sm, smOk := s.(primitive.M); smOk {
-								if url, urlOk := sm["url"].(string); urlOk && url != "" && url != "#" {
-									socialLinks = append(socialLinks, url)
-								}
-							} else if sm, smOk := s.(map[string]interface{}); smOk { // Handle map[string]interface{}
-								if url, urlOk := sm["url"].(string); urlOk && url != "" && url != "#" {
-									socialLinks = append(socialLinks, url)
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return heroName, heroTitle, heroBio, heroImage, avatarImage, socialLinks
-}
-
-func (h *Handler) getLatestBackup(portfolioID string) (bson.M, error) {
-	backupCollection := database.Client.Database(database.DBName).Collection("backups")
-	var backup bson.M
-	opts := options.FindOne().SetSort(bson.M{"createdAt": -1})
-	err := backupCollection.FindOne(context.Background(), bson.M{
-		"portfolioId": portfolioID,
-	}, opts).Decode(&backup)
-	return backup, err
-}
-
-func (h *Handler) getNextVersion(portfolio bson.M) int {
-	currentVersion, ok := portfolio["version"].(int32)
-	if !ok {
-		return 1
-	}
-	return int(currentVersion) + 1
-}
-
 // triggerDeployment handles the logic to start a new deployment process.
 // It uses the orchestrator service to provision and deploy the infrastructure.
 func (h *Handler) triggerDeployment(portfolioID string, subdomain string, customDomainID string, deploymentID primitive.ObjectID) {
-	// Standardized failure handler
+	sessionID := deploymentID.Hex()
+
+	// Mirroring failure to session
 	failDeployment := func(errMessage string, originalErr error) {
+		services.GlobalSessionManager.AddLog(sessionID, "CRITICAL ERROR: "+errMessage)
+		services.GlobalSessionManager.CloseSession(sessionID, "failed", "")
+
 		log.Printf("[DeployLog][%s] FAILED: %s (%v)", portfolioID, errMessage, originalErr)
 
-		// Update Status: Failed
+		// Update Deployment record: failed
 		database.Client.Database(database.DBName).Collection("deployments").UpdateOne(
 			context.Background(),
-			bson.M{"_id": deploymentID}, // Targeted update
+			bson.M{"_id": deploymentID},
 			bson.M{
 				"$set": bson.M{
 					"status":      "failed",
@@ -545,14 +437,44 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 			},
 		)
 
+		// ✅ Roll back the portfolio so it's not stuck as "completed"
+		if portfolioObjectID, parseErr := primitive.ObjectIDFromHex(portfolioID); parseErr == nil {
+			database.Client.Database(database.DBName).Collection("portfolios").UpdateOne(
+				context.Background(),
+				bson.M{"_id": portfolioObjectID},
+				bson.M{
+					"$set": bson.M{
+						"status":    "pending",
+						"domain":    "",
+						"subdomain": "",
+					},
+					"$unset": bson.M{
+						"publishedAt": "",
+						"deployedAt":  "",
+					},
+				},
+			)
+			log.Printf("[DeployLog][%s] Portfolio rolled back to 'pending' after failed deployment", portfolioID)
+		}
+
 		websocket.BroadcastToPortfolio(portfolioID, "portfolio_log", gin.H{
 			"message":   fmt.Sprintf("CRITICAL ERROR: %s", errMessage),
 			"type":      "error",
 			"timestamp": time.Now().Format("15:04:05"),
 		})
+
+		// Also broadcast a status event so the frontend knows the portfolio is no longer live
+		websocket.BroadcastToPortfolio(portfolioID, "deployment_failed", gin.H{
+			"portfolioId": portfolioID,
+			"error":       fmt.Sprintf("%s: %v", errMessage, originalErr),
+			"timestamp":   time.Now().Format("15:04:05"),
+		})
 	}
 
 	streamLog := func(message string, logType string) {
+		// Mirror to SessionManager
+		services.GlobalSessionManager.AddLog(sessionID, message)
+
 		websocket.BroadcastToPortfolio(portfolioID, "portfolio_log", gin.H{
 			"message":   message,
 			"type":      logType,
@@ -560,13 +482,8 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		})
 		log.Printf("[DeployLog][%s] %s", portfolioID, message)
 	}
-
-	streamLog("Initializing deployment...", "info")
-
-	// Load config
 	cfg := h.Config
 
-	// Get portfolio from database
 	portfolioObjectID, err := primitive.ObjectIDFromHex(portfolioID)
 	if err != nil {
 		failDeployment("Invalid portfolio ID", err)
@@ -580,6 +497,16 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		failDeployment("Failed to find portfolio", err)
 		return
 	}
+
+	// Create session for tracking
+	userIDStr := ""
+	if uid, ok := portfolio["userId"].(primitive.ObjectID); ok {
+		userIDStr = uid.Hex()
+	} else if uidStr, ok := portfolio["userId"].(string); ok {
+		userIDStr = uidStr
+	}
+
+	services.GlobalSessionManager.CreateSession(userIDStr, portfolioID, sessionID, "deployment")
 
 	html, _ := portfolio["html"].(string)
 	css, _ := portfolio["css"].(string)
@@ -644,7 +571,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	}
 
 	// Create temp directory
-	tempDir, err := ioutil.TempDir("", "portfolio-deploy-")
+	tempDir, err := os.MkdirTemp("", "portfolio-deploy-")
 	if err != nil {
 		failDeployment("Failed to create build directory", err)
 		return
@@ -736,10 +663,10 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		return strings.Join(urls, ",\n\t\t\t")
 	}())
 
-	// Inject branding strategically
+	// Inject branding before </body> for reliability (not </footer> which may not exist)
 	if brandingHTML != "" {
-		if strings.Contains(html, "</footer>") {
-			html = strings.Replace(html, "</footer>", brandingHTML+"</footer>", 1)
+		if strings.Contains(html, "</body>") {
+			html = strings.Replace(html, "</body>", brandingHTML+"</body>", 1)
 			brandingHTML = "" // Prevent double injection at bottom
 		}
 	}
@@ -792,14 +719,14 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	// Write files
 	streamLog("Writing build artifacts...", "info")
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "index.html"), []byte(finalHTML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "index.html"), []byte(finalHTML), 0644); err != nil {
 		failDeployment("Failed to write build artifacts", err)
 		return
 	}
 
 	// Generate robots.txt
 	robotsTxt := fmt.Sprintf("User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml", fullURL)
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "robots.txt"), []byte(robotsTxt), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "robots.txt"), []byte(robotsTxt), 0644); err != nil {
 		log.Printf("[Deploy] Failed to write robots.txt: %v", err)
 	}
 
@@ -813,7 +740,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
     <priority>1.0</priority>
   </url>
 </urlset>`, fullURL, time.Now().Format("2006-01-02"))
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "sitemap.xml"), []byte(sitemap), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tempDir, "sitemap.xml"), []byte(sitemap), 0644); err != nil {
 		log.Printf("[Deploy] Failed to write sitemap.xml: %v", err)
 	}
 
@@ -936,27 +863,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	websocket.BroadcastToPortfolio(portfolioID, "deployment_complete", gin.H{
 		"url": finalURL,
 	})
-}
 
-func (h *Handler) getDeploymentStatus(portfolioID primitive.ObjectID) (bson.M, error) {
-	deploymentCollection := database.Client.Database(database.DBName).Collection("deployments")
-	var deployment bson.M
-	opts := options.FindOne().SetSort(bson.M{"startedAt": -1})
-	err := deploymentCollection.FindOne(context.Background(), bson.M{
-		"portfolioId": portfolioID,
-	}, opts).Decode(&deployment)
-
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return bson.M{"status": "not_deployed"}, nil
-		}
-		return nil, err
-	}
-
-	return bson.M{
-		"status":      deployment["status"],
-		"startedAt":   deployment["startedAt"],
-		"completedAt": deployment["completedAt"],
-		"url":         deployment["url"],
-	}, nil
+	// Close session in SessionManager
+	services.GlobalSessionManager.CloseSession(sessionID, "completed", finalURL)
 }

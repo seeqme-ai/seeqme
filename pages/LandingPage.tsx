@@ -7,9 +7,11 @@ import { PORTFOLIO_TEMPLATES } from '@/templates';
 import { useTemplate } from '@/context/template-context';
 import { linkedinService } from '@/services/linkedinService';
 import { useAuth } from '@/context/auth-context';
-import { ArrowUpRight, Loader, Zap, Mic, Upload, Linkedin, X, Code, Layers, Instagram, Menu, Search } from 'lucide-react';
+import { ArrowUpRight, Zap, Mic, Upload, Linkedin, X, Code, Layers, Instagram, Menu, Search, Loader } from 'lucide-react';
 import HeroSection from '@/components/Hero';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { TemplateCardSkeleton } from '@/components/ui/TemplateSkeleton';
+import { shuffleArray } from '@/utils';
 
 const MotionDiv = motion.div as any;
 
@@ -49,15 +51,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  // Fisher-Yates shuffle algorithm
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
 
   const shuffledTemplates = useMemo(() => shuffleArray(PORTFOLIO_TEMPLATES), []);
 
@@ -147,8 +140,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-
-      console.log(`[LandingPage] Extracted CV content for ${file.name}:`, content?.substring(0, 100) + '...');
 
       setSelectedFile({
         name: file.name,
@@ -270,11 +261,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
                   {/* Upload CV Button */}
                   <button
+                    disabled={isUploading || !!selectedFile?.name}
                     onClick={() => fileInputRef.current?.click()}
                     className="flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-2xl text-teal-700 bg-teal-400/10 transition-all"
                     title="Upload CV"
                   >
-                    <span>Upload CV</span>
+                    <span>{isUploading ? 'Uploading...' : 'Upload CV'}</span>
                     {isUploading ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} accept=".pdf,.doc,.docx,.txt" />
                   </button>
@@ -314,7 +306,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
         {/* Template Selection */}
         <div id="templates" className="w-full scroll-mt-32 mt-4">
-          <div className="flex flex-col lg:flex-row items-end justify-between mb-20 gap-10">
+          <div className="flex flex-col lg:flex-row  justify-between mb-20 gap-10">
             <div className="max-w-xl">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Templates</h2>
             </div>
@@ -376,6 +368,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   </div>
                 </div>
               </MotionDiv>
+            ))}
+            {isFetchingMore && Array.from({ length: 3 }).map((_, i) => (
+              <TemplateCardSkeleton key={`skeleton-${i}`} />
             ))}
           </div>
 

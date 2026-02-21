@@ -7,17 +7,18 @@ import (
 )
 
 type Session struct {
-	ID          string
-	UserID      string
-	PortfolioID string
-	EnvID       string
-	WorkflowID  string
-	Status      string
-	Files       map[string]string
-	Logs        []string
-	CreatedAt   time.Time
-	LastActive  time.Time
-	TTL         time.Duration
+	ID          string            `json:"id"`
+	UserID      string            `json:"userId"`
+	PortfolioID string            `json:"portfolioId"`
+	Type        string            `json:"type"`   // "generation", "deployment", "rollback"
+	Status      string            `json:"status"` // "active", "completed", "failed"
+	Progress    int               `json:"progress"`
+	Files       map[string]string `json:"files,omitempty"`
+	Logs        []string          `json:"logs"`
+	ResultURL   string            `json:"resultUrl,omitempty"`
+	CreatedAt   time.Time         `json:"createdAt"`
+	LastActive  time.Time         `json:"lastActive"`
+	TTL         time.Duration     `json:"-"`
 }
 
 type SessionManager struct {
@@ -31,22 +32,23 @@ func NewSessionManager() *SessionManager {
 	sm := &SessionManager{
 		sessions: make(map[string]*Session),
 	}
-	
+
 	go sm.cleanupExpiredSessions()
-	
+
 	return sm
 }
 
-func (sm *SessionManager) CreateSession(userID, portfolioID, envID string) *Session {
+func (sm *SessionManager) CreateSession(userID, portfolioID, sessionID, sessionType string) *Session {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
 	session := &Session{
-		ID:          envID,
+		ID:          sessionID,
 		UserID:      userID,
 		PortfolioID: portfolioID,
-		EnvID:       envID,
+		Type:        sessionType,
 		Status:      "active",
+		Progress:    0,
 		Files:       make(map[string]string),
 		Logs:        []string{},
 		CreatedAt:   time.Now(),
@@ -70,6 +72,18 @@ func (sm *SessionManager) GetSession(sessionID string) (*Session, error) {
 	return session, nil
 }
 
+func (sm *SessionManager) GetActiveSession(userID string) (*Session, bool) {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	for _, session := range sm.sessions {
+		if session.UserID == userID && session.Status == "active" {
+			return session, true
+		}
+	}
+	return nil, false
+}
+
 func (sm *SessionManager) UpdateSession(sessionID string, updates func(*Session)) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
@@ -84,27 +98,24 @@ func (sm *SessionManager) UpdateSession(sessionID string, updates func(*Session)
 	return nil
 }
 
-func (sm *SessionManager) AddFile(sessionID, path, content string) error {
+func (sm *SessionManager) AddLog(sessionID, logMsg string) error {
 	return sm.UpdateSession(sessionID, func(s *Session) {
-		s.Files[path] = content
+		s.Logs = append(s.Logs, fmt.Sprintf("[%s] %s", time.Now().Format("15:04:05"), logMsg))
 	})
 }
 
-func (sm *SessionManager) GetFiles(sessionID string) (map[string]string, error) {
-	sm.mu.RLock()
-	defer sm.mu.RUnlock()
-
-	session, exists := sm.sessions[sessionID]
-	if !exists {
-		return nil, fmt.Errorf("session not found")
-	}
-
-	return session.Files, nil
+func (sm *SessionManager) SetProgress(sessionID string, progress int) error {
+	return sm.UpdateSession(sessionID, func(s *Session) {
+		s.Progress = progress
+	})
 }
 
-func (sm *SessionManager) AddLog(sessionID, log string) error {
+func (sm *SessionManager) CloseSession(sessionID string, status string, resultURL string) error {
 	return sm.UpdateSession(sessionID, func(s *Session) {
-		s.Logs = append(s.Logs, fmt.Sprintf("[%s] %s", time.Now().Format("15:04:05"), log))
+		s.Status = status
+		s.ResultURL = resultURL
+		// We don't delete immediately, let TTL handle it so user can see "Finished" state
+		s.TTL = 5 * time.Minute
 	})
 }
 
@@ -112,34 +123,24 @@ func (sm *SessionManager) DeleteSession(sessionID string) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	session, exists := sm.sessions[sessionID]
-	if !exists {
-		return fmt.Errorf("session not found")
-	}
-
-	session.Files = nil
-	session.Logs = nil
-	
 	delete(sm.sessions, sessionID)
 	return nil
 }
 
 func (sm *SessionManager) cleanupExpiredSessions() {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(2 * time.Minute)
 	defer ticker.Stop()
 
 	for range ticker.C {
 		sm.mu.Lock()
 		now := time.Now()
-		
+
 		for id, session := range sm.sessions {
 			if now.Sub(session.LastActive) > session.TTL {
-				session.Files = nil
-				session.Logs = nil
 				delete(sm.sessions, id)
 			}
 		}
-		
+
 		sm.mu.Unlock()
 	}
 }

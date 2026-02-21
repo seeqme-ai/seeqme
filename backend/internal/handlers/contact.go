@@ -24,7 +24,7 @@ func (h *Handler) ContactForm(c *gin.Context) {
 		return
 	}
 
-	// Send email
+
 	err := h.Resend.SendContactFormEmail(req.Email, req.Subject, req.Message)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})

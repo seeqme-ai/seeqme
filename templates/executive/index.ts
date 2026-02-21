@@ -273,7 +273,8 @@ export const MOCK_MANIFEST_EXECUTIVE: Manifest = {
                         <div class="flex flex-col md:flex-row justify-center gap-12 text-center">
                             <div>
                                 <div class="text-slate-400 text-xs uppercase tracking-widest mb-2">Email</div>
-                                <a href="mailto:{{email}}" class="text-xl text-white hover:text-slate-300 font-serif block">{{email}}</a>
+                                <a target="_blank"
+                           rel="noopener noreferrer" href="mailto:{{email}}" class="text-xl text-white hover:text-slate-300 font-serif block">{{email}}</a>
                             </div>
                             <div>
                                 <div class="text-slate-400 text-xs uppercase tracking-widest mb-2">Office</div>
@@ -299,7 +300,8 @@ export const MOCK_MANIFEST_EXECUTIVE: Manifest = {
                 <footer class="py-12 bg-[#020617] text-center text-slate-500 text-xs uppercase tracking-widest">
                     <div class="mb-4 text-white font-bold text-sm tracking-[0.2em]">{{footerHeading}}</div>
                     <p>{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 hover:text-white transition-colors">{{footerEmail}}</a>
+                    <a target="_blank"
+                            rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 hover:text-white transition-colors">{{footerEmail}}</a>
                 </footer>
             `,
             content: {
@@ -537,7 +539,8 @@ export const PRODUCT_STRATEGY_DARK: Manifest = {
                             <h2 class="text-4xl font-bold mb-6">Let's build the future.</h2>
                             <p class="text-violet-100 mb-12 text-lg">Open for consulting and leadership roles.</p>
                             <div class="flex flex-col md:flex-row justify-center gap-6">
-                                <a href="mailto:{{email}}" class="bg-white text-violet-700 px-8 py-4 rounded-xl font-bold hover:bg-violet-50 transition-colors shadow-lg">
+                                <a target="_blank"
+                                 rel="noopener noreferrer" href="mailto:{{email}}" class="bg-white text-violet-700 px-8 py-4 rounded-xl font-bold hover:bg-violet-50 transition-colors shadow-lg">
                                     {{email}}
                                 </a>
                                 {{#each socials}}
@@ -571,7 +574,8 @@ export const PRODUCT_STRATEGY_DARK: Manifest = {
                          {{footerHeading}}
                     </div>
                     <p>{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 hover:text-violet-400 transition-colors">{{footerEmail}}</a>
+                    <a target="_blank"
+                        rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 hover:text-violet-400 transition-colors">{{footerEmail}}</a>
                 </footer>
             `,
             content: {

@@ -16,8 +16,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // Always include the stable anonymous ID for consistent tracking/rate-limiting
+  // stable anonymous ID for consistent tracking/rate-limiting
   config.headers['X-Anonymous-ID'] = getAnonymousId();
 
   return config;
@@ -136,7 +135,6 @@ export const aiService = {
       instruction,
       portfolioId,
       files,
-      // provider: 'openai',
     });
     return response.data;
   },
@@ -144,7 +142,6 @@ export const aiService = {
     const response = await apiClient.post('/ai/generate-code', {
       structuredContent,
       portfolioId,
-      // provider: 'openai',
     });
     return response.data;
   },
@@ -160,7 +157,7 @@ export const uploadService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data; // Now returns { url, public_id }
+    return response.data; // returns { url, public_id }
   },
   deleteFile: async (publicId: string) => {
     const response = await apiClient.delete(`/upload?public_id=${publicId}`);
@@ -201,15 +198,6 @@ export const domainService = {
     return response.data;
   },
 };
-
-// Deployment Services
-export const deployService = {
-  deploy: async (portfolioId: string, subdomain: string) => {
-    const response = await apiClient.post('/deploy', { portfolioId, subdomain });
-    return response.data;
-  },
-};
-
 
 // Deployment Services
 export const deploymentService = {
@@ -282,6 +270,26 @@ export const adminService = {
   },
   deployOnBehalf: async (portfolioId: string) => {
     const response = await apiClient.post(`/admin/portfolios/${portfolioId}/deploy`);
+    return response.data;
+  },
+  deletePortfolio: async (portfolioId: string) => {
+    const response = await apiClient.delete(`/admin/portfolios/${portfolioId}`);
+    return response.data;
+  },
+};
+
+// Session Management Services
+export const sessionService = {
+  getActiveSession: async () => {
+    try {
+      const response = await apiClient.get('/sessions/active');
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  },
+  getSession: async (id: string) => {
+    const response = await apiClient.get(`/sessions/${id}`);
     return response.data;
   },
 };

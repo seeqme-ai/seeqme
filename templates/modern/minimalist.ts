@@ -296,9 +296,7 @@ export const MINIMALIST_CREATOR: Manifest = {
                                     const message = document.getElementById('message-{{id}}').value;
                                     const mailtoSubject = encodeURIComponent('Inquiry from ' + name);
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\r\n\r\nMessage:\r\n' + message);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -319,7 +317,8 @@ export const MINIMALIST_CREATOR: Manifest = {
             componentId: 'FOOTER_MINIMAL_SIMPLE',
             template: `
                  <footer class="py-12 px-6 bg-[#fafaf9] text-center text-[#a8a29e] text-xs uppercase tracking-widest border-t border-[#e7e5e4]">
-                     <a href="mailto:{{footerEmail}}" class="block mb-6 hover:text-[#44403c] transition-colors lowercase font-serif italic text-lg tracking-normal">{{footerEmail}}</a>
+                     <a target="_blank"
+                       rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mb-6 hover:text-[#44403c] transition-colors lowercase font-serif italic text-lg tracking-normal">{{footerEmail}}</a>
                      <h3 class="font-serif mb-4 text-[#44403c] normal-case italic text-xl">{{footerHeading}}</h3>
                     <p>{{copyright}}</p>
                  </footer>

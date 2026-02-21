@@ -29,7 +29,7 @@ export const FORM_MINIMALIST = (content: any) => `
                         const message = document.getElementById('message-{{id}}').value;
                         const subject = encodeURIComponent('Contact from ' + name);
                         const body = encodeURIComponent('Message: ' + message);
-                        window.location.href = 'mailto:${content.email}?subject=' + subject + '&body=' + body;
+                        window.open('mailto:${content.email}?subject=' + subject + '&body=' + body, '_blank', 'noopener,noreferrer');
                     });
                 }
             })();
@@ -75,7 +75,7 @@ export const FORM_ELEGANT_SPLIT = (content: any) => `
                         const subject = document.getElementById('subject-{{id}}').value;
                         const message = document.getElementById('message-{{id}}').value;
                         const body = encodeURIComponent('Name: ' + name + '\\nTopic: ' + subject + '\\n\\n' + message);
-                        window.location.href = 'mailto:${content.email}?subject=' + encodeURIComponent(subject) + '&body=' + body;
+                        window.open('mailto:${content.email}?subject=' + encodeURIComponent(subject) + '&body=' + body, '_blank', 'noopener,noreferrer');
                     });
                 }
             })();
@@ -114,7 +114,7 @@ export const FORM_TECH_AUDIT = (content: any) => `
                         const system = document.getElementById('system-{{id}}').value;
                         const message = document.getElementById('message-{{id}}').value;
                         const body = encodeURIComponent('System: ' + system + '\\n\\nIssues:\\n' + message);
-                        window.location.href = 'mailto:${content.email}?subject=Audit Request&body=' + body;
+                        window.open('mailto:${content.email}?subject=Audit Request&body=' + body, '_blank', 'noopener,noreferrer');
                     });
                 }
             })();

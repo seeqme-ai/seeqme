@@ -82,7 +82,7 @@ func (w *SubscriptionWorker) DowngradeSubscription(ctx context.Context, sub mode
 	_, err := w.db.Collection("subscriptions").UpdateByID(ctx, sub.ID, bson.M{
 		"$set": bson.M{
 			"status":    "expired",
-			"planId":    "starter",
+			"planId":    "free",
 			"updatedAt": time.Now(),
 		},
 	})
@@ -97,7 +97,7 @@ func (w *SubscriptionWorker) DowngradeSubscription(ctx context.Context, sub mode
 	if err == nil && user.Email != "" {
 		emailData := map[string]interface{}{
 			"FullName": user.FullName,
-			"PlanName": "Starter (Free)",
+			"PlanName": "Free",
 			"Year":     time.Now().Year(),
 		}
 		w.Resend.SendEmail(user.Email, "Subscription Update - SeeqMe", "subscription_downgraded.html", emailData)

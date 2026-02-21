@@ -33,7 +33,6 @@ interface SectionEditorProps {
     onClose: () => void;
 }
 
-
 const isImageUrl = (value: string) => {
     if (typeof value !== 'string') return false;
     if (value.startsWith('data:image')) return true;

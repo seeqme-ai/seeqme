@@ -15,7 +15,7 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-white text-slate-600 selection:bg-teal-100 selection:text-teal-900 font-[Poppins] py-16 px-4">
       <div className="max-w-6xl mx-auto">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center mb-20"
@@ -39,7 +39,7 @@ const PrivacyPolicy = () => {
             </nav>
           </aside>
 
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -73,9 +73,9 @@ const PrivacyPolicy = () => {
               <h2 className="text-xl font-bold text-slate-900 mb-4">3. How We Use Your Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
                 {[
-                  "Create and manage your account.", "Process transactions and invoices.", "Enable user communications.", 
-                  "Manage portfolios and content.", "Improve Service efficiency.", "Analyze usage trends.", 
-                  "Notify updates to the Service.", "Offer new products/services.", "Prevent fraudulent transactions.", 
+                  "Create and manage your account.", "Process transactions and invoices.", "Enable user communications.",
+                  "Manage portfolios and content.", "Improve Service efficiency.", "Analyze usage trends.",
+                  "Notify updates to the Service.", "Offer new products/services.", "Prevent fraudulent transactions.",
                   "Request feedback/customer support.", "Resolve disputes/troubleshoot.", "Send newsletter/marketing."
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 text-sm py-1 border-b border-slate-50">
@@ -110,7 +110,12 @@ const PrivacyPolicy = () => {
             <motion.section variants={itemVariants} id="pp-section-11" className="text-center pt-10 border-t border-slate-100">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Contact Us</h2>
               <p className="mb-4 text-slate-500">For questions regarding your privacy, reach out to us:</p>
-              <a href="mailto:support@seeqme.com" className="text-teal-600 font-bold text-xl hover:text-teal-700">
+              <a
+                href="mailto:support@seeqme.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-teal-600 font-bold text-xl hover:text-teal-700"
+              >
                 support@seeqme.com
               </a>
             </motion.section>

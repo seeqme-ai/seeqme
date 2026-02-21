@@ -141,6 +141,9 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	}
 
 	streamLog := func(message string, logType string) {
+		// Mirror to SessionManager for resume capability
+		services.GlobalSessionManager.AddLog(sessionID, message)
+
 		// Always broadcast to session room for technical progress tracking
 		websocket.Manager.BroadcastToRoom("session:"+sessionID, "portfolio_log", gin.H{
 			"message":   message,
@@ -251,7 +254,7 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	if ok {
 		sessionUserID = subID.(string)
 	}
-	session := services.GlobalSessionManager.CreateSession(sessionUserID, portfolioID.Hex(), sessionID)
+	session := services.GlobalSessionManager.CreateSession(sessionUserID, portfolioID.Hex(), sessionID, "generation")
 
 	// Simplified generation call using centralized prompt from services
 	sysPrompt := services.PortfolioSystemPrompt
@@ -264,7 +267,9 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	})
 
 	if err != nil {
+		services.GlobalSessionManager.CloseSession(sessionID, "failed", "")
 		log.Printf("[AI] Generation failed: %v", err)
+		// ... (rest of error block stayed similar)
 		if strings.Contains(err.Error(), "status 429") || strings.Contains(err.Error(), "RESOURCE_EXHAUSTED") {
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"error":   "AI Quota Exceeded. Please try again later.",

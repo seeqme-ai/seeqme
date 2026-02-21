@@ -367,7 +367,8 @@ export const COMPLETE_ENGINEERING_DARK: Manifest = {
                     <div class="max-w-4xl mx-auto bg-slate-900/50 border border-slate-800 p-12 rounded-3xl text-center backdrop-blur-sm">
                         <i class="fas fa-paper-plane text-4xl text-cyan-400 mb-6"></i>
                         <h2 class="text-3xl font-bold text-white mb-6">{{title}}</h2>
-                        <a href="mailto:{{email}}" class="text-xl md:text-2xl font-mono text-cyan-400 hover:text-cyan-300 transition-colors border-b border-cyan-500/30 pb-1 inline-block mb-8">
+                        <a target="_blank"
+                         rel="noopener noreferrer" href="mailto:{{email}}" class="text-xl md:text-2xl font-mono text-cyan-400 hover:text-cyan-300 transition-colors border-b border-cyan-500/30 pb-1 inline-block mb-8">
                             {{email}}
                         </a>
                         <div class="flex justify-center gap-6">
@@ -696,7 +697,8 @@ export const CLOUD_INFRA_CYBER: Manifest = {
                 <section class="py-24 px-6 bg-black font-mono border-t border-emerald-900/30" id="contact-infra">
                     <div class="max-w-2xl mx-auto text-center">
                         <p class="text-emerald-700 mb-4">> ./initiate_contact.sh</p>
-                        <a href="mailto:{{email}}" class="text-2xl md:text-4xl font-bold text-emerald-500 hover:text-emerald-400 hover:underline decoration-emerald-800 underline-offset-8 transition-all">
+                        <a target="_blank"
+                         rel="noopener noreferrer" href="mailto:{{email}}" class="text-2xl md:text-4xl font-bold text-emerald-500 hover:text-emerald-400 hover:underline decoration-emerald-800 underline-offset-8 transition-all">
                             {{email}}
                         </a>
                         <div class="mt-12 flex justify-center gap-8">
@@ -724,7 +726,8 @@ export const CLOUD_INFRA_CYBER: Manifest = {
                 <footer class="py-6 bg-black text-center text-emerald-900 text-xs font-mono border-t border-emerald-900/20">
                     <div class="mb-2 text-emerald-500 font-bold uppercase">{{footerHeading}}</div>
                     <p>{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 hover:text-emerald-400 transition-colors">{{footerEmail}}</a>
+                    <a target="_blank"
+                         rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 hover:text-emerald-400 transition-colors">{{footerEmail}}</a>
                 </footer>
             `,
             content: {

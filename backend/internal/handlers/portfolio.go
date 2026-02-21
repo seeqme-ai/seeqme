@@ -49,6 +49,7 @@ type CreatePortfolioRequest struct {
 	JS                string      `json:"js"`
 	StructuredContent interface{} `json:"structuredContent"`
 	Placeholders      interface{} `json:"placeholders"`
+	TargetUserID      string      `json:"targetUserId,omitempty"` // For admins
 }
 
 // GetPortfolioCodeResponse defines the response structure for GetPortfolioCode
@@ -136,6 +137,26 @@ func (h *Handler) CreatePortfolio(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
+	}
+
+	// Check if admin is creating on behalf of another user
+	if req.TargetUserID != "" {
+		if authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser); ok {
+			isAdmin := false
+			for _, role := range authUser.Roles {
+				if role == "admin" {
+					isAdmin = true
+					break
+				}
+			}
+			if isAdmin {
+				targetOID, err := primitive.ObjectIDFromHex(req.TargetUserID)
+				if err == nil {
+					uOID = targetOID
+					log.Printf("[Admin] User %s creating portfolio on behalf of %s", userID, req.TargetUserID)
+				}
+			}
+		}
 	}
 
 	contentJSON, err := json.Marshal(req.Content)
@@ -228,19 +249,31 @@ func (h *Handler) GetPortfolio(c *gin.Context) {
 		"_id": portfolioObjectID,
 	}
 
-	// Adjust filter if not logged in
-	userID, exists := c.Get("userId")
-	if !exists {
-		filter["anonymousId"] = subID.(string)
-	} else {
-		uOID, err := primitive.ObjectIDFromHex(userID.(string))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
-			return
+	isAdmin := false
+	if authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser); ok {
+		for _, role := range authUser.Roles {
+			if role == "admin" {
+				isAdmin = true
+				break
+			}
 		}
-		filter["$or"] = []bson.M{
-			{"userId": uOID},
-			{"anonymousId": subID.(string)},
+	}
+
+	if !isAdmin {
+		// Adjust filter if not logged in
+		userID, exists := c.Get("userId")
+		if !exists {
+			filter["anonymousId"] = subID.(string)
+		} else {
+			uOID, err := primitive.ObjectIDFromHex(userID.(string))
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+				return
+			}
+			filter["$or"] = []bson.M{
+				{"userId": uOID},
+				{"anonymousId": subID.(string)},
+			}
 		}
 	}
 
@@ -365,20 +398,29 @@ func (h *Handler) UpdatePortfolio(c *gin.Context) {
 	// 2. Find and Verify Current Ownership
 	findFilter := bson.M{
 		"_id": portfolioObjectID,
-		"$or": []bson.M{
-			{"userId": nil}, // Placeholder for logic below
-			{"anonymousId": subID.(string)},
-		},
 	}
-	if authenticated {
-		uOID, _ := primitive.ObjectIDFromHex(userID.(string))
-		findFilter["$or"] = []bson.M{
-			{"userId": uOID},
-			{"anonymousId": subID.(string)},
+
+	isAdmin := false
+	if authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser); ok {
+		for _, role := range authUser.Roles {
+			if role == "admin" {
+				isAdmin = true
+				break
+			}
 		}
-	} else {
-		findFilter["$or"] = []bson.M{
-			{"anonymousId": subID.(string)},
+	}
+
+	if !isAdmin {
+		if authenticated {
+			uOID, _ := primitive.ObjectIDFromHex(userID.(string))
+			findFilter["$or"] = []bson.M{
+				{"userId": uOID},
+				{"anonymousId": subID.(string)},
+			}
+		} else {
+			findFilter["$or"] = []bson.M{
+				{"anonymousId": subID.(string)},
+			}
 		}
 	}
 
@@ -461,14 +503,27 @@ func (h *Handler) DeletePortfolio(c *gin.Context) {
 	filter := bson.M{
 		"_id": portfolioObjectID,
 	}
-	if authenticated {
-		uOID, _ := primitive.ObjectIDFromHex(userID.(string))
-		filter["$or"] = []bson.M{
-			{"userId": uOID},
-			{"anonymousId": subID.(string)},
+
+	isAdmin := false
+	if authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser); ok {
+		for _, role := range authUser.Roles {
+			if role == "admin" {
+				isAdmin = true
+				break
+			}
 		}
-	} else {
-		filter["anonymousId"] = subID.(string)
+	}
+
+	if !isAdmin {
+		if authenticated {
+			uOID, _ := primitive.ObjectIDFromHex(userID.(string))
+			filter["$or"] = []bson.M{
+				{"userId": uOID},
+				{"anonymousId": subID.(string)},
+			}
+		} else {
+			filter["anonymousId"] = subID.(string)
+		}
 	}
 
 	// Find and verify ownership
@@ -577,12 +632,25 @@ func (h *Handler) PublishPortfolio(c *gin.Context) {
 	}
 
 	var portfolio models.Portfolio
-	err = database.Client.Database(database.DBName).Collection("portfolios").FindOne(
-		context.Background(),
-		bson.M{"_id": portfolioObjectID, "userId": uOID},
-	).Decode(&portfolio)
+
+	isAdmin := false
+	if authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser); ok {
+		for _, role := range authUser.Roles {
+			if role == "admin" {
+				isAdmin = true
+				break
+			}
+		}
+	}
+
+	filter := bson.M{"_id": portfolioObjectID}
+	if !isAdmin {
+		filter["userId"] = uOID
+	}
+
+	err = database.Client.Database(database.DBName).Collection("portfolios").FindOne(context.Background(), filter).Decode(&portfolio)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Portfolio not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Portfolio not found or access denied"})
 		return
 	}
 

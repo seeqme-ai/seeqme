@@ -8,17 +8,17 @@ import { generatePortfolio, refinePortfolio, redesignLayout, transformPlaceholde
 import { PORTFOLIO_TEMPLATES, generateTemplateHTML } from '@/templates';
 import { useTemplate } from '@/context/template-context';
 import { useAuth } from '@/context/auth-context';
-import { portfolioService, deploymentService } from '@/services/apiService';
+import { portfolioService, deploymentService, domainService, sessionService, subscriptionService } from '@/services/apiService';
 import Terminal from './Terminal';
 import SectionEditor from '@/components/SectionEditor';
 import SuccessDrawer from '@/components/SuccessDrawer';
-import { ShieldCheck, Check, ArrowLeft, Paperclip, FileText, X, Loader } from 'lucide-react';
+import { ArrowLeft, Loader } from 'lucide-react';
 import { socketService } from '@/services/socketService';
-import { domainService } from '@/services/apiService';
 import BuilderLoader from '@/components/BuilderLoader';
 import FloatingPromptInput from '@/components/FloatingPromptInput';
 import TemplateSelectorDrawer from '@/components/TemplateSelectorDrawer';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import PaymentRequiredModal from '@/components/PaymentRequiredModal';
 import { renderManifest } from '@/utils/renderer';
 import { RegistryMetadata } from '@/registry/metadata';
 import { getAnonymousId } from '@/lib/identify';
@@ -27,14 +27,12 @@ const MotionDiv = motion.div as any;
 
 
 const PortfolioBuilder: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { initialData } = (location.state || {}) as { initialData?: { type: string; value: string; templateId?: string } };
   const portfolioIdFromState = initialData?.type === 'edit' ? initialData.value : undefined;
-
   const { selectedTemplateId, setSelectedTemplateId, synthesisInput, setSynthesisInput } = useTemplate();
-  const { user } = useAuth();
-
   const [status, setStatus] = useState<BuildStatus>('idle');
   const [data, setData] = useState<PortfolioData | null>(null);
   const [progress, setProgress] = useState(0);
@@ -58,6 +56,7 @@ const PortfolioBuilder: React.FC = () => {
   const [conflictModal, setConflictModal] = useState<{ isOpen: boolean; message: string; existingPortfolioId: string; subdomain: string } | null>(null);
   const [isDeletingExisting, setIsDeletingExisting] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isIframeLoading, setIsIframeLoading] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -75,7 +74,7 @@ const PortfolioBuilder: React.FC = () => {
   useEffect(() => {
     // Connect socket on mount (always for live build logs)
     const token = localStorage.getItem('token');
-    const stableId = user?.id || getAnonymousId();
+    const stableId = user?.id;
 
     socketService.connect(token || undefined, stableId);
 
@@ -133,9 +132,72 @@ const PortfolioBuilder: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       // Guard: Only perform initial loading if we are in idle state
-      if (status !== 'idle') return;
+      if (status !== 'idle') return
 
-      // 0. Check for portfolioId in URL (for editing existing published portfolios)
+      try {
+        const activeSession = await sessionService.getActiveSession();
+        if (activeSession && activeSession.status === 'active') {
+          addLog('Active session detected. Resuming build workflow...', 'info');
+
+          // Reconstruct logs from session
+          if (activeSession.logs && activeSession.logs.length > 0) {
+            const recoveredLogs: LogEntry[] = activeSession.logs.map((l: string) => {
+              // logs are in format "[HH:MM:SS] Message"
+              const split = l.match(/\[(.*?)\] (.*)/);
+              return {
+                timestamp: split ? split[1] : new Date().toLocaleTimeString(),
+                message: split ? split[2] : l,
+                type: l.toLowerCase().includes('error') ? 'error' : (l.toLowerCase().includes('success') ? 'success' : 'info')
+              };
+            });
+            setLogs(recoveredLogs);
+          }
+
+          // Hydrate portfolio data from session
+          if (activeSession.portfolioId) {
+            const fetchedPortfolio = await portfolioService.getPortfolio(activeSession.portfolioId);
+            const sc = fetchedPortfolio.structuredContent || transformPlaceholdersToStructuredContent(fetchedPortfolio.placeholders || []);
+            setData({
+              ...fetchedPortfolio,
+              structuredContent: sc,
+              placeholders: fetchedPortfolio.placeholders || []
+            });
+          }
+
+          // Subscribe to the recovered session room for future logs
+          socketService.subscribeToSession(activeSession.id);
+
+          setStatus('deploying'); // Shift to active state
+          setIsTerminalCollapsed(false); // Show the progress
+          return;
+        }
+      } catch (err) {
+        // No active session or fetch failed, proceed with normal init
+        console.log("No active session to resume.");
+      }
+
+      // Check for autoDeploy flag from /plans successful payment redirect
+      const queryParams = new URLSearchParams(window.location.search);
+      const autoDeploy = queryParams.get('autoDeploy') === 'true';
+
+      if (autoDeploy) {
+        // Prevent infinite loop by clearing it from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+
+        try {
+          const sub = await subscriptionService.getSubscription();
+          if (sub && sub.status === 'active' && sub.planId !== 'free') {
+            toast.success("Payment verified! Ready to deploy.");
+            // Wait for data hydration before opening modal
+            setTimeout(() => {
+              setIsDeployModalOpen(true);
+            }, 1000);
+          }
+        } catch (e) { }
+      }
+
+      // Check for portfolioId in URL (for editing existing published portfolios)
       if (portfolioIdFromState && !data) {
         try {
           addLog(`Loading portfolio ${portfolioIdFromState} from backend...`, 'info');
@@ -151,15 +213,11 @@ const PortfolioBuilder: React.FC = () => {
           addLog('Portfolio loaded successfully from backend.', 'success');
           return;
         } catch (error: any) {
-          addLog(`ERR_LOAD_PORTFOLIO: ${error?.message || 'Failed to load portfolio from backend.'}`, 'error');
-          setStatus('idle');
-          // If loading fails, clear the portfolioId from the URL to prevent infinite retries
-          navigate(location.pathname, { replace: true });
           return;
         }
       }
 
-      // 1. Check for explicit template selection or synthesis from Context
+      // Check for explicit template selection or synthesis from Context
       if (synthesisInput) {
         const fileData = (window as any)._pendingFile;
         handleBuild(synthesisInput, fileData ? [fileData] : undefined);
@@ -190,7 +248,7 @@ const PortfolioBuilder: React.FC = () => {
         }
       }
 
-      // 2. Fallback: Check for any existing draft (e.g. returning to builder via direct URL or Edit)
+      // Fallback: Check for any existing draft (e.g. returning to builder via direct URL or Edit)
       if (!data) {
         const savedDraft = localStorage.getItem('seeqme_portfolio_draft');
         if (savedDraft) {
@@ -353,7 +411,7 @@ const PortfolioBuilder: React.FC = () => {
     setLogs([]);   // Clear logs for fresh build
     setProgress(5);
     setIsTerminalCollapsed(false);
-    addLog(`Creating your professional portfolio...`, 'info');
+    addLog(`Creating your portfolio...`, 'info');
 
     const progressSteps = [
       { p: 15, m: "Initializing  core...", t: 1000 },
@@ -361,7 +419,7 @@ const PortfolioBuilder: React.FC = () => {
       { p: 45, m: "Synthesizing career narrative...", t: 4000 },
       { p: 60, m: "Architecting visual structure...", t: 6000 },
       { p: 75, m: "Optimizing layout and assets...", t: 8000 },
-      { p: 90, m: "Finalizing your digital presence...", t: 10000 }
+      { p: 90, m: "Finalizing your portfolio...", t: 10000 }
     ];
 
     const timeouts: any[] = [];
@@ -472,12 +530,15 @@ const PortfolioBuilder: React.FC = () => {
       setStatus('ready');
 
       // Fallback to local remix if AI fails
+      addLog(`LOCAL_REMIX_FB...`, 'info')
+
       const currentIdx = layouts.indexOf(currentLayout);
       const nextIdx = (currentIdx + 1) % layouts.length;
       const newLayout = layouts[nextIdx];
       setCurrentLayout(newLayout);
       const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
       // Fallback: Generate valid HTML using the local engine if AI fails
+      addLog(`LOCAL_GEN_FB...`, 'info')
       const remixedHtml = generateTemplateHTML(newLayout, template?.niche || 'Engineering', currentTheme, data.structuredContent);
       setData({ ...data, html: remixedHtml, layout: newLayout });
     }
@@ -611,6 +672,17 @@ const PortfolioBuilder: React.FC = () => {
     // Defer Auth: Show professional prompt if not authenticated
     if (!user) {
       setIsAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      const sub = await subscriptionService.getSubscription();
+      if (!sub || sub.planId === 'free' || sub.status !== 'active') {
+        setIsPaymentModalOpen(true);
+        return;
+      }
+    } catch (e) {
+      setIsPaymentModalOpen(true);
       return;
     }
 
@@ -813,38 +885,6 @@ const PortfolioBuilder: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsUploading(true);
-      setUploadProgress(0);
-      try {
-        const progressInterval = setInterval(() => {
-          setUploadProgress(prev => Math.min(prev + 10, 90));
-        }, 200);
-
-        const { uploadService } = await import('@/services/apiService');
-        const { content } = await uploadService.extractCV(file);
-
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-        setSelectedFile({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          content: content,
-          url: ''
-        });
-
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to analyze file');
-        setSelectedFile(null);
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
 
   const handleContentUpdate = (newContent: any) => {
 
@@ -1396,6 +1436,15 @@ const PortfolioBuilder: React.FC = () => {
         confirmText="Connect Account"
         cancelText="Maybe Later"
         variant="info"
+      />
+
+      <PaymentRequiredModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onProceed={() => {
+          setIsPaymentModalOpen(false);
+          navigate('/plans?redirect=/builder&autoDeploy=true');
+        }}
       />
     </div>
   );

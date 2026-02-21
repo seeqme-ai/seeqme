@@ -39,6 +39,10 @@ func main() {
 	retentionWorker := services.NewRetentionWorker(cfg)
 	go retentionWorker.Start(context.Background())
 
+	// Start backup cleanup worker (expired backups)
+	backupWorker := services.NewBackupCleanupWorker()
+	go backupWorker.Start(context.Background())
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -53,12 +57,11 @@ func main() {
 		AllowPrivateNetwork: true,
 	}))
 
-	// Apply the optional auth middleware globally.
 	// It will identify a user if a valid token is present, but won't fail otherwise.
 	r.Use(middleware.OptionalAuthMiddleware(cfg.JWTSecret))
 	r.Use(middleware.IdentityMiddleware())
 
-	// Add a custom recovery middleware to ensure CORS headers are kept
+	// custom recovery middleware to ensure CORS headers are kept
 	r.Use(func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -129,10 +132,7 @@ func main() {
 
 		ai := api.Group("/ai")
 		{
-			// Generation is public (limit enforcement handled internally or by IP/guest logic)
-			ai.POST("/generate", h.GeneratePortfolio)
-
-			// Editing and technical generation require authentication
+			ai.POST("/generate", middleware.RequiredAuthMiddleware(), h.GeneratePortfolio)
 			ai.POST("/edit", middleware.RequiredAuthMiddleware(), h.EditPortfolioWithAI)
 			ai.POST("/generate-code", middleware.RequiredAuthMiddleware(), h.GenerateCode)
 		}
@@ -144,9 +144,10 @@ func main() {
 		api.GET("/deployment/status/:id", middleware.RequiredAuthMiddleware(), h.GetDeploymentStatus)
 		api.POST("/deployment/rollback/:id", middleware.RequiredAuthMiddleware(), h.RollbackDeployment)
 
-		api.POST("/deploy", middleware.RequiredAuthMiddleware(), h.DeployHandler)
+		// Session Management
+		api.GET("/sessions/active", middleware.RequiredAuthMiddleware(), h.GetActiveSession)
+		api.GET("/sessions/:id", middleware.RequiredAuthMiddleware(), h.GetSession)
 
-		// Public Upload & CV Analysis (Rate limiting recommended for production)
 		api.POST("/upload", h.UploadFile)
 		api.POST("/cv/extract", h.ExtractCVContent)
 
@@ -159,7 +160,6 @@ func main() {
 			admin.PUT("/system-config", h.UpdateSystemConfig)
 			admin.POST("/system-config/reload", h.ReloadSystemConfig)
 
-			// New Admin Suite Endpoints
 			admin.GET("/users", h.AdminGetUsers)
 			admin.GET("/portfolios", h.AdminGetAllPortfolios)
 			admin.POST("/portfolios/:id/deploy", h.AdminDeployPortfolio)
@@ -174,13 +174,13 @@ func main() {
 
 	}
 
-	// Setup static file serving for production after API routes
+	// Setup static file serving for production
 	setupStaticServing(r)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "healthy",
-			"service": "seeqme-backend",
+			"service": "All services are jiggy😁",
 		})
 	})
 
@@ -193,7 +193,6 @@ func main() {
 	}
 }
 
-// setupStaticServing configures Gin to serve frontend static files and handle SPA routing.
 // setupStaticServing configures Gin to serve frontend static files and handle SPA routing.
 func setupStaticServing(r *gin.Engine) {
 	// Helper to find the correct static file path

@@ -337,7 +337,7 @@ export const STARTUP_LANDING: Manifest = {
                                 <input type="email" id="email-{{id}}" placeholder="Enter your email" required class="w-full px-6 py-4 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-400" />
                                 <button type="submit" class="w-full px-6 py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors">Book Strategy Call</button>
                              </form>
-                             <p class="mt-6 text-sm text-blue-200">Or email me at <a href="mailto:{{email}}" class="underline hover:text-white">{{email}}</a></p>
+                             <p class="mt-6 text-sm text-blue-200">Or email me at <a target="_blank" rel="noopener noreferrer" href="mailto:{{email}}" class="underline hover:text-white">{{email}}</a></p>
                          </div>
                     </div>
                     <script>
@@ -350,9 +350,7 @@ export const STARTUP_LANDING: Manifest = {
                                     const subject = 'Strategy Call Request';
                                     const mailtoSubject = encodeURIComponent(subject);
                                     const mailtoBody = encodeURIComponent('I would like to book a strategy call.\r\n\r\nMy Email: ' + email);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -374,7 +372,8 @@ export const STARTUP_LANDING: Manifest = {
                 <footer class="py-12 text-center text-slate-400 text-sm">
                     <div class="mb-4 text-slate-900 font-bold uppercase">{{footerHeading}}</div>
                     <p>{{copyright}}</p>
-                    <a href="mailto:{{footerEmail}}" class="block mt-2 hover:text-blue-600 transition-colors">{{footerEmail}}</a>
+                    <a target="_blank"
+                           rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mt-2 hover:text-blue-600 transition-colors">{{footerEmail}}</a>
                 </footer>
             `,
             content: {

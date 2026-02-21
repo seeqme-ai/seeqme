@@ -203,11 +203,11 @@ type Typography struct {
 }
 
 type ManifestSection struct {
-	ID          string          `bson:"id" json:"id"`
-	Type        string          `bson:"type" json:"type"`
-	ComponentID string          `bson:"componentId" json:"componentId"`
-	Content     interface{}     `bson:"content" json:"content"`
-	Settings    SectionSettings `bson:"settings" json:"settings"`
+	ID          string           `bson:"id" json:"id"`
+	Type        string           `bson:"type" json:"type"`
+	ComponentID string           `bson:"componentId" json:"componentId"`
+	Content     interface{}      `bson:"content" json:"content"`
+	Settings    *SectionSettings `bson:"settings,omitempty" json:"settings,omitempty"`
 }
 type SectionSettings struct {
 	IsVisible bool   `bson:"isVisible" json:"isVisible"`

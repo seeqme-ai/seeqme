@@ -399,9 +399,7 @@ export const DEV_BRUTALIST: Manifest = {
                                     const message = document.getElementById('message-{{id}}').value;
                                     const mailtoSubject = encodeURIComponent('Inquiry: ' + subject + ' (from ' + name + ')');
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\r\n\r\nMessage:\r\n' + message);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -422,7 +420,8 @@ export const DEV_BRUTALIST: Manifest = {
             template: `
                 <footer class="bg-black text-[#00ff00] p-8 md:p-12 text-center font-mono text-xs border-t-2 border-[#00ff00]">
                     <div class="mb-4 text-2xl font-bold">{{footerHeading}}</div>
-                    <a href="mailto:{{footerEmail}}" class="inline-block border border-[#00ff00] px-4 py-2 mb-8 hover:bg-[#00ff00] hover:text-black transition-colors">
+                    <a target="_blank"
+                            rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="inline-block border border-[#00ff00] px-4 py-2 mb-8 hover:bg-[#00ff00] hover:text-black transition-colors">
                         {{footerEmail}}
                     </a>
                     <p>{{copyright}}</p>

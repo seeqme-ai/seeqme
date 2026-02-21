@@ -23,6 +23,7 @@ import {
 import { Helmet } from 'react-helmet-async';
 import DashboardLayout from '../components/DashboardLayout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Skeleton } from '../components/ui/skeleton';
 import { Portfolio } from '../types';
 
 interface AnalyticsData {
@@ -105,9 +106,128 @@ const AnalyticsDashboard: React.FC = () => {
 
     if (loading) return (
         <DashboardLayout>
-            <div className="h-full flex flex-col items-center justify-center gap-4">
-                <Loader className="text-teal-500 animate-spin" />
+            <div className="min-h-screen max-w-7xl mx-auto py-4 pb-24 space-y-8">
+                {/* DESIGNER HEADER SKELETON */}
+                <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                    <div className="space-y-4 w-full sm:w-80">
+                        <div className="flex items-center gap-3">
+                            <Skeleton className="w-5 h-5 rounded-md bg-teal-500/10 animate-pulse" />
+                            <Skeleton className="h-4 w-32 rounded-lg bg-teal-500/5 animate-pulse" />
+                        </div>
+                        <Skeleton className="h-10 w-full sm:w-[80%] rounded-2xl bg-zinc-100" />
+                    </div>
 
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                        <Skeleton className="h-14 w-full sm:w-80 rounded-[1.25rem] border border-zinc-100/50 shadow-sm" />
+                        <Skeleton className="h-14 w-full sm:w-36 rounded-[1.25rem] bg-teal-500/5" />
+                    </div>
+                </header>
+
+                {/* DESIGNER METRICS SKELETON */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                        { color: "teal", delay: "delay-0", w: "w-[40%]" },
+                        { color: "blue", delay: "delay-75", w: "w-[60%]" },
+                        { color: "orange", delay: "delay-100", w: "w-[50%]" },
+                        { color: "emerald", delay: "delay-150", w: "w-[30%]" }
+                    ].map((config, i) => (
+                        <div key={i} className="bg-white border border-zinc-100/80 p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between h-[180px] relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-6 opacity-[0.02] transform group-hover:scale-110 transition-transform duration-500">
+                                <Activity className={`w-32 h-32 text-${config.color}-500`} />
+                            </div>
+                            <div className="flex justify-between items-start mb-6 w-full relative z-10">
+                                <Skeleton className={`h-14 w-14 rounded-2xl bg-${config.color}-500/10 ${config.delay}`} />
+                                <Skeleton className={`h-6 w-20 rounded-lg bg-${config.color}-500/5 ${config.delay}`} />
+                            </div>
+                            <div className="space-y-3 mt-auto relative z-10">
+                                <Skeleton className={`h-3 w-24 rounded-full bg-zinc-100 ${config.delay}`} />
+                                <Skeleton className={`h-10 ${config.w} rounded-xl bg-zinc-200/60 ${config.delay}`} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* DESIGNER CHARTS & SIDEBAR SKELETON */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Chart Area */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white border border-zinc-100/80 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.02)] min-h-[500px] flex flex-col relative overflow-hidden">
+                            {/* Decorative background grid */}
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20"></div>
+
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12 w-full relative z-10">
+                                <div className="space-y-3">
+                                    <Skeleton className="h-8 w-48 rounded-xl bg-zinc-200/70" />
+                                    <Skeleton className="h-4 w-36 rounded-lg bg-zinc-100" />
+                                </div>
+                                <div className="flex gap-4 p-2 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                    <Skeleton className="h-10 w-24 rounded-xl bg-teal-500/10" />
+                                    <Skeleton className="h-10 w-24 rounded-xl bg-blue-500/10" />
+                                </div>
+                            </div>
+
+                            {/* Simulated Area Chart Path with Skeletons */}
+                            <div className="flex-1 w-full relative z-10 flex items-end justify-between gap-2 pb-6 pt-10">
+                                {[30, 45, 25, 60, 40, 75, 50, 85, 65, 90, 70, 95].map((height, i) => (
+                                    <div key={i} className="w-full flex justify-center group">
+                                        <Skeleton
+                                            style={{ height: `${height}%` }}
+                                            className="w-full max-w-[3rem] rounded-t-xl bg-gradient-to-t from-teal-500/5 to-teal-500/20 origin-bottom animate-in zoom-in duration-700 fade-in"
+                                        />
+                                    </div>
+                                ))}
+                                {/* X-axis line mock */}
+                                <div className="absolute bottom-4 left-0 right-0 flex justify-between px-2">
+                                    {[1, 2, 3, 4, 5, 6, 7].map(j => <Skeleton key={j} className="h-2 w-8 rounded-full bg-zinc-100" />)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Sidebar components */}
+                    <div className="space-y-8">
+                        {/* Global Reach */}
+                        <div className="bg-white border border-zinc-100/80 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <div className="flex items-center gap-4 mb-8">
+                                <Skeleton className="w-12 h-12 rounded-[1rem] bg-purple-500/10" />
+                                <Skeleton className="h-7 w-36 rounded-xl bg-zinc-200/60" />
+                            </div>
+                            <div className="space-y-7 mt-6">
+                                {[1, 2, 3, 4, 5].map((i, index) => (
+                                    <div key={i} className="flex justify-between items-center w-full">
+                                        <div className="flex items-center gap-4 w-full">
+                                            <Skeleton className="w-10 h-10 rounded-xl flex-shrink-0 bg-zinc-100" />
+                                            <div className="space-y-2.5 w-1/2">
+                                                <Skeleton className="h-4 w-28 rounded-lg bg-zinc-200/70" />
+                                                <Skeleton className="h-2.5 w-16 rounded-full bg-zinc-100" />
+                                            </div>
+                                        </div>
+                                        <div className="w-24 h-1.5 bg-zinc-50 rounded-full overflow-hidden flex justify-end">
+                                            <Skeleton className="h-full rounded-full bg-teal-500/20" style={{ width: `${100 - (index * 15)}%` }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Devices */}
+                        <div className="bg-white border border-zinc-100/80 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                            <div className="flex items-center gap-4 mb-8">
+                                <Skeleton className="w-12 h-12 rounded-[1rem] bg-orange-500/10" />
+                                <Skeleton className="h-7 w-28 rounded-xl bg-zinc-200/60" />
+                            </div>
+                            <div className="grid grid-cols-3 gap-3 mt-6">
+                                {['Desktop', 'Mobile', 'Tablet'].map((type, i) => (
+                                    <div key={i} className="bg-zinc-50/50 p-5 rounded-[1.25rem] border border-zinc-100 flex flex-col items-center justify-center gap-3">
+                                        <Skeleton className="w-8 h-8 rounded-full bg-zinc-200/50" />
+                                        <Skeleton className="h-2 w-12 rounded-full bg-zinc-200/40" />
+                                        <Skeleton className="h-7 w-14 rounded-xl bg-zinc-200/80 mt-1" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </DashboardLayout>
     );
@@ -187,7 +307,6 @@ const AnalyticsDashboard: React.FC = () => {
 
     return (
         <DashboardLayout>
-            return (
             <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-teal-500/20">
                 <Helmet>
                     <title>Analytics Dashboard - SeeqMe AI</title>

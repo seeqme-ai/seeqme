@@ -368,9 +368,7 @@ export const GRID_ARCHITECT: Manifest = {
                                     const message = document.getElementById('message-{{id}}').value;
                                     const mailtoSubject = encodeURIComponent('Inquiry: ' + subject + ' (from ' + name + ')');
                                     const mailtoBody = encodeURIComponent('Name: ' + name + '\r\n\r\nMessage:\r\n' + message);
-                                    const link = document.createElement('a');
-                                    link.href = 'mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody;
-                                    link.click();
+                                    window.open('mailto:{{email}}?subject=' + mailtoSubject + '&body=' + mailtoBody, '_blank', 'noopener,noreferrer');
                                 });
                             }
                         })();
@@ -392,7 +390,8 @@ export const GRID_ARCHITECT: Manifest = {
                 <footer class="p-4 bg-[#e5e5e5]">
                     <div class="bg-white p-12 text-center">
                         <div class="font-bold text-2xl mb-4">{{footerHeading}}</div>
-                         <a href="mailto:{{footerEmail}}" class="block mb-8 text-sm font-mono text-gray-500 uppercase hover:text-black transition-colors">
+                         <a target="_blank"
+                           rel="noopener noreferrer" href="mailto:{{footerEmail}}" class="block mb-8 text-sm font-mono text-gray-500 uppercase hover:text-black transition-colors">
                             {{footerEmail}}
                          </a>
                          <p class="text-xs text-gray-400">{{copyright}}</p>
