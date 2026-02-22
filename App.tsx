@@ -24,6 +24,7 @@ import { Loader } from 'lucide-react';
 import Templates from './pages/Templates';
 import MainLayout from './components/MainLayout';
 import SessionExpiredModal from './components/SessionExpiredModal';
+import TemplatePreview from './pages/TemplatePreview';
 
 const AdminRoute = ({ children }: { children: React.ReactElement }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
@@ -145,6 +146,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/portfolio/:id/template-preview"
+          element={
+            <ProtectedRoute>
+              <TemplatePreview />
             </ProtectedRoute>
           }
         />

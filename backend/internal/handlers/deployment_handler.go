@@ -557,11 +557,19 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		return
 	}
 
-	// Check user plan for branding
-	userPlan, _ := userDoc["plan"].(string)
-	isFreePlan := userPlan == "" || userPlan == "free"
+	// Check subscription plan for branding
+	planId := ""
+	var subscription models.Subscription
+	subErr := database.Client.Database(database.DBName).
+		Collection("subscriptions").
+		FindOne(context.Background(), bson.M{"userId": userIDObj, "status": "active"}).
+		Decode(&subscription)
+	if subErr == nil {
+		planId = strings.ToLower(subscription.PlanID)
+	}
+	showBranding := planId == "pro"
 	brandingHTML := ""
-	if isFreePlan {
+	if showBranding {
 		brandingHTML = `
 		<div style="text-align: center; padding: 20px; font-family: sans-serif; opacity: 0.6; font-size: 12px;">
 			<a href="https://seeqme.com" target="_blank" style="color: inherit; text-decoration: none;">

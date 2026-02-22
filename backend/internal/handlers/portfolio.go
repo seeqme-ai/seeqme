@@ -116,7 +116,48 @@ func (h *Handler) GetPortfolios(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"portfolios": portfolios})
+	// Determine if each portfolio has previous versions
+	versionCounts := map[primitive.ObjectID]int{}
+	if len(portfolios) > 0 {
+		ids := make([]primitive.ObjectID, 0, len(portfolios))
+		for _, p := range portfolios {
+			ids = append(ids, p.ID)
+		}
+
+		pipeline := bson.A{
+			bson.M{"$match": bson.M{"portfolioId": bson.M{"$in": ids}}},
+			bson.M{"$group": bson.M{"_id": "$portfolioId", "count": bson.M{"$sum": 1}}},
+		}
+
+		versionCursor, err := database.Client.Database(database.DBName).Collection("portfolio_versions").Aggregate(context.Background(), pipeline)
+		if err == nil {
+			var results []struct {
+				ID    primitive.ObjectID `bson:"_id"`
+				Count int                `bson:"count"`
+			}
+			if err := versionCursor.All(context.Background(), &results); err == nil {
+				for _, r := range results {
+					versionCounts[r.ID] = r.Count
+				}
+			}
+			versionCursor.Close(context.Background())
+		}
+	}
+
+	type PortfolioWithMeta struct {
+		models.Portfolio
+		HasPreviousVersion bool `json:"hasPreviousVersion"`
+	}
+
+	enriched := make([]PortfolioWithMeta, 0, len(portfolios))
+	for _, p := range portfolios {
+		enriched = append(enriched, PortfolioWithMeta{
+			Portfolio:         p,
+			HasPreviousVersion: versionCounts[p.ID] > 0,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"portfolios": enriched})
 }
 
 // CreatePortfolio handles portfolio creation

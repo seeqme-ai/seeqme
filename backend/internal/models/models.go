@@ -85,6 +85,20 @@ type PortfolioVersion struct {
 	CreatedAt         time.Time          `bson:"createdAt" json:"createdAt"`
 }
 
+type AdminTemplate struct {
+	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	TemplateID        string             `bson:"templateId" json:"templateId"`
+	Name              string             `bson:"name" json:"name"`
+	Niche             string             `bson:"niche" json:"niche"`
+	Preview           string             `bson:"preview" json:"preview"`
+	HTML              string             `bson:"html,omitempty" json:"html,omitempty"`
+	CSS               string             `bson:"css,omitempty" json:"css,omitempty"`
+	JS                string             `bson:"js,omitempty" json:"js,omitempty"`
+	StructuredContent primitive.M        `bson:"structuredContent,omitempty" json:"structuredContent,omitempty"`
+	CreatedAt         time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+
 type Template struct {
 	ID            string                 `bson:"_id" json:"id"`
 	Name          string                 `bson:"name" json:"name"`

@@ -343,8 +343,6 @@ export async function refinePortfolio(currentData: PortfolioData, prompt: string
     const updatedStructuredContent = await aiService.editPortfolio(currentData.structuredContent, prompt, currentData.id, files);
 
     addLog(`Synthesizing updated visual structure...`);
-    // After content is edited, we regenerate the code
-    const finalCode = await aiService.generateCode(updatedStructuredContent, currentData.id);
 
     // Normalize sections and ensure metadata is preserved
     const normalizedSections = (updatedStructuredContent.sections || []).map((section: any) => ({
@@ -356,7 +354,7 @@ export async function refinePortfolio(currentData: PortfolioData, prompt: string
     }));
 
     // CRITICAL: If the AI returned a Manifest structure, we keep it but ensure sections are normalized
-    const sc = {
+    let sc = {
       ...updatedStructuredContent,
       sections: normalizedSections,
       metadata: updatedStructuredContent.metadata || currentData.structuredContent?.metadata || {
@@ -364,6 +362,21 @@ export async function refinePortfolio(currentData: PortfolioData, prompt: string
         generatedAt: new Date().toISOString()
       }
     };
+
+    // Preserve user-entered content on refinement (UI polish only)
+    if (currentData.structuredContent?.sections && sc.sections) {
+      sc = {
+        ...sc,
+        sections: mergeSectionsPreserveContent(
+          currentData.structuredContent.sections,
+          sc.sections,
+          { preserveComponentId: true }
+        )
+      };
+    }
+
+    // After content is merged safely, regenerate code
+    const finalCode = await aiService.generateCode(sc, currentData.id);
 
     return {
       ...currentData,
@@ -432,17 +445,11 @@ export async function redesignLayout(currentData: PortfolioData) {
     // If AI changed content fields during remix, we revert them to original structuredContent
     // while keeping the new componentId and styles.
     if (structuredContent?.sections && currentData.structuredContent?.sections) {
-
-      structuredContent.sections = structuredContent.sections.map((section: any) => {
-        const originalSection = currentData.structuredContent.sections.find((s: any) => s.type === section.type);
-        if (originalSection) {
-          return {
-            ...section,
-            content: originalSection.content // Restore original content fields
-          };
-        }
-        return section;
-      });
+      structuredContent.sections = mergeSectionsPreserveContent(
+        currentData.structuredContent.sections,
+        structuredContent.sections,
+        { preserveComponentId: false }
+      );
     }
 
     const sc = normalizeToManifest(structuredContent || currentData.structuredContent, currentData.layout);
@@ -467,8 +474,38 @@ function addLog(message: string, type: 'info' | 'success' | 'error' = 'info') {
 
 }
 
+function mergeSectionsPreserveContent(
+  originalSections: any[],
+  updatedSections: any[],
+  options: { preserveComponentId: boolean }
+) {
+  const originalById = new Map<string, any>();
+  const originalByType = new Map<string, any[]>();
+
+  originalSections.forEach((section: any) => {
+    if (section?.id) originalById.set(section.id, section);
+    const type = section?.type || '';
+    if (!originalByType.has(type)) originalByType.set(type, []);
+    originalByType.get(type)!.push(section);
+  });
+
+  return updatedSections.map((section: any) => {
+    let original = section?.id ? originalById.get(section.id) : undefined;
+    if (!original && section?.type && originalByType.get(section.type)?.length) {
+      original = originalByType.get(section.type)!.shift();
+    }
+    if (!original) return section;
+
+    return {
+      ...section,
+      componentId: options.preserveComponentId ? (original.componentId || section.componentId) : section.componentId,
+      template: options.preserveComponentId ? (original.template || section.template) : section.template,
+      content: original.content ?? section.content
+    };
+  });
+}
 // Normalizes content fields to match what Registry components expect
-function normalizeSectionContent(componentId: string, content: any): any {
+export function normalizeSectionContent(componentId: string, content: any): any {
   if (!content) return {};
   const id = componentId ? componentId.toUpperCase() : '';
 
@@ -552,11 +589,40 @@ function normalizeSectionContent(componentId: string, content: any): any {
   // STATS normalization
   if (id.startsWith('STATS')) {
     const items = content.stats || content.items || [];
+    const milestones = content.milestones || content.timeline || [];
+    const skills = content.skills || content.progress || [];
+    const achievements = content.achievements || content.badges || [];
+    const before = content.before || [];
+    const after = content.after || [];
     return {
       title: content.title || content.heading || 'Impact',
+      subtitle: content.subtitle || content.label || '',
       stats: Array.isArray(items) ? items.map((s: any) => ({
         label: s.label || s.title || '',
-        value: s.value || s.count || '0'
+        value: s.value || s.count || '0',
+        description: s.description || s.desc || ''
+      })) : [],
+      milestones: Array.isArray(milestones) ? milestones.map((m: any) => ({
+        year: m.year || m.date || '',
+        metric: m.metric || m.value || '',
+        description: m.description || m.desc || ''
+      })) : [],
+      skills: Array.isArray(skills) ? skills.map((s: any) => ({
+        name: s.name || s.label || '',
+        percentage: s.percentage || s.value || 0
+      })) : [],
+      achievements: Array.isArray(achievements) ? achievements.map((a: any) => ({
+        icon: a.icon || 'Trophy',
+        title: a.title || a.label || '',
+        year: a.year || a.date || ''
+      })) : [],
+      before: Array.isArray(before) ? before.map((b: any) => ({
+        metric: b.metric || b.label || '',
+        value: b.value || ''
+      })) : [],
+      after: Array.isArray(after) ? after.map((b: any) => ({
+        metric: b.metric || b.label || '',
+        value: b.value || ''
       })) : [],
       ...content
     };
@@ -576,11 +642,137 @@ function normalizeSectionContent(componentId: string, content: any): any {
     };
   }
 
+  // PRICING normalization
+  if (id.startsWith('PRICING')) {
+    const items = content.items || content.plans || [];
+    return {
+      title: content.title || content.heading || 'Pricing',
+      items: Array.isArray(items) ? items.map((p: any) => ({
+        name: p.name || p.title || '',
+        price: p.price || p.amount || '',
+        period: p.period || p.billing || 'mo',
+        features: Array.isArray(p.features) ? p.features : [],
+        featured: !!p.featured,
+        link: p.link || p.url || '#contact'
+      })) : [],
+      plans: Array.isArray(items) ? items.map((p: any) => ({
+        name: p.name || p.title || '',
+        price: p.price || p.amount || '',
+        hours: p.hours || '',
+        featured: !!p.featured
+      })) : [],
+      ...content
+    };
+  }
+
+  // LOGOS normalization
+  if (id.startsWith('LOGOS')) {
+    const items = content.logos || content.items || content.partners || [];
+    return {
+      title: content.title || content.heading || 'As seen in',
+      logos: Array.isArray(items) ? items.map((l: any) => ({
+        url: l.url || l.image || l.logo || l,
+        name: l.name || l.label || ''
+      })) : [],
+      partners: Array.isArray(items) ? items.map((l: any) => ({
+        name: l.name || l.label || '',
+        icon: l.icon || ''
+      })) : [],
+      ...content
+    };
+  }
+
+  // PROCESS normalization
+  if (id.startsWith('PROCESS')) {
+    const steps = content.steps || content.items || [];
+    return {
+      title: content.title || content.heading || 'Process',
+      description: content.description || content.desc || '',
+      steps: Array.isArray(steps) ? steps.map((s: any) => ({
+        title: s.title || s.name || '',
+        description: s.description || s.desc || ''
+      })) : [],
+      ...content
+    };
+  }
+
+  // GALLERY normalization
+  if (id.startsWith('GALLERY')) {
+    const items = content.items || content.images || content.gallery || [];
+    return {
+      title: content.title || content.heading || 'Gallery',
+      label: content.label || content.subtitle || 'Artifacts',
+      items: Array.isArray(items) ? items.map((g: any) => ({
+        image: g.image || g.url || g.src || '',
+        title: g.title || g.name || '',
+        category: g.category || g.tag || ''
+      })) : [],
+      ...content
+    };
+  }
+
+  // TEAM normalization
+  if (id.startsWith('TEAM')) {
+    const members = content.members || content.items || [];
+    return {
+      title: content.title || content.heading || 'Team',
+      description: content.description || content.desc || '',
+      members: Array.isArray(members) ? members.map((m: any) => ({
+        name: m.name || m.title || '',
+        role: m.role || m.position || '',
+        image: m.image || m.avatar || '',
+        socials: Array.isArray(m.socials) ? m.socials : []
+      })) : [],
+      ...content
+    };
+  }
+
+  // FAQ normalization
+  if (id.startsWith('FAQ')) {
+    const items = content.items || content.faqs || content.questions || [];
+    return {
+      title: content.title || content.heading || 'FAQs',
+      items: Array.isArray(items) ? items.map((f: any) => ({
+        question: f.question || f.title || '',
+        answer: f.answer || f.content || f.description || ''
+      })) : [],
+      ...content
+    };
+  }
+
+  // CTA normalization
+  if (id.startsWith('CTA')) {
+    return {
+      title: content.title || content.heading || 'Lets Work Together',
+      subtitle: content.subtitle || content.label || '',
+      description: content.description || content.desc || '',
+      cta: content.cta || {
+        text: content.ctaText || 'Get Started',
+        link: content.ctaLink || '#contact'
+      },
+      ...content
+    };
+  }
+
+  // TESTIMONIAL normalization
+  if (id.startsWith('TESTIMONIAL')) {
+    const items = content.items || content.testimonials || [];
+    return {
+      title: content.title || content.heading || 'Testimonials',
+      items: Array.isArray(items) ? items.map((t: any) => ({
+        text: t.text || t.content || t.quote || '',
+        author: t.author || t.name || '',
+        role: t.role || t.title || ''
+      })) : [],
+      ...content
+    };
+  }
+
   return content;
 }
 
 // Infer section type from component ID (e.g., HERO_CYBER_MONO → hero)
-function inferTypeFromComponentId(componentId: string): string {
+export function inferTypeFromComponentId(componentId: string): string {
   if (!componentId) return 'unknown';
   const id = componentId.toUpperCase();
   if (id.startsWith('HERO')) return 'hero';
@@ -1120,3 +1312,4 @@ export function normalizeToManifest(flatContent: any, layout: string = 'MODERN_V
     sections
   };
 }
+

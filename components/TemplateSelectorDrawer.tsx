@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PORTFOLIO_TEMPLATES } from '@/templates';
+import { usePublicTemplates } from '@/hooks/usePublicTemplates';
 import { Layout, X, Plus, Layers, Search, Sparkles } from 'lucide-react';
 import { RegistryMetadata } from '@/registry/metadata';
 
@@ -15,8 +15,28 @@ interface TemplateSelectorProps {
 const TemplateSelectorDrawer: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, onSelect, onAddBlock, currentTemplateId }) => {
     const [activeTab, setActiveTab] = useState<'templates' | 'blocks'>('templates');
     const [searchQuery, setSearchQuery] = useState('');
+    const { templates } = usePublicTemplates();
 
-    const categories = ['header', 'hero', 'about', 'skills', 'experience', 'projects', 'testimonials', 'contact', 'footer', 'services'];
+    const categories = [
+        'header',
+        'hero',
+        'about',
+        'skills',
+        'experience',
+        'projects',
+        'testimonials',
+        'contact',
+        'footer',
+        'services',
+        'stats',
+        'pricing',
+        'faq',
+        'logos',
+        'process',
+        'gallery',
+        'team',
+        'cta'
+    ];
 
     const filteredBlocks = Object.values(RegistryMetadata).filter(block => {
         const matchesSearch = block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,7 +115,7 @@ const TemplateSelectorDrawer: React.FC<TemplateSelectorProps> = ({ isOpen, onClo
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                             {activeTab === 'templates' ? (
                                 <div className="space-y-4">
-                                    {PORTFOLIO_TEMPLATES.map((template) => (
+                                    {templates.map((template) => (
                                         <button
                                             key={template.id}
                                             onClick={() => {
@@ -123,6 +143,11 @@ const TemplateSelectorDrawer: React.FC<TemplateSelectorProps> = ({ isOpen, onClo
                                                         {template.niche}
                                                     </span>
                                                 </div>
+                                                {template.isNew && (
+                                                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-red-600 text-white text-[9px] font-black uppercase tracking-widest shadow">
+                                                        New
+                                                    </div>
+                                                )}
                                                 {currentTemplateId === template.id && (
                                                     <div className="absolute top-3 right-3 bg-teal-500 text-white p-1.5 rounded-full shadow-lg">
                                                         <Sparkles className="w-3 h-3" />

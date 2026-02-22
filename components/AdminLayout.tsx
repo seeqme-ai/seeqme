@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-   Users, MessageCircle, Settings,
+   Users, MessageCircle, Settings, FileEdit, Send,
     Menu, X, LogOut, Zap, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +22,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         { icon: MessageCircle, label: 'Chats', path: '/admin/chats' },
         { icon: Users, label: 'User', path: '/admin/users' },
         { icon: Globe, label: 'Portfolios', path: '/admin/portfolios' },
+        { icon: FileEdit, label: 'Templates', path: '/admin/templates' },
+        { icon: Send, label: 'Notifications', path: '/admin/notifications' },
         { icon: Settings, label: 'System Config', path: '/admin/config' },
     ];
 

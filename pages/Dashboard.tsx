@@ -246,7 +246,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
         <meta property="og:title" content="Dashboard - SeeqMe AI" />
         <meta property="og:description" content="Manage all your AI-generated portfolios, track their performance, and customize your projects on SeeqMe AI." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://seeqme.ai/dashboard" />
+        <meta property="og:url" content="https://seeqme.com/dashboard" />
       </Helmet>
       <div className="max-w-7xl mx-auto py-4 pb-24 space-y-12">
 
@@ -328,7 +328,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                       {p.status === 'completed' ? '• Published' : p.status === 'failed' ? '• Failed' : '• Draft'}
                     </Badge>
 
-                   <DropdownMenu>
+                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-slate-100 flex-shrink-0">
                           <MoreVertical className="w-3 sm:w-4 h-3 sm:h-4 text-slate-400" />
@@ -348,11 +348,14 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                             <Globe className="w-4 h-4 text-teal-600 flex-shrink-0" /> <span className="font-semibold">Connect Domain</span>
                           </DropdownMenuItem>
                         )}
-                        {p.status === 'completed' && (
+                        {p.status === 'completed' && p.hasPreviousVersion && (
                           <DropdownMenuItem onClick={() => handleRollback(p)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
                             <RefreshCw className="w-4 h-4 text-amber-600 flex-shrink-0" /> <span className="font-semibold">Rollback</span>
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem onClick={() => navigate(`/portfolio/${p.id}/template-preview`)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
+                          <Layers className="w-4 h-4 text-indigo-600 flex-shrink-0" /> <span className="font-semibold">Swap Template</span>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="my-2" />
                         <DropdownMenuItem onClick={() => setDeleteConfirm(p.id!)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-red-50 text-red-500 focus:text-red-500 cursor-pointer text-sm ">
                           <Trash2 className="w-4 h-4 flex-shrink-0" /> <span className="font-semibold">Delete</span>

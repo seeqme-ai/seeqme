@@ -59,9 +59,12 @@ export interface Template {
   preview: string;
   html: string;
   css: string;
+  js?: string;
   initialPlaceholders?: Placeholder[];
   structuredContent?: any;
   fonts?: { title: string; body: string; mono: string };
+  createdAt?: string;
+  isNew?: boolean;
 }
 
 export interface Portfolio {
@@ -79,6 +82,7 @@ export interface Portfolio {
   js?: string;
   structuredContent?: any;
   customDomain?: string;
+  hasPreviousVersion?: boolean;
 }
 
 export enum LayoutType {

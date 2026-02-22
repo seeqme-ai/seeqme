@@ -11,6 +11,7 @@ import { ref, push, onValue, serverTimestamp, set, query, limitToLast } from 'fi
 import { useAuth } from '@/context/auth-context';
 import { cloudinaryService } from '@/services/cloudinaryService';
 import { toast } from 'sonner';
+import { useLocation } from 'react-router-dom';
 
 interface Message {
     id: string;
@@ -33,8 +34,10 @@ const ChatBot: React.FC = () => {
     const [isUploading, setIsUploading] = useState(false);
 
     const { user, isAuthenticated } = useAuth();
+    const location = useLocation();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const lastReadRef = useRef<number>(0);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,11 +45,22 @@ const ChatBot: React.FC = () => {
 
 
     useEffect(() => {
+        if (!user?.id) return;
+        const stored = Number(localStorage.getItem(`chat_last_read_${user.id}`) || 0);
+        lastReadRef.current = stored;
+    }, [user?.id]);
+
+    useEffect(() => {
         if (isOpen) {
             scrollToBottom();
+            const latest = messages[messages.length - 1]?.timestamp || Date.now();
+            if (user?.id) {
+                localStorage.setItem(`chat_last_read_${user.id}`, String(latest));
+                lastReadRef.current = latest;
+            }
             setUnreadCount(0);
         }
-    }, [messages, isOpen]);
+    }, [messages, isOpen, user?.id]);
 
     useEffect(() => {
         if (!isAuthenticated || !user?.id) return;
@@ -62,14 +76,11 @@ const ChatBot: React.FC = () => {
                 })) as Message[];
 
                 const sortedMessages = messageList.sort((a, b) => a.timestamp - b.timestamp);
-
-                // Track Unread: If last message is from Admin and widget is closed
-                const lastMessage = sortedMessages[sortedMessages.length - 1];
-                if (!isOpen && lastMessage?.isAdmin) {
-                    setUnreadCount(prev => prev + 1);
-                }
-
                 setMessages(sortedMessages);
+                if (!isOpen) {
+                    const unread = sortedMessages.filter((msg) => msg.isAdmin && msg.timestamp > lastReadRef.current).length;
+                    setUnreadCount(unread);
+                }
             }
         });
 
@@ -147,7 +158,18 @@ const ChatBot: React.FC = () => {
         }
     };
 
-    if (!isAuthenticated) return null;
+    const hiddenRoutes = [
+        '/builder',
+        '/auth',
+        '/settings',
+        '/reset-password',
+        '/dashboard/settings',
+        '/admin',
+    ];
+
+    const shouldHide = hiddenRoutes.some((route) => location.pathname.startsWith(route));
+
+    if (!isAuthenticated || shouldHide) return null;
 
     return (
         <div className="fixed bottom-6 right-6 z-[10000] flex flex-col items-end pointer-events-none">
@@ -225,7 +247,7 @@ const ChatBot: React.FC = () => {
                                         `}>
                                             {msg.isAdmin && (
                                                 <p className="text-[9px] font-black uppercase tracking-tighter mb-1 opacity-40 flex items-center gap-1">
-                                                    <Shield className="w-2 h-2" /> Agent
+                                                    <Shield className="w-2 h-2" /> Kolade
                                                 </p>
                                             )}
                                             {msg.fileUrl ? (
@@ -268,7 +290,7 @@ const ChatBot: React.FC = () => {
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     placeholder="Type a message..."
-                                    className="flex-1 bg-transparent border-none text-sm focus:ring-0 placeholder:text-slate-400"
+                                    className="flex-1 bg-transparent outline-none border-none text-sm focus:ring-0 placeholder:text-slate-400"
                                 />
                                 <button
                                     type="submit"

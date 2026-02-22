@@ -89,3 +89,45 @@ func (r *Resend) SendEmail(to, subject, templateName string, data map[string]int
 
 	return nil
 }
+
+// SendRawEmail sends a raw HTML email without templates.
+func (r *Resend) SendRawEmail(to, subject, html string) error {
+	if r.apiKey == "" {
+		return fmt.Errorf("resend API key not configured")
+	}
+
+	emailReq := EmailRequest{
+		From:    r.fromEmail,
+		To:      to,
+		Subject: subject,
+		Html:    html,
+	}
+
+	jsonBody, err := json.Marshal(emailReq)
+	if err != nil {
+		return fmt.Errorf("failed to marshal email request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", "https://api.resend.com/emails", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return fmt.Errorf("failed to create resend request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+r.apiKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send email via resend: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		var errorBody map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errorBody)
+		return fmt.Errorf("resend API returned status %d: %v", resp.StatusCode, errorBody)
+	}
+
+	return nil
+}

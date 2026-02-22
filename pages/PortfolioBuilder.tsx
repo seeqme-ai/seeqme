@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import { ICONS } from '@/constants';
 import { PortfolioData, LogEntry, BuildStatus, LayoutType } from '@/types';
 import { generatePortfolio, refinePortfolio, redesignLayout, transformPlaceholdersToStructuredContent } from '@/services/portfolioAIService';
-import { PORTFOLIO_TEMPLATES, generateTemplateHTML } from '@/templates';
+import { generateTemplateHTML } from '@/templates';
+import { usePublicTemplates } from '@/hooks/usePublicTemplates';
 import { useTemplate } from '@/context/template-context';
 import { useAuth } from '@/context/auth-context';
 import { portfolioService, deploymentService, domainService, sessionService, subscriptionService } from '@/services/apiService';
@@ -65,7 +66,10 @@ const PortfolioBuilder: React.FC = () => {
   const location = useLocation();
   const { initialData } = (location.state || {}) as { initialData?: { type: string; value: string; templateId?: string } };
   const portfolioIdFromState = initialData?.type === 'edit' ? initialData.value : undefined;
+  const templateIdFromState = initialData?.type === 'template' ? (initialData.templateId || initialData.value) : undefined;
+  const portfolioIdFromQuery = new URLSearchParams(location.search).get('id') || undefined;
   const { selectedTemplateId, setSelectedTemplateId, synthesisInput, setSynthesisInput } = useTemplate();
+  const { templates: publicTemplates } = usePublicTemplates();
   const [status, setStatus] = useState<BuildStatus>('idle');
   const [data, setData] = useState<PortfolioData | null>(null);
   const [progress, setProgress] = useState(0);
@@ -257,10 +261,12 @@ const PortfolioBuilder: React.FC = () => {
       }
 
       // Check for portfolioId in URL (for editing existing published portfolios)
-      if (portfolioIdFromState && !data) {
+      const resolvedPortfolioId = portfolioIdFromState || portfolioIdFromQuery;
+      if (resolvedPortfolioId && !data) {
         try {
-          addLog(`Loading portfolio ${portfolioIdFromState} from backend...`, 'info');
-          const fetchedPortfolio = await portfolioService.getPortfolio(portfolioIdFromState);
+          setStatus('analyzing');
+          addLog(`Loading portfolio ${resolvedPortfolioId} from backend...`, 'info');
+          const fetchedPortfolio = await portfolioService.getPortfolio(resolvedPortfolioId);
           // Hydrate structuredContent if missing (legacy version)
           const structuredContent = fetchedPortfolio.structuredContent || transformPlaceholdersToStructuredContent(fetchedPortfolio.placeholders || []);
           setData({
@@ -272,8 +278,34 @@ const PortfolioBuilder: React.FC = () => {
           addLog('Portfolio loaded successfully from backend.', 'success');
           return;
         } catch (error: any) {
+          const errorMessage = error?.response?.data?.error || error?.message || 'Failed to load portfolio.';
+          toast.error(errorMessage);
+          addLog(`Failed to load portfolio: ${errorMessage}`, 'error');
+          setStatus('idle');
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
           return;
         }
+      }
+
+      const overrideTemplateId = sessionStorage.getItem('seeqme_template_override');
+      const explicitTemplateId = templateIdFromState || overrideTemplateId || undefined;
+
+      // Explicit template ID from navigation should take priority over drafts
+      if (explicitTemplateId) {
+        if (publicTemplates.length > 0) {
+          const template = publicTemplates.find(t => t.id === explicitTemplateId);
+          if (template) {
+            setSelectedTemplateId(template.id);
+            if (overrideTemplateId === template.id) {
+              sessionStorage.removeItem('seeqme_template_override');
+            }
+            loadTemplate(template.id);
+            return;
+          }
+        }
+        // Wait for templates to load instead of falling back to draft
+        return;
       }
 
       // Check for explicit template selection or synthesis from Context
@@ -285,7 +317,7 @@ const PortfolioBuilder: React.FC = () => {
       }
 
       if (selectedTemplateId) {
-        const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
+        const template = publicTemplates.find(t => t.id === selectedTemplateId);
         if (template) {
           // Priority Check: Is there a draft, and does it match this template?
           // BUT: If the user explicitly came from landing page with a fresh template selection, we should probably favor that.
@@ -336,7 +368,7 @@ const PortfolioBuilder: React.FC = () => {
     };
 
     init();
-  }, [selectedTemplateId, synthesisInput, portfolioIdFromState, navigate, location.pathname, status]);
+  }, [selectedTemplateId, synthesisInput, portfolioIdFromState, templateIdFromState, publicTemplates.length, navigate, location.pathname, status]);
 
   // Consolidate local storage, iframe, and backend sync
   useEffect(() => {
@@ -405,7 +437,7 @@ const PortfolioBuilder: React.FC = () => {
 
   const loadTemplate = (id: string) => {
     setStatus('analyzing');
-    const template = PORTFOLIO_TEMPLATES.find(t => t.id === id);
+    const template = publicTemplates.find(t => t.id === id);
     if (!template) {
       addLog(`ERR_RESOLVE: Template ${id} not found.`, 'error');
       setStatus('idle');
@@ -497,7 +529,7 @@ const PortfolioBuilder: React.FC = () => {
     });
 
     try {
-      const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
+      const template = publicTemplates.find(t => t.id === selectedTemplateId);
 
       // Determine if we have a persistent portfolio ID (not a temp one based on Date.now)
       const persistentId = data?.id && !data.id.startsWith('portfolio-') ? data.id : undefined;
@@ -603,7 +635,7 @@ const PortfolioBuilder: React.FC = () => {
       const nextIdx = (currentIdx + 1) % layouts.length;
       const newLayout = layouts[nextIdx];
       setCurrentLayout(newLayout);
-      const template = PORTFOLIO_TEMPLATES.find(t => t.id === selectedTemplateId);
+      const template = publicTemplates.find(t => t.id === selectedTemplateId);
       // Fallback: Generate valid HTML using the local engine if AI fails
       addLog(`LOCAL_GEN_FB...`, 'info')
       const remixedHtml = generateTemplateHTML(newLayout, template?.niche || 'Engineering', currentTheme, data.structuredContent);
@@ -995,6 +1027,17 @@ const PortfolioBuilder: React.FC = () => {
     let defaultContent: any = {};
 
     switch (metadata.category) {
+      case 'header':
+        defaultContent = {
+          name: 'Your Brand',
+          navLinks: [
+            { label: 'About', link: '#about' },
+            { label: 'Projects', link: '#projects' },
+            { label: 'Contact', link: '#contact' }
+          ],
+          cta: { text: 'Contact', link: '#contact' }
+        };
+        break;
       case 'hero':
         defaultContent = {
           name: 'Your Name',
@@ -1024,6 +1067,22 @@ const PortfolioBuilder: React.FC = () => {
           skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Design', 'Strategy']
         };
         break;
+      case 'services':
+        defaultContent = {
+          title: 'Services',
+          description: 'Clear, outcome-focused offerings that map to real business goals.',
+          items: [
+            { title: 'Strategy', description: 'Positioning, messaging, and growth planning.', icon: '*' },
+            { title: 'Design', description: 'Brand systems and high-converting UI.', icon: '*' },
+            { title: 'Development', description: 'Fast, modern, and scalable builds.', icon: '*' }
+          ],
+          services: [
+            { title: 'Consulting', desc: 'On-demand advisory for critical decisions.', icon: '*' },
+            { title: 'Implementation', desc: 'Hands-on execution from start to finish.', icon: '*' },
+            { title: 'Optimization', desc: 'Improve performance and conversion.', icon: '*' }
+          ]
+        };
+        break;
       case 'projects':
         defaultContent = {
           title: 'Featured Work',
@@ -1048,6 +1107,101 @@ const PortfolioBuilder: React.FC = () => {
               period: '2020 - Present',
               description: 'Key responsibilities and achievements in this role.'
             }
+          ]
+        };
+        break;
+      case 'stats':
+        defaultContent = {
+          title: 'Impact Metrics',
+          stats: [
+            { label: 'Projects', value: '48+' },
+            { label: 'Clients', value: '22' },
+            { label: 'Years', value: '6' },
+            { label: 'Awards', value: '9' }
+          ],
+          milestones: [
+            { year: '2021', metric: '250K', description: 'Reached first major milestone' },
+            { year: '2023', metric: '750K', description: 'Scaled to new markets' },
+            { year: '2025', metric: '1M+', description: 'Sustained growth and impact' }
+          ],
+          before: [
+            { metric: 'Load Time', value: '3.8s' },
+            { metric: 'Conversion', value: '2.4%' },
+            { metric: 'Users', value: '12K/mo' }
+          ],
+          after: [
+            { metric: 'Load Time', value: '0.9s' },
+            { metric: 'Conversion', value: '7.9%' },
+            { metric: 'Users', value: '55K/mo' }
+          ],
+          skills: [
+            { name: 'Frontend', percentage: 92 },
+            { name: 'Backend', percentage: 86 },
+            { name: 'Design', percentage: 88 }
+          ]
+        };
+        break;
+      case 'pricing':
+        defaultContent = {
+          title: 'Pricing',
+          plans: [
+            { name: 'Starter', price: '$499', features: ['Discovery', '1 Concept', 'Delivery'] },
+            { name: 'Growth', price: '$1,499', features: ['Strategy', '3 Concepts', 'Revisions'] },
+            { name: 'Scale', price: 'Custom', features: ['Full Stack', 'Ongoing Support', 'Priority'] }
+          ]
+        };
+        break;
+      case 'faq':
+        defaultContent = {
+          title: 'FAQ',
+          items: [
+            { question: 'How long does a project take?', answer: 'Most engagements run 2-6 weeks depending on scope.' },
+            { question: 'Do you offer ongoing support?', answer: 'Yes. Retainers and optimization plans are available.' }
+          ]
+        };
+        break;
+      case 'logos':
+        defaultContent = {
+          title: 'Trusted By',
+          logos: [
+            { name: 'Client One', url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=200' },
+            { name: 'Client Two', url: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=200' },
+            { name: 'Client Three', url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=200' }
+          ],
+          partners: [
+            { name: 'Client One', icon: 'fab fa-github' },
+            { name: 'Client Two', icon: 'fab fa-figma' },
+            { name: 'Client Three', icon: 'fab fa-slack' }
+          ]
+        };
+        break;
+      case 'process':
+        defaultContent = {
+          title: 'Process',
+          steps: [
+            { title: 'Discover', description: 'Align goals, define scope, and set success metrics.' },
+            { title: 'Design', description: 'Create the system and validate with feedback.' },
+            { title: 'Deliver', description: 'Launch, measure, and iterate.' }
+          ]
+        };
+        break;
+      case 'gallery':
+        defaultContent = {
+          title: 'Gallery',
+          items: [
+            { title: 'Project One', image: 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=800' },
+            { title: 'Project Two', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800' },
+            { title: 'Project Three', image: 'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?w=800' }
+          ]
+        };
+        break;
+      case 'team':
+        defaultContent = {
+          title: 'Team',
+          members: [
+            { name: 'Alex Rivera', role: 'Founder', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400' },
+            { name: 'Jordan Lee', role: 'Design Lead', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400' },
+            { name: 'Sam Kim', role: 'Engineering', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400' }
           ]
         };
         break;
@@ -1077,6 +1231,15 @@ const PortfolioBuilder: React.FC = () => {
               image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
             }
           ]
+        };
+        break;
+      case 'cta':
+        defaultContent = {
+          title: 'Ready to work together?',
+          description: 'Let us build something impactful. Tell me about your project.',
+          buttonText: 'Start a Project',
+          buttonLink: '#contact',
+          image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800'
         };
         break;
       default:

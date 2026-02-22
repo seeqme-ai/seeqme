@@ -1,24 +1,69 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-    Users, Layout, MessageCircle, Shield, Search, ExternalLink,
-    CheckCircle, Send, Paperclip, Loader2,
-    Trash2, Zap, FileEdit, Plus, ArrowLeft,
+    Users,
+    Layout,
+    MessageCircle,
+    Search,
+    Send,
+    Zap,
+    FileEdit,
+    Plus,
     Loader,
     Settings
 } from 'lucide-react';
 import apiClient, { adminService } from '@/services/apiService';
 import { db } from '@/lib/firebase';
-import { ref, onValue, push, serverTimestamp, update, query, limitToLast } from 'firebase/database';
+import { ref, onValue, push, serverTimestamp, update, query, limitToLast, remove } from 'firebase/database';
 import { useAuth } from '@/context/auth-context';
 import { toast } from 'sonner';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import AdminLayout from '@/components/AdminLayout';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid,
-    Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area
-} from 'recharts';
+import AdminNotificationsTab from '@/pages/admin/sections/AdminNotificationsTab';
+import AdminTemplatesTab from '@/pages/admin/sections/AdminTemplatesTab';
+import AdminOverviewTab from '@/pages/admin/sections/AdminOverviewTab';
+import AdminChatsTab from '@/pages/admin/sections/AdminChatsTab';
+import AdminUsersTab from '@/pages/admin/sections/AdminUsersTab';
+import AdminPortfoliosTab from '@/pages/admin/sections/AdminPortfoliosTab';
+import AdminConfigTab from '@/pages/admin/sections/AdminConfigTab';
+import { Registry } from '@/registry';
+import { PORTFOLIO_TEMPLATES } from '@/templates';
+import { renderManifest } from '@/utils/renderer';
+
+const DEFAULT_PRICING_PLANS = [
+    {
+        id: 'pro',
+        name: 'Professional',
+        price: { usd: 3, ngn: 2000 },
+        recommended: true,
+        features: [
+            '5 Portfolio Projects',
+            'Advanced Customization',
+            'Priority Support',
+            'Custom Domain Connection',
+            'Unlimited AI Re-generations',
+            'SEO Optimization Tools',
+            'SeeqMe Branding'
+        ],
+        limits: { portfolios: 2, customDomain: true }
+    },
+    {
+        id: 'premium',
+        name: 'Premium',
+        price: { usd: 5, ngn: 5000 },
+        features: [
+            '5 Portfolios',
+            'White-label Solution',
+            '24/7 Dedicated Support',
+            'Multiple Custom Domains',
+            'Advanced Analytics (Visitor Tracking)',
+            'Priority Feature Access',
+            'API Access'
+        ],
+        limits: { portfolios: 5, customDomain: true }
+    }
+];
 
 interface ChatSummary {
     userId: string;
@@ -40,7 +85,7 @@ interface Message {
     isAdmin?: boolean;
 }
 
-type ConfirmAction = 'deploy' | 'create' | 'delete' | null;
+type ConfirmAction = 'deploy' | 'create' | 'delete' | 'deleteChat' | 'deleteTemplate' | null;
 
 interface PendingAction {
     type: ConfirmAction;
@@ -50,7 +95,7 @@ interface PendingAction {
 const AdminDashboard: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'overview' | 'chats' | 'users' | 'portfolios' | 'config'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'chats' | 'users' | 'portfolios' | 'config' | 'notifications' | 'templates'>('overview');
     const [users, setUsers] = useState<any[]>([]);
     const [portfolios, setPortfolios] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -67,9 +112,57 @@ const AdminDashboard: React.FC = () => {
     const [isSending, setIsSending] = useState(false);
     const [mobileChatView, setMobileChatView] = useState<'list' | 'chat'>('list');
     const [stats, setStats] = useState<any>(null);
+    const [systemConfig, setSystemConfig] = useState<any>({
+        maintenanceMode: false,
+        allowSignups: true,
+        aiModel: 'gemini-2.5-flash',
+        pricingPlans: DEFAULT_PRICING_PLANS
+    });
+    const [isConfigLoading, setIsConfigLoading] = useState(false);
+    const [isConfigSaving, setIsConfigSaving] = useState(false);
+    const [configSnapshot, setConfigSnapshot] = useState<string>('');
+
+    const [notificationRecipientType, setNotificationRecipientType] = useState<'all' | 'selected' | 'custom'>('all');
+    const [notificationSubject, setNotificationSubject] = useState('');
+    const [notificationTitle, setNotificationTitle] = useState('');
+    const [notificationBody, setNotificationBody] = useState('');
+    const [notificationCtaUrl, setNotificationCtaUrl] = useState('');
+    const [notificationCtaLabel, setNotificationCtaLabel] = useState('');
+    const [notificationFooterNote, setNotificationFooterNote] = useState('');
+    const [notificationSelectedUsers, setNotificationSelectedUsers] = useState<string[]>([]);
+    const [notificationCustomEmails, setNotificationCustomEmails] = useState('');
+    const [notificationUserSearch, setNotificationUserSearch] = useState('');
+    const [isNotificationSending, setIsNotificationSending] = useState(false);
+
+    const [adminTemplates, setAdminTemplates] = useState<any[]>([]);
+    const [isTemplatesLoading, setIsTemplatesLoading] = useState(false);
+    const [templateId, setTemplateId] = useState('');
+    const [templateName, setTemplateName] = useState('');
+    const [templateNiche, setTemplateNiche] = useState('');
+    const [templatePreview, setTemplatePreview] = useState('');
+    const [templateStructuredContent, setTemplateStructuredContent] = useState('');
+    const [templateHtml, setTemplateHtml] = useState('');
+    const [templateCss, setTemplateCss] = useState('');
+    const [templateJs, setTemplateJs] = useState('');
+    const [templateNotify, setTemplateNotify] = useState(false);
+    const [templateNotifyTarget, setTemplateNotifyTarget] = useState<'all' | 'niche' | 'selected'>('all');
+    const [templateSelectedUsers, setTemplateSelectedUsers] = useState<string[]>([]);
+    const [templateHighlights, setTemplateHighlights] = useState('');
+    const [templateCtaUrl, setTemplateCtaUrl] = useState('');
+    const [templateCtaLabel, setTemplateCtaLabel] = useState('');
+    const [templateFooterNote, setTemplateFooterNote] = useState('');
+    const [isTemplateSaving, setIsTemplateSaving] = useState(false);
+    const [templateUserSearch, setTemplateUserSearch] = useState('');
+    const [templateValidationErrors, setTemplateValidationErrors] = useState<string[]>([]);
+    const [editingTemplateDbId, setEditingTemplateDbId] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { user: currentUser } = useAuth();
+    const nicheOptions = useMemo(() => {
+        const base = PORTFOLIO_TEMPLATES.map((t) => t.niche).filter(Boolean);
+        const admin = adminTemplates.map((t) => t.niche).filter(Boolean);
+        return Array.from(new Set([...base, ...admin]));
+    }, [adminTemplates]);
 
     useEffect(() => {
         fetchData();
@@ -104,12 +197,65 @@ const AdminDashboard: React.FC = () => {
     }, [selectedChat]);
 
     useEffect(() => {
+        if (!selectedChat) return;
+        const summaryRef = ref(db, `chat_summaries/${selectedChat}`);
+        update(summaryRef, { unreadCount: 0 }).catch(() => null);
+        setChatSummaries((prev) =>
+            prev.map((summary) =>
+                summary.userId === selectedChat ? { ...summary, unreadCount: 0 } : summary
+            )
+        );
+    }, [selectedChat]);
+
+    useEffect(() => {
         const path = location.pathname.split('/').pop();
         const tab = path === 'admin' ? 'overview' : path;
-        if (['overview', 'chats', 'users', 'portfolios', 'config'].includes(tab as string)) {
+        if (['overview', 'chats', 'users', 'portfolios', 'config', 'notifications', 'templates'].includes(tab as string)) {
             setActiveTab(tab as any);
         }
     }, [location.pathname]);
+
+    useEffect(() => {
+        if (activeTab !== 'config') return;
+        const loadConfig = async () => {
+            setIsConfigLoading(true);
+            try {
+                const config = await adminService.getSystemConfig();
+                const normalized = {
+                    ...config,
+                    pricingPlans: config?.pricingPlans?.length ? config.pricingPlans : DEFAULT_PRICING_PLANS
+                };
+                setSystemConfig(normalized);
+                setConfigSnapshot(JSON.stringify(normalized));
+                if (!config?.pricingPlans || config.pricingPlans.length === 0) {
+                    const saved = await adminService.updateSystemConfig(normalized);
+                    setSystemConfig(saved);
+                    setConfigSnapshot(JSON.stringify(saved));
+                }
+            } catch {
+                toast.error('Failed to load system config');
+            } finally {
+                setIsConfigLoading(false);
+            }
+        };
+        loadConfig();
+    }, [activeTab]);
+
+    useEffect(() => {
+        if (activeTab !== 'templates') return;
+        const loadTemplates = async () => {
+            setIsTemplatesLoading(true);
+            try {
+                const data = await adminService.getAdminTemplates();
+                setAdminTemplates(data || []);
+            } catch {
+                toast.error('Failed to load templates');
+            } finally {
+                setIsTemplatesLoading(false);
+            }
+        };
+        loadTemplates();
+    }, [activeTab]);
 
     const handleTabChange = (tabId: string) => {
         const path = tabId === 'overview' ? '/admin' : `/admin/${tabId}`;
@@ -170,6 +316,244 @@ const AdminDashboard: React.FC = () => {
         setIsConfirmOpen(true);
     };
 
+    const handleSelectChat = (id: string) => {
+        setSelectedChat(id);
+    };
+
+    const validatePricingConfig = (config: any) => {
+        const plans = config?.pricingPlans || [];
+        if (!Array.isArray(plans) || plans.length === 0) {
+            return 'Add at least one pricing plan.';
+        }
+        const ids = new Set<string>();
+        for (const plan of plans) {
+            const id = String(plan.id || '').trim();
+            const name = String(plan.name || '').trim();
+            if (!id) return 'Each plan needs a unique id.';
+            if (ids.has(id)) return `Duplicate plan id: ${id}`;
+            ids.add(id);
+            if (!name) return `Plan ${id} must have a name.`;
+            if (plan.price?.usd == null || plan.price?.usd < 0) return `Plan ${id} needs a valid USD price.`;
+            if (plan.price?.ngn == null || plan.price?.ngn < 0) return `Plan ${id} needs a valid NGN price.`;
+            if (!Array.isArray(plan.features) || plan.features.length === 0) return `Plan ${id} needs at least one feature.`;
+            if (plan.limits?.portfolios == null || plan.limits?.portfolios < 0) return `Plan ${id} needs a valid portfolio limit.`;
+            if (typeof plan.limits?.customDomain !== 'boolean') return `Plan ${id} must set customDomain.`;
+        }
+        return null;
+    };
+
+    const parseEmails = (value: string) => {
+        return value
+            .split(/[\n,;]+/g)
+            .map((email) => email.trim())
+            .filter((email) => email && email.includes('@'));
+    };
+
+    const validateTemplateManifest = (raw: any): string[] => {
+        const errors: string[] = [];
+        if (!raw || typeof raw !== 'object') {
+            return ['Structured content must be a JSON object.'];
+        }
+        if (!raw.metadata || typeof raw.metadata !== 'object') {
+            errors.push('Missing metadata object.');
+        } else {
+            if (!raw.metadata.version) errors.push('metadata.version is required.');
+        }
+        if (!raw.globalConfig || typeof raw.globalConfig !== 'object') {
+            errors.push('Missing globalConfig object.');
+        } else {
+            if (!raw.globalConfig.theme) errors.push('globalConfig.theme is required.');
+        }
+        if (!Array.isArray(raw.sections) || raw.sections.length === 0) {
+            errors.push('sections must be a non-empty array.');
+        } else {
+            raw.sections.forEach((section: any, idx: number) => {
+                if (!section?.id) errors.push(`Section ${idx + 1} missing id.`);
+                if (!section?.type) errors.push(`Section ${idx + 1} missing type.`);
+                if (!section?.componentId) errors.push(`Section ${idx + 1} missing componentId.`);
+                if (section?.content == null) errors.push(`Section ${idx + 1} missing content.`);
+                if (section?.componentId && !section?.template) {
+                    const exists = Boolean((Registry as any)[section.componentId]);
+                    if (!exists) errors.push(`Section ${idx + 1} componentId "${section.componentId}" not found in registry (and no template provided).`);
+                }
+                if (section?.componentId === 'GEN_TEMPLATE' && !section?.template) {
+                    errors.push(`Section ${idx + 1} uses GEN_TEMPLATE but has no template field.`);
+                }
+            });
+        }
+        return errors;
+    };
+
+    const handleSendAdminEmail = async () => {
+        if (!notificationSubject.trim() || !notificationBody.trim()) {
+            toast.error('Subject and message body are required.');
+            return;
+        }
+
+        if (notificationRecipientType === 'selected' && notificationSelectedUsers.length === 0) {
+            toast.error('Select at least one user.');
+            return;
+        }
+
+        if (notificationRecipientType === 'custom' && parseEmails(notificationCustomEmails).length === 0) {
+            toast.error('Add at least one valid email.');
+            return;
+        }
+
+        const payload = {
+            subject: notificationSubject.trim(),
+            messageTitle: notificationTitle.trim() || 'Announcement',
+            messageBody: notificationBody.trim(),
+            ctaUrl: notificationCtaUrl.trim(),
+            ctaLabel: notificationCtaLabel.trim() || 'Open SeeqMe',
+            footerNote: notificationFooterNote.trim(),
+            recipientType: notificationRecipientType,
+            userIds: notificationRecipientType === 'selected' ? notificationSelectedUsers : [],
+            emails: notificationRecipientType === 'custom' ? parseEmails(notificationCustomEmails) : []
+        };
+
+        setIsNotificationSending(true);
+        try {
+            await toast.promise(adminService.sendAdminEmail(payload), {
+                loading: 'Sending email notification...',
+                success: 'Email sent successfully.',
+                error: 'Failed to send email.'
+            });
+            setNotificationSubject('');
+            setNotificationTitle('');
+            setNotificationBody('');
+            setNotificationCtaUrl('');
+            setNotificationCtaLabel('');
+            setNotificationFooterNote('');
+            setNotificationCustomEmails('');
+            setNotificationSelectedUsers([]);
+        } finally {
+            setIsNotificationSending(false);
+        }
+    };
+
+    const resetTemplateForm = () => {
+        setTemplateId('');
+        setTemplateName('');
+        setTemplateNiche('');
+        setTemplatePreview('');
+        setTemplateStructuredContent('');
+        setTemplateHtml('');
+        setTemplateCss('');
+        setTemplateJs('');
+        setTemplateNotify(false);
+        setTemplateNotifyTarget('all');
+        setTemplateSelectedUsers([]);
+        setTemplateHighlights('');
+        setTemplateCtaUrl('');
+        setTemplateCtaLabel('');
+        setTemplateFooterNote('');
+        setTemplateValidationErrors([]);
+        setEditingTemplateDbId(null);
+    };
+
+    const handleCreateTemplate = async () => {
+        if (!templateId.trim() || !templateName.trim() || !templateNiche.trim()) {
+            toast.error('Template ID, name, and niche are required.');
+            return;
+        }
+        let structuredContent: any = undefined;
+        if (templateStructuredContent.trim()) {
+            try {
+                structuredContent = JSON.parse(templateStructuredContent);
+            } catch {
+                toast.error('Structured content must be valid JSON.');
+                return;
+            }
+        }
+        if (!structuredContent) {
+            toast.error('Structured content is required.');
+            return;
+        }
+        const manifestErrors = validateTemplateManifest(structuredContent);
+        setTemplateValidationErrors(manifestErrors);
+        if (manifestErrors.length > 0) {
+            toast.error('Template JSON is missing required fields.');
+            return;
+        }
+
+        if (templateNotify && templateNotifyTarget === 'selected' && templateSelectedUsers.length === 0) {
+            toast.error('Select at least one user to notify.');
+            return;
+        }
+
+        const normalizedHtml = templateHtml.trim() || renderManifest(structuredContent);
+        const normalizedCss = templateCss || '';
+        const normalizedJs = templateJs || '';
+
+        const payload = {
+            templateId: templateId.trim(),
+            name: templateName.trim(),
+            niche: templateNiche.trim(),
+            preview: templatePreview.trim(),
+            html: normalizedHtml,
+            css: normalizedCss,
+            js: normalizedJs,
+            structuredContent,
+            notify: templateNotify,
+            notifyTarget: templateNotifyTarget,
+            userIds: templateNotifyTarget === 'selected' ? templateSelectedUsers : [],
+            highlights: templateHighlights.split('\n').map((item) => item.trim()).filter(Boolean),
+            ctaUrl: templateCtaUrl.trim(),
+            ctaLabel: templateCtaLabel.trim() || 'Preview Template',
+            footerNote: templateFooterNote.trim()
+        };
+
+        setIsTemplateSaving(true);
+        try {
+            const response: any = await toast.promise(
+                editingTemplateDbId
+                    ? adminService.updateAdminTemplate(editingTemplateDbId, payload)
+                    : adminService.createAdminTemplate(payload),
+                {
+                    loading: editingTemplateDbId ? 'Updating template...' : 'Saving template...',
+                    success: editingTemplateDbId ? 'Template updated successfully.' : 'Template saved successfully.',
+                    error: editingTemplateDbId ? 'Failed to update template.' : 'Failed to save template.'
+                }
+            );
+            if (response?.notifyError) {
+                toast.error(response.notifyError);
+            }
+            resetTemplateForm();
+            if (activeTab === 'templates') {
+                const data = await adminService.getAdminTemplates();
+                setAdminTemplates(data || []);
+            }
+        } finally {
+            setIsTemplateSaving(false);
+        }
+    };
+
+    const handleEditTemplate = (tpl: any) => {
+        setEditingTemplateDbId(tpl.id);
+        setTemplateId(tpl.templateId || '');
+        setTemplateName(tpl.name || '');
+        setTemplateNiche(tpl.niche || '');
+        setTemplatePreview(tpl.preview || '');
+        setTemplateHtml(tpl.html || '');
+        setTemplateCss(tpl.css || '');
+        setTemplateJs(tpl.js || '');
+        setTemplateStructuredContent(
+            typeof tpl.structuredContent === 'string'
+                ? tpl.structuredContent
+                : JSON.stringify(tpl.structuredContent || {}, null, 2)
+        );
+        setTemplateNotify(false);
+        setTemplateNotifyTarget('all');
+        setTemplateSelectedUsers([]);
+        setTemplateHighlights('');
+        setTemplateCtaUrl('');
+        setTemplateCtaLabel('');
+        setTemplateFooterNote('');
+        setTemplateUserSearch('');
+        setTemplateValidationErrors([]);
+    };
+
     const closeConfirm = () => {
         setIsConfirmOpen(false);
         setPendingAction({ type: null });
@@ -204,6 +588,32 @@ const AdminDashboard: React.FC = () => {
                     error: 'Deletion failed.'
                 });
                 fetchData();
+            } else if (pendingAction.type === 'deleteChat' && pendingAction.id) {
+                const chatId = pendingAction.id;
+                await toast.promise(
+                    Promise.all([
+                        remove(ref(db, `chats/${chatId}`)),
+                        remove(ref(db, `chat_summaries/${chatId}`))
+                    ]),
+                    {
+                        loading: 'Deleting conversation...',
+                        success: 'Conversation deleted.',
+                        error: 'Failed to delete conversation.'
+                    }
+                );
+                setChatMessages([]);
+                setSelectedChat(null);
+                setChatSummaries((prev) => prev.filter((summary) => summary.userId !== chatId));
+            } else if (pendingAction.type === 'deleteTemplate' && pendingAction.id) {
+                await toast.promise(adminService.deleteAdminTemplate(pendingAction.id), {
+                    loading: 'Deleting template...',
+                    success: 'Template deleted.',
+                    error: 'Failed to delete template.'
+                });
+                setAdminTemplates((prev) => prev.filter((tpl) => tpl.id !== pendingAction.id));
+                if (editingTemplateDbId === pendingAction.id) {
+                    resetTemplateForm();
+                }
             }
         } finally {
             closeConfirm();
@@ -234,6 +644,22 @@ const AdminDashboard: React.FC = () => {
                     variant: 'danger' as const,
                     isDestructive: true,
                 };
+            case 'deleteChat':
+                return {
+                    title: 'Delete Conversation',
+                    description: 'This will permanently delete all messages in this conversation. Continue?',
+                    confirmText: 'Delete Chat',
+                    variant: 'danger' as const,
+                    isDestructive: true,
+                };
+            case 'deleteTemplate':
+                return {
+                    title: 'Delete Template',
+                    description: 'This will permanently delete the template. Continue?',
+                    confirmText: 'Delete Template',
+                    variant: 'danger' as const,
+                    isDestructive: true,
+                };
             default:
                 return { title: '', description: '', confirmText: 'Confirm', variant: 'info' as const };
         }
@@ -249,6 +675,12 @@ const AdminDashboard: React.FC = () => {
         u.email?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const notificationUsers = users.filter(u =>
+        u.fullName?.toLowerCase().includes(notificationUserSearch.toLowerCase()) ||
+        u.email?.toLowerCase().includes(notificationUserSearch.toLowerCase())
+    );
+
+
     const confirmConfig = getConfirmConfig();
 
     const tabs = [
@@ -256,6 +688,8 @@ const AdminDashboard: React.FC = () => {
         { id: 'chats', icon: MessageCircle, label: 'Chats' },
         { id: 'users', icon: Users, label: 'Users' },
         { id: 'portfolios', icon: Layout, label: 'Portfolios' },
+        { id: 'notifications', icon: Send, label: 'Notifications' },
+        { id: 'templates', icon: FileEdit, label: 'Templates' },
         { id: 'config', icon: Settings, label: 'System Config' },
     ];
 
@@ -276,7 +710,7 @@ const AdminDashboard: React.FC = () => {
                         {activeTab === 'portfolios' && (
                             <button
                                 onClick={() => setIsCreatingPortfolio(true)}
-                                className="bg-slate-900 text-white text-sm font-bold px-5 py-2.5 rounded-2xl shadow-lg shadow-black/10 hover:bg-teal-600 transition-colors flex items-center gap-2 self-start sm:self-auto"
+                                className="bg-teal-600 text-white text-sm font-bold px-5 py-2.5 rounded-2xl shadow-lg shadow-teal-500/10 hover:bg-teal-700 transition-colors flex items-center gap-2 self-start sm:self-auto"
                             >
                                 <Plus className="w-4 h-4" /> Create for User
                             </button>
@@ -285,7 +719,7 @@ const AdminDashboard: React.FC = () => {
 
 
                     {/* Search Bar */}
-                    {activeTab !== 'overview' && activeTab !== 'chats' && (
+                    {(activeTab === 'users' || activeTab === 'portfolios') && (
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
                             <input
@@ -308,7 +742,6 @@ const AdminDashboard: React.FC = () => {
 
                         {!loading && (
                             <AnimatePresence mode="wait">
-
                                 {/* Overview */}
                                 {activeTab === 'overview' && (
                                     <motion.div
@@ -318,76 +751,7 @@ const AdminDashboard: React.FC = () => {
                                         exit={{ opacity: 0, y: -10 }}
                                         className="space-y-4"
                                     >
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                                            <StatCard label="Total Revenue" value={`₦${(stats?.totalRevenue || 0).toLocaleString()}`} icon={Zap} color="bg-amber-500" />
-
-                                            <StatCard label="Total Users" value={stats?.totalUsers || users.length} icon={Users} color="bg-blue-500" />
-                                            <StatCard label="Total Portfolios" value={stats?.totalPortfolios || portfolios.length} icon={Layout} color="bg-purple-500" />
-                                            <StatCard label="Live Sites" value={stats?.liveSites || 0} icon={CheckCircle} color="bg-emerald-500" />
-                                        </div>
-
-                                        {stats && (
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                                {/* User Growth Chart */}
-                                                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                                                    <div className="flex justify-between items-center mb-6">
-                                                        <h3 className="font-black text-slate-800 ">User Growth</h3>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Last 30 Days</span>
-                                                    </div>
-                                                    <div className="h-64 w-full">
-                                                        <ResponsiveContainer width="100%" height="100%">
-                                                            <AreaChart data={stats.userGrowth}>
-                                                                <defs>
-                                                                    <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                        <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
-                                                                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
-                                                                    </linearGradient>
-                                                                </defs>
-                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                                                <XAxis dataKey="_id" hide />
-                                                                <YAxis hide />
-                                                                <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                                                                <Area
-                                                                    type="monotone"
-                                                                    dataKey="count"
-                                                                    stroke="#0d9488"
-                                                                    strokeWidth={3}
-                                                                    fillOpacity={1}
-                                                                    fill="url(#userGradient)"
-                                                                />
-                                                            </AreaChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
-                                                </div>
-
-                                                {/* Revenue Growth Chart */}
-                                                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                                                    <div className="flex justify-between items-center mb-6">
-                                                        <h3 className="font-black text-slate-800">Revenue Stream</h3>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Growth Curve</span>
-                                                    </div>
-                                                    <div className="h-64 w-full">
-                                                        <ResponsiveContainer width="100%" height="100%">
-                                                            <BarChart data={stats.revenueGrowth}>
-                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                                                <XAxis dataKey="_id" hide />
-                                                                <YAxis hide />
-                                                                <RechartsTooltip
-                                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                                                                    formatter={(value) => [`$${value}`, 'Revenue']}
-                                                                />
-                                                                <Bar
-                                                                    dataKey="total"
-                                                                    fill="#f59e0b"
-                                                                    radius={[6, 6, 0, 0]}
-                                                                    barSize={20}
-                                                                />
-                                                            </BarChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
+                                        <AdminOverviewTab stats={stats} users={users} portfolios={portfolios} />
                                     </motion.div>
                                 )}
 
@@ -395,113 +759,28 @@ const AdminDashboard: React.FC = () => {
                                 {activeTab === 'chats' && (
                                     <motion.div
                                         key="chats"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden"
-                                        style={{ height: 'clamp(400px, 60vh, 640px)' }}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
                                     >
-                                        <div className="flex h-full">
-                                            <div className={`${selectedChat && mobileChatView === 'chat' ? 'hidden md:flex' : 'flex'} w-full md:w-72 lg:w-80 border-r border-slate-100 flex-col shrink-0`}>
-                                                <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                                                    <h4 className="text-[10px] font-black uppercase text-slate-400">Conversations</h4>
-                                                </div>
-                                                <div className="flex-1 overflow-y-auto no-scrollbar">
-                                                    {chatSummaries.length === 0 && (
-                                                        <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-40">
-                                                            <MessageCircle className="w-10 h-10 mb-3 text-slate-300" />
-                                                            <p className="text-sm font-bold text-slate-500">No conversations yet</p>
-                                                        </div>
-                                                    )}
-                                                    {chatSummaries.map((summary) => (
-                                                        <button
-                                                            key={summary.userId}
-                                                            onClick={() => {
-                                                                setSelectedChat(summary.userId);
-                                                                setMobileChatView('chat');
-                                                            }}
-                                                            className={`w-full p-4 flex flex-col gap-1 text-left transition-all border-b border-slate-50 ${selectedChat === summary.userId ? 'bg-teal-50/50 border-r-4 border-r-teal-500' : 'hover:bg-slate-50'
-                                                                }`}
-                                                        >
-                                                            <div className="flex justify-between items-center gap-2">
-                                                                <span className="font-bold text-sm text-slate-800 truncate">{summary.userName}</span>
-                                                                <span className="text-[10px] text-slate-400 shrink-0">
-                                                                    {new Date(summary.lastTimestamp).toLocaleDateString()}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-xs text-slate-500 truncate">{summary.lastMessage}</p>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className={`${selectedChat && mobileChatView === 'chat' ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-slate-50/20 min-w-0`}>
-                                                {selectedChat ? (
-                                                    <>
-                                                        <div className="p-3 sm:p-4 border-b border-white bg-white/50 backdrop-blur-sm flex items-center gap-3">
-                                                            <button
-                                                                className="md:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
-                                                                onClick={() => { setMobileChatView('list'); setSelectedChat(null); }}
-                                                            >
-                                                                <ArrowLeft className="w-4 h-4" />
-                                                            </button>
-                                                            <div className="w-9 h-9 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
-                                                                {(chatSummaries.find(s => s.userId === selectedChat)?.userName || 'Guest')[0]}
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <p className="font-bold text-slate-800 text-sm truncate">{chatSummaries.find(s => s.userId === selectedChat)?.userName || 'Anonymous Guest'}</p>
-                                        
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 no-scrollbar">
-                                                            {chatMessages.map((msg) => (
-                                                                <div key={msg.id} className={`flex ${msg.isAdmin ? 'justify-end' : 'justify-start'}`}>
-                                                                    <div className={`max-w-[80%] sm:max-w-[70%] rounded-2xl p-3.5 text-sm ${msg.isAdmin
-                                                                        ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/10'
-                                                                        : 'bg-white text-slate-800 border border-white shadow-sm'
-                                                                        }`}>
-                                                                        {msg.fileUrl ? (
-                                                                            <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-bold underline mb-1">
-                                                                                <Paperclip className="w-4 h-4" /> Attached File
-                                                                            </a>
-                                                                        ) : (
-                                                                            <p>{msg.text}</p>
-                                                                        )}
-                                                                        <p className="text-[10px] mt-1.5 opacity-50 font-medium">
-                                                                            {new Date(msg.timestamp).toLocaleTimeString()}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                            <div ref={messagesEndRef} />
-                                                        </div>
-
-                                                        <form onSubmit={handleSendReply} className="p-3 sm:p-4 bg-white border-t border-slate-100 flex gap-2 sm:gap-3">
-                                                            <input
-                                                                type="text"
-                                                                value={replyMessage}
-                                                                onChange={(e) => setReplyMessage(e.target.value)}
-                                                                placeholder="Type admin response..."
-                                                                className="flex-1 bg-slate-50 border-none rounded-2xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-teal-500/20 min-w-0"
-                                                            />
-                                                            <button
-                                                                type="submit"
-                                                                disabled={isSending || !replyMessage.trim()}
-                                                                className="bg-teal-600 text-white p-3 rounded-2xl hover:bg-teal-700 transition-all disabled:opacity-50 shrink-0"
-                                                            >
-                                                                {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                                            </button>
-                                                        </form>
-                                                    </>
-                                                ) : (
-                                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-40 p-8">
-                                                        <MessageCircle className="w-14 h-14 mb-4 text-slate-300" />
-                                                        <h3 className="text-lg font-bold text-slate-800">Select a conversation</h3>
-                                                        <p className="text-sm font-medium text-slate-500">Click on a user chat to start responding in real-time</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <AdminChatsTab
+                                            chatSummaries={chatSummaries}
+                                            selectedChat={selectedChat}
+                                            onSelectChat={handleSelectChat}
+                                            chatMessages={chatMessages}
+                                            replyMessage={replyMessage}
+                                            onReplyMessageChange={setReplyMessage}
+                                            onSendReply={handleSendReply}
+                                            isSending={isSending}
+                                            mobileChatView={mobileChatView}
+                                            onMobileViewChange={setMobileChatView}
+                                            messagesEndRef={messagesEndRef}
+                                            onDeleteChat={() => {
+                                                if (selectedChat) {
+                                                    openConfirm('deleteChat', selectedChat);
+                                                }
+                                            }}
+                                        />
                                     </motion.div>
                                 )}
 
@@ -513,71 +792,7 @@ const AdminDashboard: React.FC = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                     >
-                                        <div className="hidden md:block bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                                            <table className="w-full text-left">
-                                                <thead>
-                                                    <tr className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
-                                                        <th className="px-6 py-4">User</th>
-                                                        <th className="px-6 py-4">Status</th>
-                                                        <th className="px-6 py-4">Joined</th>
-                                                        <th className="px-6 py-4">Role</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-50">
-                                                    {filteredUsers.map((u) => (
-                                                        <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold shrink-0">
-                                                                        {u.fullName?.[0] || 'U'}
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-bold text-slate-800">{u.fullName}</p>
-                                                                        <p className="text-xs text-slate-500">{u.email}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${u.isVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                                                                    {u.isVerified ? 'Verified' : 'Pending'}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-xs font-medium text-slate-500">
-                                                                {new Date(u.createdAt).toLocaleDateString()}
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className={`text-xs font-bold uppercase ${u.roles?.includes('admin') ? 'text-teal-600' : 'text-slate-400'}`}>
-                                                                    {u.roles?.join(', ') || 'user'}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <div className="md:hidden flex flex-col gap-3">
-                                            {filteredUsers.map((u) => (
-                                                <div key={u.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center gap-4">
-                                                    <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg shrink-0">
-                                                        {u.fullName?.[0] || 'U'}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-slate-800 text-sm truncate">{u.fullName}</p>
-                                                        <p className="text-xs text-slate-500 truncate">{u.email}</p>
-                                                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${u.isVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                                                                {u.isVerified ? 'Verified' : 'Pending'}
-                                                            </span>
-                                                            <span className={`text-[10px] font-bold uppercase ${u.roles?.includes('admin') ? 'text-teal-600' : 'text-slate-400'}`}>
-                                                                {u.roles?.join(', ') || 'user'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-[10px] text-slate-400 shrink-0">{new Date(u.createdAt).toLocaleDateString()}</p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <AdminUsersTab users={filteredUsers} />
                                     </motion.div>
                                 )}
 
@@ -588,69 +803,123 @@ const AdminDashboard: React.FC = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
-                                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
                                     >
-                                        {filteredPortfolios.map((p) => (
-                                            <div key={p.id} className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all flex flex-col justify-between group">
-                                                <div>
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${p.isPublished ? 'bg-teal-50 text-teal-600' : 'bg-slate-50 text-slate-400'}`}>
-                                                            <Layout className="w-5 h-5" />
-                                                        </div>
-                                                        <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase ${p.isPublished ? 'bg-teal-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                                                            {p.isPublished ? 'Live' : 'Draft'}
-                                                        </span>
-                                                    </div>
-                                                    <h3 className="font-bold text-slate-800 mb-1 group-hover:text-teal-600 transition-colors text-sm sm:text-base">{p.title}</h3>
-                                                    <p className="text-xs text-slate-500 mb-3 font-medium italic">Owner: {users.find(u => u.id === p.userId)?.fullName || 'Guest'}</p>
-                                                    {p.domain && (
-                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-4 truncate">
-                                                            <ExternalLink className="w-3 h-3 shrink-0" />
-                                                            {p.domain}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex gap-2 mt-2">
-                                                    <button
-                                                        onClick={() => window.open(`/builder?id=${p.id}`, '_blank')}
-                                                        className="flex-1 bg-teal-50 text-teal-600 hover:bg-teal-100 text-[10px] font-black p-3 rounded-xl transition-all uppercase  flex items-center justify-center gap-1.5"
-                                                    >
-                                                        <FileEdit className="w-3 h-3" /> Studio
-                                                    </button>
-                                                    {!p.isPublished && (
-                                                        <button
-                                                            onClick={() => openConfirm('deploy', p.id)}
-                                                            className="flex-1 bg-slate-900 text-white text-[10px] font-black p-3 rounded-xl hover:bg-teal-600 transition-all uppercase shadow-lg shadow-slate-950/20 flex items-center justify-center gap-1.5"
-                                                        >
-                                                            <Zap className="w-3 h-3 text-teal-400" /> Deploy
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => openConfirm('delete', p.id)}
-                                                        className="p-3 rounded-xl bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
+                                        <AdminPortfoliosTab
+                                            portfolios={filteredPortfolios}
+                                            users={users}
+                                            onOpenConfirm={(type, id) => openConfirm(type, id)}
+                                        />
                                     </motion.div>
+                                )}
+
+                                {/* Notifications */}
+                                {activeTab === 'notifications' && (
+                                    <AdminNotificationsTab
+                                        recipientType={notificationRecipientType}
+                                        onRecipientTypeChange={setNotificationRecipientType}
+                                        subject={notificationSubject}
+                                        onSubjectChange={setNotificationSubject}
+                                        title={notificationTitle}
+                                        onTitleChange={setNotificationTitle}
+                                        body={notificationBody}
+                                        onBodyChange={setNotificationBody}
+                                        ctaUrl={notificationCtaUrl}
+                                        onCtaUrlChange={setNotificationCtaUrl}
+                                        ctaLabel={notificationCtaLabel}
+                                        onCtaLabelChange={setNotificationCtaLabel}
+                                        footerNote={notificationFooterNote}
+                                        onFooterNoteChange={setNotificationFooterNote}
+                                        selectedUsers={notificationSelectedUsers}
+                                        onSelectedUsersChange={setNotificationSelectedUsers}
+                                        customEmails={notificationCustomEmails}
+                                        onCustomEmailsChange={setNotificationCustomEmails}
+                                        userSearch={notificationUserSearch}
+                                        onUserSearchChange={setNotificationUserSearch}
+                                        users={notificationUsers}
+                                        onSend={handleSendAdminEmail}
+                                        isSending={isNotificationSending}
+                                    />
+                                )}
+
+                                {/* Templates */}
+                                {activeTab === 'templates' && (
+                                    <AdminTemplatesTab
+                                        templateId={templateId}
+                                        templateName={templateName}
+                                        templateNiche={templateNiche}
+                                        templatePreview={templatePreview}
+                                        templateStructuredContent={templateStructuredContent}
+                                        templateHtml={templateHtml}
+                                        templateCss={templateCss}
+                                        templateJs={templateJs}
+                                        templateNotify={templateNotify}
+                                        templateNotifyTarget={templateNotifyTarget}
+                                        templateSelectedUsers={templateSelectedUsers}
+                                        templateHighlights={templateHighlights}
+                                        templateCtaUrl={templateCtaUrl}
+                                        templateCtaLabel={templateCtaLabel}
+                                        templateFooterNote={templateFooterNote}
+                                        templateUserSearch={templateUserSearch}
+                                        templateValidationErrors={templateValidationErrors}
+                                        editingTemplateDbId={editingTemplateDbId}
+                                        nicheOptions={nicheOptions}
+                                        isTemplateSaving={isTemplateSaving}
+                                        isTemplatesLoading={isTemplatesLoading}
+                                        adminTemplates={adminTemplates}
+                                        users={users}
+                                        onEditTemplate={handleEditTemplate}
+                                        onCancelEdit={resetTemplateForm}
+                                        onDeleteTemplate={(id) => openConfirm('deleteTemplate', id)}
+                                        onTemplateIdChange={setTemplateId}
+                                        onTemplateNameChange={setTemplateName}
+                                        onTemplateNicheChange={setTemplateNiche}
+                                        onTemplatePreviewChange={setTemplatePreview}
+                                        onTemplateStructuredContentChange={(value) => {
+                                            setTemplateStructuredContent(value);
+                                            setTemplateValidationErrors([]);
+                                        }}
+                                        onTemplateHtmlChange={setTemplateHtml}
+                                        onTemplateCssChange={setTemplateCss}
+                                        onTemplateJsChange={setTemplateJs}
+                                        onTemplateNotifyToggle={() => setTemplateNotify(!templateNotify)}
+                                        onTemplateNotifyTargetChange={setTemplateNotifyTarget}
+                                        onTemplateSelectedUsersChange={setTemplateSelectedUsers}
+                                        onTemplateHighlightsChange={setTemplateHighlights}
+                                        onTemplateCtaUrlChange={setTemplateCtaUrl}
+                                        onTemplateCtaLabelChange={setTemplateCtaLabel}
+                                        onTemplateFooterNoteChange={setTemplateFooterNote}
+                                        onTemplateUserSearchChange={setTemplateUserSearch}
+                                        onSave={handleCreateTemplate}
+                                    />
                                 )}
 
                                 {/* System Config */}
                                 {activeTab === 'config' && (
-                                    <motion.div
-                                        key="config"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center"
-                                    >
-                                        <Settings className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                                        <h3 className="text-lg font-bold text-slate-900">System Configuration</h3>
-
-                                    </motion.div>
+                                    <AdminConfigTab
+                                        systemConfig={systemConfig}
+                                        setSystemConfig={setSystemConfig}
+                                        isConfigLoading={isConfigLoading}
+                                        isConfigSaving={isConfigSaving}
+                                        isDirty={configSnapshot !== JSON.stringify(systemConfig)}
+                                        onSave={() => {
+                                            if (!systemConfig) return;
+                                            const error = validatePricingConfig(systemConfig);
+                                            if (error) {
+                                                toast.error(error);
+                                                return;
+                                            }
+                                            setIsConfigSaving(true);
+                                            adminService.updateSystemConfig(systemConfig)
+                                                .then((updated) => {
+                                                    setSystemConfig(updated);
+                                                    setConfigSnapshot(JSON.stringify(updated));
+                                                    toast.success('Configuration updated');
+                                                })
+                                                .catch(() => toast.error('Failed to update config'))
+                                                .finally(() => setIsConfigSaving(false));
+                                        }}
+                                        defaultPlans={DEFAULT_PRICING_PLANS}
+                                    />
                                 )}
                             </AnimatePresence>
                         )}
@@ -703,7 +972,7 @@ const AdminDashboard: React.FC = () => {
                                             openConfirm('create');
                                         }}
                                         disabled={!targetUserId}
-                                        className="bg-slate-900 text-white font-bold px-7 py-2.5 rounded-xl hover:bg-teal-600 disabled:opacity-50 transition-all flex items-center gap-2 text-sm"
+                                        className="bg-teal-600 text-white font-bold px-7 py-2.5 rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-all flex items-center gap-2 text-sm"
                                     >
                                         <Plus className="w-4 h-4" /> Create Instance
                                     </button>
@@ -728,17 +997,5 @@ const AdminDashboard: React.FC = () => {
         </AdminLayout>
     );
 };
-
-const StatCard = ({ label, value, icon: Icon, color }: any) => (
-    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-100 flex items-center gap-4 sm:gap-5">
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${color} flex items-center justify-center shadow-lg shadow-black/5 shrink-0`}>
-            <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-        </div>
-        <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase mb-0.5">{label}</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900">{value}</p>
-        </div>
-    </div>
-);
 
 export default AdminDashboard;

@@ -198,7 +198,7 @@ const DomainsPage: React.FC = () => {
                 <meta property="og:title" content="Domain Management - SeeqMe AI" />
                 <meta property="og:description" content="Connect and manage custom domains for your portfolios on SeeqMe AI. Ensure your projects are accessible via your own branding." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://seeqme.ai/domains" />
+                <meta property="og:url" content="https://seeqme.com/domains" />
             </Helmet>
             <div className="min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 py-12">
@@ -416,8 +416,8 @@ const DomainsPage: React.FC = () => {
                                     <h3 className="text-2xl font-bold text-white">Verify Domain</h3>
                                     <p className="text-teal-100 text-sm mt-1">Configure DNS records to activate {setupModalDomain.domain}</p>
                                 </div>
-                                <button 
-                                    onClick={() => setSetupModalDomain(null)} 
+                                <button
+                                    onClick={() => setSetupModalDomain(null)}
                                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                                 >
                                     <X className="w-6 h-6 text-white" />
@@ -431,7 +431,7 @@ const DomainsPage: React.FC = () => {
                                     <div>
                                         <p className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-1">How to Configure</p>
                                         <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-                                            Log in to your domain registrar (GoDaddy, Namecheap, etc.) and add the DNS record below. 
+                                            Log in to your domain registrar (GoDaddy, Namecheap, etc.) and add the DNS record below.
                                             DNS changes can take up to 24 hours to propagate.
                                         </p>
                                     </div>
@@ -478,7 +478,7 @@ const DomainsPage: React.FC = () => {
                                 {/* Additional Info */}
                                 <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 p-4 rounded-xl mb-8">
                                     <p className="text-sm text-amber-900 dark:text-amber-200">
-                                        <strong>Tip:</strong> After adding the DNS record, it may take a few minutes to a few hours for verification to complete. 
+                                        <strong>Tip:</strong> After adding the DNS record, it may take a few minutes to a few hours for verification to complete.
                                         Click the button below to check the status.
                                     </p>
                                 </div>

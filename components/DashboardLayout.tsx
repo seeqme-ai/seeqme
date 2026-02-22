@@ -24,6 +24,7 @@ import {
 import { useAuth } from '@/context/auth-context';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from './Footer';
+import ChatBot from './ChatBot';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -48,11 +49,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     //{ name: 'Domains', icon: Globe, path: '/dashboard/domains' },
     { name: 'Settings', icon: Settings, path: '/dashboard/settings' },
   ];
+  const isAdmin = Boolean(user?.roles?.includes('admin'));
+  if (isAdmin) {
+    navItems.push({ name: 'Admin', icon: User, path: '/admin' });
+  }
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="flex h-screen bg-white text-foreground overflow-hidden">
+      <ChatBot />
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isMobileSidebarOpen && (
@@ -66,12 +72,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-border transition-all duration-300 ease-in-out relative
+        className={`hidden lg:flex flex-col bg-white border-r border-border transition-all duration-300 ease-in-out relative
           ${isSidebarOpen ? 'w-72' : 'w-24'}
-          ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 lg:static shadow-xl lg:shadow-none`}
+          shadow-none`}
       >
         {/* Sidebar Header */}
         <div className={`flex items-center h-20 px-4 border-b border-border/50 ${!isSidebarOpen && 'justify-center'}`}>
@@ -140,6 +145,62 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <Menu className="w-3 h-3" />
         </button>
       </aside>
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isMobileSidebarOpen && (
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-border flex flex-col shadow-2xl lg:hidden"
+          >
+            {/* Sidebar Header */}
+            <div className="flex items-center h-20 px-4 border-b border-border/50">
+              <Link to="/" className="flex items-center hover:opacity-80 transition-opacity" onClick={() => setIsMobileSidebarOpen(false)}>
+                <img src="/seeqme-logo-black.png" alt="SeeQMe" className="h-6 w-auto block" />
+                <span className="text-base font-bold text-foreground">SeeqMe</span>
+              </Link>
+            </div>
+
+            {/* Sidebar Navigation */}
+            <nav className="flex-1 overflow-y-auto px-4 py-8 space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all relative group
+                      ${isActive(item.path)
+                      ? 'bg-teal-500/10 text-teal-600 shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                >
+                  <item.icon className={`h-5 w-5 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
+                  <span className="text-[13px] font-semibold whitespace-nowrap">{item.name}</span>
+                  {isActive(item.path) && (
+                    <motion.div
+                      layoutId="active-pill-mobile"
+                      className="absolute left-0 w-1 h-6 bg-teal-500 rounded-r-full"
+                    />
+                  )}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="p-4 bg-muted/30 border-t border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 font-bold shrink-0">
+                  {user?.fullName?.[0] || 'U'}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold truncate">{user?.fullName}</p>
+                </div>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] h-screen overflow-hidden">

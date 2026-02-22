@@ -42,7 +42,7 @@ export const SKILLS_GRID_ICONS = (content: any) => {
             ${items.map((skill: any) => `
                <div class="p-8 bg-[var(--surface)] border border-[var(--text)]/5 rounded-[2rem] text-center group hover:border-[var(--primary)] transition-all">
                   <div class="w-12 h-12 mx-auto mb-4 opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all flex items-center justify-center">
-                     <span class="text-3xl font-black text-[var(--primary)]">λ</span>
+                     ${getSkillIcon(skill, 'w-8 h-8')}
                   </div>
                   <p class="font-bold text-sm uppercase tracking-widest">${typeof skill === 'string' ? skill : (skill.name || skill.value || 'New Skill')}</p>
                </div>
@@ -153,7 +153,7 @@ export const SKILLS_DARK_SASS = (content: any) => `
                 ${(content.tools || []).map((tool: any) => `
                 <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl flex items-center gap-4 hover:border-violet-500 hover:bg-slate-800 transition-all cursor-default">
                     <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-xl">
-                        ${tool.icon}
+                        ${getSkillIcon(tool, 'w-6 h-6')}
                     </div>
                     <div class="font-bold text-white">${tool.name}</div>
                 </div>
@@ -169,7 +169,7 @@ export const SKILLS_AGENCY = (content: any) => `
         <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-70 grayscale">
             ${(content.skills || []).map((skill: any) => `
             <div class="flex flex-col items-center gap-2">
-                 ${skill.icon ? `<i class="${skill.icon} text-4xl"></i>` : ''}
+                 ${getSkillIcon(skill, 'w-10 h-10')}
                  <span class="text-xl font-black font-sans">${skill.name}</span>
             </div>
             `).join('')}
@@ -177,10 +177,290 @@ export const SKILLS_AGENCY = (content: any) => `
     </section>
 `;
 
+import SkillIconCatalog from './skill-icons.json';
+
+const DEFAULT_ICON_COLOR = '#94a3b8';
+const FALLBACK_PALETTE = [
+    '#22c55e',
+    '#06b6d4',
+    '#3b82f6',
+    '#8b5cf6',
+    '#ec4899',
+    '#f59e0b',
+    '#ef4444',
+    '#10b981',
+    '#6366f1',
+    '#14b8a6'
+];
+
+type SkillIconEntry = {
+    key: string;
+    label: string;
+    color: string;
+    aliases?: string[];
+    patterns?: string[];
+};
+
+const STANDARD_LABELS: Record<string, string> = {
+    javascript: 'JS',
+    typescript: 'TS',
+    react: 'RE',
+    nextjs: 'NX',
+    vue: 'VU',
+    angular: 'NG',
+    nodejs: 'NJ',
+    python: 'PY',
+    go: 'GO',
+    golang: 'GO',
+    java: 'JA',
+    csharp: 'CS',
+    cpp: 'C++',
+    php: 'PHP',
+    ruby: 'RB',
+    rails: 'RA',
+    rust: 'RS',
+    swift: 'SW',
+    kotlin: 'KT',
+    dart: 'DT',
+    sql: 'SQL',
+    postgresql: 'PG',
+    mysql: 'MY',
+    sqlite: 'SQ',
+    mongodb: 'MG',
+    redis: 'RD',
+    kafka: 'KF',
+    rabbitmq: 'RMQ',
+    docker: 'DK',
+    kubernetes: 'K8',
+    aws: 'AWS',
+    gcp: 'GCP',
+    azure: 'AZ',
+    git: 'GIT',
+    github: 'GH',
+    gitlab: 'GL',
+    bitbucket: 'BB',
+    linux: 'LX',
+    tailwind: 'TW',
+    figma: 'FIG',
+    photoshop: 'PS',
+    illustrator: 'AI',
+    graphql: 'GQL',
+    rest: 'RST',
+    reactnative: 'RN',
+    html: 'HTM',
+    css: 'CSS',
+    sass: 'SAS',
+    bootstrap: 'BS',
+    jquery: 'JQ',
+    redux: 'RX',
+    zustand: 'ZD',
+    express: 'EX',
+    nestjs: 'NS',
+    fastapi: 'FA',
+    flask: 'FL',
+    django: 'DJ',
+    spring: 'SP',
+    dotnet: 'NET',
+    terraform: 'TF',
+    ansible: 'AN',
+    githubactions: 'GHA',
+    vercel: 'VC',
+    netlify: 'NF',
+    svelte: 'SV',
+    nuxt: 'NUX',
+    solidjs: 'SJ',
+    threejs: '3J',
+    unity: 'UN',
+    unreal: 'UE',
+    blender: 'BL',
+    webflow: 'WF',
+    notion: 'NO',
+    slack: 'SL',
+    jira: 'JR',
+    trello: 'TR',
+    figjam: 'FJ',
+    adobexd: 'XD',
+    communication: 'CO',
+    leadership: 'LD',
+    teamwork: 'TW',
+    problemsolving: 'PS',
+    criticalthinking: 'CT',
+    adaptability: 'AD',
+    timemanagement: 'TM',
+    projectmanagement: 'PM',
+    stakeholdermanagement: 'SM',
+    negotiation: 'NG',
+    conflictresolution: 'CR',
+    decisionmaking: 'DM',
+    presentation: 'PR',
+    mentoring: 'MN',
+    customerservice: 'CS',
+    sales: 'SA',
+    businessdevelopment: 'BD',
+    marketing: 'MK',
+    seo: 'SEO',
+    contentwriting: 'CW',
+    research: 'RS',
+    dataanalysis: 'DA',
+    excel: 'XL',
+    powerbi: 'PB',
+    tableau: 'TB',
+    googleanalytics: 'GA',
+    scrum: 'SC',
+    agile: 'AG',
+    kanban: 'KB',
+    documentation: 'DOC',
+    qa: 'QA',
+    support: 'SUP',
+    empathy: 'EM',
+    creativity: 'CR',
+    initiative: 'IN',
+    accountability: 'AC',
+    attentiontodetail: 'DT',
+    organization: 'OR',
+    planning: 'PL',
+    prioritization: 'PR',
+    riskmanagement: 'RM',
+    changemanagement: 'CM',
+    processimprovement: 'PI',
+    rootcauseanalysis: 'RC',
+    clientmanagement: 'CL',
+    accountmanagement: 'AM',
+    peoplemanagement: 'PM',
+    hiring: 'HR',
+    training: 'TR',
+    budgeting: 'BD',
+    forecasting: 'FC',
+    reporting: 'RP',
+    bookkeeping: 'BK',
+    compliance: 'CP',
+    privacy: 'PV',
+    security: 'SC',
+    operations: 'OP',
+    logistics: 'LG',
+    procurement: 'PC',
+    qualitymanagement: 'QM',
+    userresearch: 'UR',
+    wireframing: 'WF',
+    prototyping: 'PT',
+    branding: 'BR',
+    copywriting: 'CW',
+    editing: 'ED',
+    socialmedia: 'SM',
+    emailmarketing: 'EM',
+    crm: 'CRM',
+    zendesk: 'ZD',
+    hubspot: 'HS',
+    salesforce: 'SF',
+    msoffice: 'MS',
+    powerpoint: 'PPT',
+    word: 'WRD',
+    outlook: 'OL',
+    googlesheets: 'GSH',
+    googledocs: 'GDC',
+    googleslides: 'GLS',
+    asana: 'AS',
+    monday: 'MO',
+    miro: 'MI',
+    zoom: 'ZO',
+    teams: 'TM',
+    customersuccess: 'CS',
+    productmanagement: 'PM',
+    programmanagement: 'PG',
+    operationsmanagement: 'OM',
+    businessanalysis: 'BA'
+};
+
+const makeIconDataUri = (label: string, color: string) => {
+    const safeLabel = label.slice(0, 3).toUpperCase();
+    const svg =
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
+        "<rect x='4' y='4' width='56' height='56' rx='12' fill='" + color + "'/>" +
+        "<text x='32' y='38' font-family='Arial, sans-serif' font-size='18' font-weight='700' text-anchor='middle' fill='#0b0b0b'>" +
+        safeLabel +
+        "</text>" +
+        "</svg>";
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+};
+
+const hashToColor = (input: string) => {
+    if (!input) return DEFAULT_ICON_COLOR;
+    let hash = 0;
+    for (let i = 0; i < input.length; i += 1) {
+        hash = (hash * 31 + input.charCodeAt(i)) | 0;
+    }
+    const idx = Math.abs(hash) % FALLBACK_PALETTE.length;
+    return FALLBACK_PALETTE[idx] || DEFAULT_ICON_COLOR;
+};
+
+function normalizeSkillName(raw: string) {
+    const lower = raw.toLowerCase().trim();
+    return lower
+        .replace(/c\+\+/g, 'cplusplus')
+        .replace(/c#/g, 'csharp')
+        .replace(/\.net/g, 'dotnet')
+        .replace(/node\.?js/g, 'nodejs')
+        .replace(/react\.?js/g, 'react')
+        .replace(/next\.?js/g, 'nextjs')
+        .replace(/vue\.?js/g, 'vue')
+        .replace(/nuxt\.?js/g, 'nuxtjs')
+        .replace(/svelte\.?js/g, 'svelte')
+        .replace(/[^a-z0-9]/g, '');
+}
+
+function getSkillInitials(raw: string) {
+    const cleaned = raw.replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
+    if (!cleaned) return 'SK';
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+};
+
+function normalizeKey(raw: string) {
+    return normalizeSkillName(raw || '');
+}
+
+function getStandardLabel(entry: SkillIconEntry) {
+    const key = normalizeKey(entry.key);
+    const mapped = STANDARD_LABELS[key];
+    if (mapped) return mapped;
+    const labelFromKey = getSkillInitials(entry.key || '');
+    const labelFromEntry = entry.label ? entry.label.slice(0, 3).toUpperCase() : '';
+    return labelFromEntry || labelFromKey || 'SK';
+}
+
+const iconMap = new Map<string, string>();
+const patternRules: Array<{ regex: RegExp; dataUri: string }> = [];
+
+(SkillIconCatalog as SkillIconEntry[]).forEach((entry) => {
+    const baseColor = entry.color || hashToColor(entry.key);
+    const dataUri = makeIconDataUri(getStandardLabel(entry), baseColor);
+    iconMap.set(normalizeSkillName(entry.key), dataUri);
+    (entry.aliases || []).forEach((alias) => {
+        iconMap.set(normalizeSkillName(alias), dataUri);
+    });
+    (entry.patterns || []).forEach((pattern) => {
+        patternRules.push({ regex: new RegExp(pattern, 'i'), dataUri });
+    });
+});
+
+const resolveSkillIcon = (name: string) => {
+    const normalized = normalizeSkillName(name);
+    const direct = iconMap.get(normalized);
+    if (direct) return direct;
+    for (const rule of patternRules) {
+        if (rule.regex.test(name)) return rule.dataUri;
+    }
+    const initial = getSkillInitials(name);
+    return makeIconDataUri(initial, hashToColor(normalizeSkillName(name)));
+};
+
 const getSkillIcon = (skill: any, classes: string = "w-8 h-8") => {
     const name = typeof skill === 'string' ? skill : (skill.name || skill.value || '');
-    const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return `<img src="https://cdn.simpleicons.org/${slug}/currentColor" alt="${name}" class="${classes}" onerror="this.onerror=null; this.src='https://unpkg.com/lucide-static@0.321.0/icons/cpu.svg'; this.className='${classes} opacity-40';" />`;
+    const dataUri = resolveSkillIcon(name || '');
+    return `<img src="${dataUri}" alt="${name}" class="${classes}" />`;
 };
 const getSkillName = (skill: any) => typeof skill === 'string' ? skill : (skill.name || skill.value || 'Skill');
 
@@ -693,7 +973,7 @@ export const SKILLS_DARK_SAAS = (content: any) => {
         return `
           <div class="bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-white/10 hover:border-teal-500/50 transition-all group cursor-default">
             <div class="w-10 h-10 rounded-lg bg-slate-900 border border-white/10 flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform shadow-inner shadow-black/50">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+              ${getSkillIcon(skill, 'w-6 h-6')}
             </div>
             <span class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors text-center uppercase tracking-wider">${name}</span>
           </div>
@@ -733,3 +1013,5 @@ export const SkillsRegistry: any = {
     SKILLS_AGC_GLASS,
     SKILLS_AGC_MINIMAL
 };
+
+

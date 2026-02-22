@@ -7,7 +7,7 @@ import { ArrowRight, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { contactService } from '@/services/apiService'; 
+import { contactService } from '@/services/apiService';
 
 const ContactUs = () => {
   const { user, isAuthenticated } = useAuth();
@@ -58,7 +58,7 @@ const ContactUs = () => {
         <meta property="og:title" content="Contact Us - SeeqMe AI" />
         <meta property="og:description" content="Have questions or feedback for SeeqMe AI? Contact our support team for assistance with your portfolios, features, or any inquiries." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://seeqme.ai/contact-us" />
+        <meta property="og:url" content="https://seeqme.com/contact-us" />
       </Helmet>
       <div className="max-w-4xl mx-auto px-6 py-16">
         <motion.div

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ICONS } from '../constants';
-import { subscriptionService } from '../services/apiService';
+import { configService, subscriptionService } from '../services/apiService';
 import { PaystackButton } from 'react-paystack';
 import { useAuth } from '../context/auth-context';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ interface Plan {
     };
 }
 
-const PLANS: Plan[] = [
+const DEFAULT_PLANS: Plan[] = [
     {
         id: 'pro',
         name: 'Professional',
@@ -70,6 +70,8 @@ const Plans: React.FC = () => {
     const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
     const [isSyncing, setIsSyncing] = useState(false);
+    const [plans, setPlans] = useState<Plan[]>(DEFAULT_PLANS);
+    const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
     useEffect(() => {
         if (user?.country) {
@@ -79,9 +81,28 @@ const Plans: React.FC = () => {
         }
     }, [user?.country]);
 
+    useEffect(() => {
+        const loadPlans = async () => {
+            setIsLoadingPlans(true);
+            try {
+                const data = await configService.getPricing();
+                if (data?.pricingPlans?.length) {
+                    setPlans(data.pricingPlans);
+                } else {
+                    setPlans(DEFAULT_PLANS);
+                }
+            } catch {
+                setPlans(DEFAULT_PLANS);
+            } finally {
+                setIsLoadingPlans(false);
+            }
+        };
+        loadPlans();
+    }, []);
+
     const handlePaystackSuccess = async (reference: any, planId: string) => {
         setIsSyncing(true);
-        const plan = PLANS.find(p => p.id === planId);
+        const plan = plans.find(p => p.id === planId);
         const basePrice = currency === 'USD' ? plan?.price.usd : plan?.price.ngn;
         const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 12 : (basePrice || 0);
 
@@ -135,12 +156,12 @@ const Plans: React.FC = () => {
 
 
             <main className="flex-1 pt-32 pb-20 px-6">
-                {isSyncing && (
+                {(isSyncing || isLoadingPlans) && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
                         <div className="bg-white border border-border p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
                             <Loader className="text-teal-500 animate-spin" />
                             <div className="text-center">
-                                <h3 className="text-xl text-black font-bold">Verifying Payment...</h3>
+                                <h3 className="text-xl text-black font-bold">{isSyncing ? 'Verifying Payment...' : 'Loading Plans...'}</h3>
                             </div>
                         </div>
                     </div>
@@ -173,7 +194,7 @@ const Plans: React.FC = () => {
 
                     {/* Pricing Cards */}
                     <div className="grid md:grid-cols-2 gap-8 items-start">
-                        {PLANS.map((plan) => {
+                        {plans.map((plan) => {
                             const isYearly = billingCycle === 'yearly';
                             const basePrice = currency === 'USD' ? plan.price.usd : plan.price.ngn;
                             const price = isYearly ? basePrice * 12 : basePrice; // Corrected: monthly_price * 12

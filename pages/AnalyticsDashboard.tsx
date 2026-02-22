@@ -314,7 +314,7 @@ const AnalyticsDashboard: React.FC = () => {
                     <meta property="og:title" content="Analytics Dashboard - SeeqMe AI" />
                     <meta property="og:description" content="View detailed analytics and insights for your portfolios on SeeqMe AI. Track performance, visitors, and engagement." />
                     <meta property="og:type" content="website" />
-                    <meta property="og:url" content="https://seeqme.ai/analytics" />
+                    <meta property="og:url" content="https://seeqme.com/analytics" />
                 </Helmet>
                 {/* Header */}
                 <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">

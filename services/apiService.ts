@@ -280,6 +280,50 @@ export const adminService = {
     const response = await apiClient.delete(`/admin/portfolios/${portfolioId}`);
     return response.data;
   },
+  getSystemConfig: async () => {
+    const response = await apiClient.get('/admin/system-config');
+    return response.data;
+  },
+  updateSystemConfig: async (data: any) => {
+    const response = await apiClient.put('/admin/system-config', data);
+    return response.data;
+  },
+  sendAdminEmail: async (data: any) => {
+    const response = await apiClient.post('/admin/notifications/email', data);
+    return response.data;
+  },
+  getAdminTemplates: async () => {
+    const response = await apiClient.get('/admin/templates');
+    return response.data;
+  },
+  createAdminTemplate: async (data: any) => {
+    const response = await apiClient.post('/admin/templates', data);
+    return response.data;
+  },
+  updateAdminTemplate: async (id: string, data: any) => {
+    const response = await apiClient.put(`/admin/templates/${id}`, data);
+    return response.data;
+  },
+  deleteAdminTemplate: async (id: string) => {
+    const response = await apiClient.delete(`/admin/templates/${id}`);
+    return response.data;
+  },
+};
+
+// Public Config Services
+export const configService = {
+  getPricing: async () => {
+    const response = await apiClient.get('/config/pricing');
+    return response.data;
+  },
+};
+
+// Templates (Public)
+export const templateService = {
+  getPublicTemplates: async () => {
+    const response = await apiClient.get('/templates');
+    return response.data;
+  },
 };
 
 // Session Management Services

@@ -76,7 +76,7 @@ const HeroSection = () => {
                     variants={itemVariants}
                     className="text-lg md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed"
                 >
-                    The <span className="text-slate-900  font-bold">AI-native</span> designer that  craft a professional identity that stands out
+                    The <span className="text-slate-900  font-bold">AI-native</span> designer that  craft a professional identity that stands out and get you hired
                 </motion.p>
 
 

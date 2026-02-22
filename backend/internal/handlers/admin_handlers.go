@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"seeqmeai/backend/internal/database"
@@ -14,11 +16,73 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type PricingPlan struct {
+	ID          string        `json:"id" bson:"id"`
+	Name        string        `json:"name" bson:"name"`
+	Price       PricingAmount `json:"price" bson:"price"`
+	Features    []string      `json:"features" bson:"features"`
+	Recommended bool          `json:"recommended,omitempty" bson:"recommended,omitempty"`
+	Limits      PlanLimits    `json:"limits" bson:"limits"`
+}
+
+type PricingAmount struct {
+	USD int `json:"usd" bson:"usd"`
+	NGN int `json:"ngn" bson:"ngn"`
+}
+
+type PlanLimits struct {
+	Portfolios   int  `json:"portfolios" bson:"portfolios"`
+	CustomDomain bool `json:"customDomain" bson:"customDomain"`
+}
+
 type SystemConfig struct {
-	MaintenanceMode bool      `json:"maintenanceMode" bson:"maintenanceMode"`
-	AllowSignups    bool      `json:"allowSignups" bson:"allowSignups"`
-	AIModel         string    `json:"aiModel" bson:"aiModel"` // e.g., "gemini-1.5-flash"
-	UpdatedAt       time.Time `json:"updatedAt" bson:"updatedAt"`
+	MaintenanceMode bool         `json:"maintenanceMode" bson:"maintenanceMode"`
+	AllowSignups    bool         `json:"allowSignups" bson:"allowSignups"`
+	AIModel         string       `json:"aiModel" bson:"aiModel"` // e.g., "gemini-3-flash"
+	PricingPlans    []PricingPlan `json:"pricingPlans" bson:"pricingPlans"`
+	UpdatedAt       time.Time    `json:"updatedAt" bson:"updatedAt"`
+}
+
+func defaultPricingPlans() []PricingPlan {
+	return []PricingPlan{
+		{
+			ID:   "pro",
+			Name: "Professional",
+			Price: PricingAmount{
+				USD: 3,
+				NGN: 2000,
+			},
+			Recommended: true,
+			Features: []string{
+				"5 Portfolio Projects",
+				"Advanced Customization",
+				"Priority Support",
+				"Custom Domain Connection",
+				"Unlimited AI Re-generations",
+				"SEO Optimization Tools",
+				"SeeqMe Branding",
+			},
+			Limits: PlanLimits{Portfolios: 2, CustomDomain: true},
+		},
+		{
+			ID:   "premium",
+			Name: "Premium",
+			Price: PricingAmount{
+				USD: 5,
+				NGN: 5000,
+			},
+			Features: []string{
+				"5 Portfolios",
+				"White-label Solution",
+				"24/7 Dedicated Support",
+				"Multiple Custom Domains",
+				"Advanced Analytics (Visitor Tracking)",
+				"Priority Feature Access",
+				"API Access",
+			},
+			Limits: PlanLimits{Portfolios: 5, CustomDomain: true},
+		},
+	}
 }
 
 func (h *Handler) GetSystemConfig(c *gin.Context) {
@@ -33,10 +97,28 @@ func (h *Handler) GetSystemConfig(c *gin.Context) {
 			MaintenanceMode: false,
 			AllowSignups:    true,
 			AIModel:         "gemini-2.5-flash",
+			PricingPlans:    defaultPricingPlans(),
 			UpdatedAt:       time.Now(),
 		}
+		_, _ = db.Collection("system_config").UpdateOne(
+			context.Background(),
+			bson.M{},
+			bson.M{"$set": defaultConfig},
+			options.Update().SetUpsert(true),
+		)
 		c.JSON(http.StatusOK, defaultConfig)
 		return
+	}
+
+	if len(config.PricingPlans) == 0 {
+		config.PricingPlans = defaultPricingPlans()
+		config.UpdatedAt = time.Now()
+		_, _ = db.Collection("system_config").UpdateOne(
+			context.Background(),
+			bson.M{},
+			bson.M{"$set": config},
+			options.Update().SetUpsert(true),
+		)
 	}
 
 	c.JSON(http.StatusOK, config)
@@ -46,6 +128,11 @@ func (h *Handler) UpdateSystemConfig(c *gin.Context) {
 	var req SystemConfig
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid config data"})
+		return
+	}
+
+	if err := validatePricingPlans(req.PricingPlans); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -76,7 +163,49 @@ func (h *Handler) ReloadSystemConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "reloaded"})
 }
 
-// Admin Suite Handlers
+func validatePricingPlans(plans []PricingPlan) error {
+	if len(plans) == 0 {
+		return errors.New("pricingPlans must include at least one plan")
+	}
+	ids := map[string]bool{}
+	for _, plan := range plans {
+		if strings.TrimSpace(plan.ID) == "" {
+			return errors.New("each plan must have an id")
+		}
+		if ids[plan.ID] {
+			return errors.New("plan ids must be unique")
+		}
+		ids[plan.ID] = true
+		if strings.TrimSpace(plan.Name) == "" {
+			return errors.New("each plan must have a name")
+		}
+		if plan.Price.USD < 0 || plan.Price.NGN < 0 {
+			return errors.New("plan prices must be >= 0")
+		}
+		if len(plan.Features) == 0 {
+			return errors.New("each plan must have at least one feature")
+		}
+		if plan.Limits.Portfolios < 0 {
+			return errors.New("plan limits.portfolios must be >= 0")
+		}
+	}
+	return nil
+}
+
+// GetPricingConfig exposes pricing for public pages (Plans).
+func (h *Handler) GetPricingConfig(c *gin.Context) {
+	db := database.Client.Database(database.DBName)
+	var config SystemConfig
+
+	err := db.Collection("system_config").FindOne(context.Background(), bson.M{}).Decode(&config)
+	if err != nil || len(config.PricingPlans) == 0 {
+		c.JSON(http.StatusOK, gin.H{"pricingPlans": defaultPricingPlans()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"pricingPlans": config.PricingPlans})
+}
+
 
 func (h *Handler) AdminGetUsers(c *gin.Context) {
 	db := database.Client.Database(database.DBName)
@@ -123,7 +252,12 @@ func (h *Handler) AdminGetStats(c *gin.Context) {
 	// Basic Stats
 	totalUsers, _ := db.Collection("users").CountDocuments(ctx, bson.M{})
 	totalPortfolios, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{})
-	liveSites, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{"isPublished": true})
+	liveSites, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{
+		"$or": []bson.M{
+			{"isPublished": true},
+			{"status": "completed"},
+		},
+	})
 
 	//  Revenue calculation
 	pipeline := bson.A{

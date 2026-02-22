@@ -119,7 +119,7 @@ const getValueByPath = (obj: any, path: string): any => {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 };
 
-export const renderManifest = (manifest: Manifest, isFree: boolean = false): string => {
+export const renderManifest = (manifest: Manifest, showBranding: boolean = false): string => {
   const { sections, metadata } = manifest;
 
   // 1. Resolve Global Config & Design Scheme
@@ -258,15 +258,25 @@ export const renderManifest = (manifest: Manifest, isFree: boolean = false): str
   const pageDescription = heroContent.bio || heroContent.description || 'Welcome to my professional portfolio.';
   const pageImage = heroContent.image || '';
 
-  const brandingHTML = isFree ? `
+  const brandingHTML = showBranding ? `
     <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-      <a href="https://seeqme.ai" target="_blank" rel="noopener noreferrer" 
+      <a href="https://seeqme.com" target="_blank" rel="noopener noreferrer" 
          class="flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-md border border-white/10 rounded-full shadow-2xl hover:scale-105 transition-transform group">
         <span class="text-[10px] font-medium text-white/60 tracking-wider uppercase">Powered by</span>
-        <span class="text-xs font-bold text-white group-hover:text-teal-400 transition-colors">SeeqMe.ai</span>
+        <span class="text-xs font-bold text-white group-hover:text-teal-400 transition-colors">SeeqMe</span>
       </a>
     </div>
   ` : '';
+
+  const FALLBACK_IMG_DATA_URI =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none'>" +
+      "<rect x='2' y='2' width='116' height='76' rx='10' stroke='currentColor' stroke-width='4'/>" +
+      "<path d='M20 56l22-18 16 12 18-16 24 22' stroke='currentColor' stroke-width='4' fill='none'/>" +
+      "<circle cx='40' cy='28' r='6' fill='currentColor'/>" +
+      "</svg>"
+    );
 
   return `
 <!DOCTYPE html>
@@ -302,8 +312,24 @@ export const renderManifest = (manifest: Manifest, isFree: boolean = false): str
     </main>
     ${brandingHTML}
     <script>
+       const __SEEQME_FALLBACK_IMG = "${FALLBACK_IMG_DATA_URI}";
+       const __applyImageFallback = (img) => {
+          if (!img || img.dataset?.fallbackApplied) return;
+          img.dataset.fallbackApplied = "true";
+          img.onerror = function() {
+             if (img.src !== __SEEQME_FALLBACK_IMG) {
+                img.src = __SEEQME_FALLBACK_IMG;
+                img.classList.add("opacity-40");
+             }
+          };
+       };
+
+       document.querySelectorAll("img").forEach(__applyImageFallback);
+
        // Unified smooth-scroll and animation script
        document.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll("img").forEach(__applyImageFallback);
+
           // Global smooth-scroll listener for all anchor links
           document.body.addEventListener('click', function(e) {
              const link = e.target.closest('a[href^="#"]');

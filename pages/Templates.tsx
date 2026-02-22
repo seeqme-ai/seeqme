@@ -2,15 +2,13 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ICONS } from '@/constants';
-import { PORTFOLIO_TEMPLATES } from '@/templates';
+import { usePublicTemplates } from '@/hooks/usePublicTemplates';
 import { useTemplate } from '@/context/template-context';
 import { ArrowUpRight, Loader } from 'lucide-react';
 import { TemplateCardSkeleton } from '@/components/ui/TemplateSkeleton';
 import MainLayout from '@/components/MainLayout';
 
 const MotionDiv = motion.div as any;
-
-const NICHES = ['All', ...new Set(PORTFOLIO_TEMPLATES.map(p => p.niche))]
 
 const Templates: React.FC = () => {
     const [selectedNiche, setSelectedNiche] = useState('All');
@@ -22,18 +20,21 @@ const Templates: React.FC = () => {
 
     const { setSelectedTemplateId, setSynthesisInput } = useTemplate();
     const navigate = useNavigate();
+    const { templates, loading } = usePublicTemplates();
+    const niches = useMemo(() => ['All', ...new Set(templates.map(p => p.niche))], [templates]);
 
     // Check for template ID in URL and redirect to builder
     const templateIdFromUrl = searchParams.get('id');
 
     useEffect(() => {
-        if (templateIdFromUrl) {
-            const template = PORTFOLIO_TEMPLATES.find(t => t.id === templateIdFromUrl);
+        if (templateIdFromUrl && templates.length > 0) {
+            const template = templates.find(t => t.id === templateIdFromUrl);
             if (template) {
                 // Update document title for SEO
                 document.title = `${template.name} Template - Seeqme AI`;
 
                 // Set template context and redirect to builder
+                sessionStorage.setItem('seeqme_template_override', template.id);
                 setSelectedTemplateId(template.id);
                 setSynthesisInput('');
                 navigate("/builder", {
@@ -48,18 +49,20 @@ const Templates: React.FC = () => {
                     },
                     replace: true // Replace history so back button goes to previous page, not /templates?id=...
                 });
+            } else {
+                navigate('/templates', { replace: true });
             }
         }
-    }, [templateIdFromUrl, navigate, setSelectedTemplateId, setSynthesisInput]);
+    }, [templateIdFromUrl, templates, navigate, setSelectedTemplateId, setSynthesisInput]);
 
     const filteredTemplates = useMemo(() => {
-        return PORTFOLIO_TEMPLATES.filter(tpl => {
+        return templates.filter(tpl => {
             const matchesNiche = selectedNiche === 'All' || tpl.niche === selectedNiche;
             const matchesSearch = tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 tpl.niche.toLowerCase().includes(searchQuery.toLowerCase());
             return matchesNiche && matchesSearch;
         });
-    }, [selectedNiche, searchQuery]);
+    }, [selectedNiche, searchQuery, templates]);
 
     const displayedTemplates = useMemo(() => {
         return filteredTemplates.slice(0, displayLimit);
@@ -142,7 +145,7 @@ const Templates: React.FC = () => {
                                 />
                             </div>
                             <div className="flex gap-2 overflow-x-auto pb-4 sm:pb-0 no-scrollbar">
-                                {NICHES.map(n => (
+                                {niches.map(n => (
                                     <button
                                         key={n}
                                         onClick={() => setSelectedNiche(n)}
@@ -164,6 +167,7 @@ const Templates: React.FC = () => {
                                 viewport={{ once: true }}
                                 transition={{ delay: i % 3 * 0.1 }}
                                 onClick={() => {
+                                    sessionStorage.setItem('seeqme_template_override', tpl.id);
                                     setSelectedTemplateId(tpl.id);
                                     setSynthesisInput('');
                                     handleTempClick({ type: 'template', value: tpl.id, templateId: tpl.id });
@@ -173,6 +177,11 @@ const Templates: React.FC = () => {
                                 <div className="relative aspect-[4/5] overflow-hidden">
                                     <img src={tpl.preview} alt={tpl.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    {tpl.isNew && (
+                                        <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
+                                            New
+                                        </div>
+                                    )}
                                     <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
                                         <span className="text-[10px] font-black text-white uppercase tracking-widest">Preview Design</span>
                                         <div className="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center">
@@ -188,7 +197,7 @@ const Templates: React.FC = () => {
                                 </div>
                             </MotionDiv>
                         ))}
-                        {isFetchingMore && Array.from({ length: 3 }).map((_, i) => (
+                        {(isFetchingMore || loading) && Array.from({ length: 3 }).map((_, i) => (
                             <TemplateCardSkeleton key={`skeleton-${i}`} />
                         ))}
                     </div>

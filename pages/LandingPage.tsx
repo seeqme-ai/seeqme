@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { ICONS } from '@/constants';
-import { PORTFOLIO_TEMPLATES } from '@/templates';
+import { usePublicTemplates } from '@/hooks/usePublicTemplates';
 import { useTemplate } from '@/context/template-context';
 import { linkedinService } from '@/services/linkedinService';
 import { useAuth } from '@/context/auth-context';
@@ -14,9 +14,6 @@ import { TemplateCardSkeleton } from '@/components/ui/TemplateSkeleton';
 import { shuffleArray } from '@/utils';
 
 const MotionDiv = motion.div as any;
-
-const NICHES = ['All', ...new Set(PORTFOLIO_TEMPLATES.map(p => p.niche))]
-
 
 const PARTNERS = [
   { name: 'Paystack', logo: 'PAYSTACK' },
@@ -50,24 +47,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const { setSelectedTemplateId, setSynthesisInput } = useTemplate();
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { templates, loading: templatesLoading } = usePublicTemplates();
 
-
-  const shuffledTemplates = useMemo(() => shuffleArray(PORTFOLIO_TEMPLATES), []);
+  const shuffledTemplates = useMemo(() => shuffleArray(templates), [templates]);
+  const niches = useMemo(() => ['All', ...new Set(templates.map(p => p.niche))], [templates]);
 
   const filteredTemplates = useMemo(() => {
-    const sourceTemplates = selectedNiche === 'All' ? shuffledTemplates : PORTFOLIO_TEMPLATES;
+    const sourceTemplates = selectedNiche === 'All' ? shuffledTemplates : templates;
     return sourceTemplates.filter(tpl => {
       const matchesNiche = selectedNiche === 'All' || tpl.niche === selectedNiche;
       const matchesSearch = tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tpl.niche.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesNiche && matchesSearch;
     });
-  }, [selectedNiche, searchQuery, shuffledTemplates]);
+  }, [selectedNiche, searchQuery, shuffledTemplates, templates]);
 
   const displayedTemplates = useMemo(() => {
     if (filteredTemplates.length === 0) return [];
-    // Create an array filled with references to templates, looping over if necessary
-    return Array.from({ length: displayLimit }, (_, i) => filteredTemplates[i % filteredTemplates.length]);
+    return filteredTemplates.slice(0, displayLimit);
   }, [filteredTemplates, displayLimit]);
 
   // Infinite Scroll Logic
@@ -323,7 +320,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 />
               </div>
               <div className="flex gap-2 overflow-x-auto pb-4 sm:pb-0 no-scrollbar">
-                {NICHES.map(n => (
+                {niches.map(n => (
                   <button
                     key={n}
                     onClick={() => setSelectedNiche(n)}
@@ -345,6 +342,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 viewport={{ once: true }}
                 transition={{ delay: i % 3 * 0.1 }}
                 onClick={() => {
+                  sessionStorage.setItem('seeqme_template_override', tpl.id);
                   setSelectedTemplateId(tpl.id);
                   setSynthesisInput('');
                   onGetStarted({ type: 'template', value: tpl.id, templateId: tpl.id });
@@ -354,6 +352,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <div className="relative aspect-[4/5] overflow-hidden">
                   <img src={tpl.preview} alt={tpl.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  {tpl.isNew && (
+                    <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
+                      New
+                    </div>
+                  )}
                   <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
                     <span className="text-[10px] font-black text-white uppercase tracking-widest">Preview Design</span>
                     <div className="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center">
@@ -369,7 +372,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </div>
               </MotionDiv>
             ))}
-            {isFetchingMore && Array.from({ length: 3 }).map((_, i) => (
+            {(isFetchingMore || templatesLoading) && Array.from({ length: 3 }).map((_, i) => (
               <TemplateCardSkeleton key={`skeleton-${i}`} />
             ))}
           </div>

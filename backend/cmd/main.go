@@ -83,6 +83,9 @@ func main() {
 
 	api := r.Group("/api/v1")
 	{
+		api.GET("/config/pricing", h.GetPricingConfig)
+		api.GET("/templates", h.GetPublicTemplates)
+
 		api.POST("/contact", h.ContactForm)
 		api.POST("/analytics/track", h.TrackAnalytics)
 
@@ -164,6 +167,12 @@ func main() {
 			admin.GET("/portfolios", h.AdminGetAllPortfolios)
 			admin.GET("/stats", h.AdminGetStats)
 			admin.POST("/portfolios/:id/deploy", h.AdminDeployPortfolio)
+			admin.DELETE("/portfolios/:id", h.DeletePortfolio)
+			admin.POST("/notifications/email", h.AdminSendEmail)
+			admin.GET("/templates", h.AdminGetTemplates)
+			admin.POST("/templates", h.AdminCreateTemplate)
+			admin.PUT("/templates/:id", h.AdminUpdateTemplate)
+			admin.DELETE("/templates/:id", h.AdminDeleteTemplate)
 		}
 
 		subscription := api.Group("/subscription")

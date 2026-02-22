@@ -1,6 +1,5 @@
 import React from 'react';
 import { ICONS } from '@/constants';
-import { Sparkle } from 'lucide-react';
 
 interface BuilderSidebarProps {
     isTemplateSelectorOpen: boolean;
@@ -26,15 +25,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
                 <ICONS.Layout className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
             </button>
 
-            {onStartTour && (
-                <button
-                    onClick={onStartTour}
-                    className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white p-3 rounded-xl shadow-lg transition-all group"
-                    title="Start Tour"
-                >
-                    <Sparkle className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-                </button>
-            )}
+           
         </div>
     );
 };

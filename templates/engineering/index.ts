@@ -192,7 +192,7 @@ export const COMPLETE_ENGINEERING_DARK: Manifest = {
             componentId: 'GEN_TEMPLATE',
             template: `
                 <section class="py-24 px-6 max-w-7xl mx-auto" id="skills">
-                    <h2 class="text-2xl font-bold text-white mb-12 flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-[var(--heading)] mb-12 flex items-center gap-3">
                         <i class="fas fa-code text-cyan-500"></i> {{title}}
                     </h2>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -229,7 +229,7 @@ export const COMPLETE_ENGINEERING_DARK: Manifest = {
             componentId: 'GEN_TEMPLATE',
             template: `
                 <section class="py-24 px-6 max-w-7xl mx-auto" id="projects">
-                    <h2 class="text-2xl font-bold text-white mb-12 flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-[var(--heading)] mb-12 flex items-center gap-3">
                         <i class="fas fa-layer-group text-cyan-500"></i> {{title}}
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">

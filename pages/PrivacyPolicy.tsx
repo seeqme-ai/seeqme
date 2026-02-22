@@ -48,7 +48,7 @@ const PrivacyPolicy = () => {
             <motion.section variants={itemVariants} id="pp-section-1">
               <h2 className="text-xl font-bold text-slate-900 mb-4">1. Introduction</h2>
               <p className="text-lg leading-relaxed text-slate-700">
-                SeeqMe AI ("Company," "we," "us," or "our") is committed to protecting the privacy of our users. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website seeqme.ai and use our services (collectively, the "Service").
+                SeeqMe AI ("Company," "we," "us," or "our") is committed to protecting the privacy of our users. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website seeqme.com and use our services (collectively, the "Service").
               </p>
             </motion.section>
 
