@@ -114,18 +114,25 @@ const ChatBot: React.FC = () => {
                 unreadCount: 0,
             });
 
-            const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL;
+            const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
             if (slackWebhookUrl) {
-                fetch(slackWebhookUrl, {
+                const slackPayload = {
+                    text: `*New Support Message from ${user.fullName}*`,
+                    blocks: [
+                        { type: "section", text: { type: "mrkdwn", text: `*${user.fullName}:*\n${textPayload}` } }
+                    ]
+                };
+
+                const slackResponse = await fetch(slackWebhookUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: JSON.stringify({
-                        text: `*New Support Message from ${user.fullName}*`,
-                        blocks: [
-                            { type: "section", text: { type: "mrkdwn", text: `*${user.fullName}:*\n${textPayload}` } }
-                        ]
-                    })
-                }).catch(console.error);
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(slackPayload),
+                });
+
+                if (!slackResponse.ok) {
+                    const errText = await slackResponse.text().catch(() => '');
+                    console.error('Slack webhook failed:', slackResponse.status, errText);
+                }
             }
         } catch (err: any) {
             toast.error(`Error: ${err.message}`);
@@ -265,6 +272,7 @@ const ChatBot: React.FC = () => {
                                             )}
                                             <p className={`text-[9px] mt-1 opacity-50 ${msg.isAdmin ? 'text-left' : 'text-right'}`}>
                                                 {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {!msg.isAdmin ? '  ✓✓' : ''}
                                             </p>
                                         </div>
                                     </div>

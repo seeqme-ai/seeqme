@@ -198,14 +198,55 @@ func (h *Handler) DeployPortfolio(c *gin.Context) {
 		return
 	}
 
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+	userIDObj, err := primitive.ObjectIDFromHex(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
 	// Validate portfolio exists
 	collection := database.Client.Database(database.DBName).Collection("portfolios")
 	var portfolio bson.M
-	err = collection.FindOne(context.Background(), bson.M{"_id": portfolioID}).Decode(&portfolio)
+	err = collection.FindOne(context.Background(), bson.M{"_id": portfolioID, "userId": userIDObj}).Decode(&portfolio)
 	if err != nil {
 		log.Printf("[Deploy] Portfolio not found: %s, error: %v", req.PortfolioID, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Portfolio not found"})
 		return
+	}
+
+	status, _ := portfolio["status"].(string)
+
+	// Enforce plan limits server-side to prevent bypassing frontend checks.
+	var subscription models.Subscription
+	subErr := database.Client.Database(database.DBName).Collection("subscriptions").
+		FindOne(context.Background(), bson.M{"userId": userIDObj, "status": "active"}).
+		Decode(&subscription)
+
+	planID := "free"
+	if subErr == nil && subscription.PlanID != "" {
+		planID = strings.ToLower(subscription.PlanID)
+	}
+
+	if planID == "pro" && status != "completed" {
+		deployedCount, countErr := collection.CountDocuments(context.Background(), bson.M{
+			"userId": userIDObj,
+			"status": "completed",
+		})
+		if countErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate plan limits"})
+			return
+		}
+		if deployedCount >= 1 {
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				"error": "Professional plan allows only one deployed portfolio. Upgrade to Premium to deploy more.",
+			})
+			return
+		}
 	}
 
 	log.Printf("[Deploy] Found portfolio: %s", req.PortfolioID)

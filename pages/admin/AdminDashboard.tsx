@@ -38,7 +38,7 @@ const DEFAULT_PRICING_PLANS = [
         price: { usd: 3, ngn: 2000 },
         recommended: true,
         features: [
-            '5 Portfolio Projects',
+            '1 Portfolio Project',
             'Advanced Customization',
             'Priority Support',
             'Custom Domain Connection',
@@ -46,7 +46,7 @@ const DEFAULT_PRICING_PLANS = [
             'SEO Optimization Tools',
             'SeeqMe Branding'
         ],
-        limits: { portfolios: 2, customDomain: true }
+        limits: { portfolios: 1, customDomain: true }
     },
     {
         id: 'premium',

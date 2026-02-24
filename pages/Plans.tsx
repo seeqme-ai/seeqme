@@ -32,7 +32,7 @@ const DEFAULT_PLANS: Plan[] = [
         price: { usd: 3, ngn: 2000 },
         recommended: true,
         features: [
-            '5 Portfolio Projects',
+            '1 Portfolio Project',
             'Advanced Customization',
             'Priority Support',
             'Custom Domain Connection',
@@ -40,7 +40,7 @@ const DEFAULT_PLANS: Plan[] = [
             'SEO Optimization Tools',
             'SeeqMe Branding'
         ],
-        limits: { portfolios: 2, customDomain: true }
+        limits: { portfolios: 1, customDomain: true }
     },
     {
         id: 'premium',
@@ -72,7 +72,8 @@ const Plans: React.FC = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [plans, setPlans] = useState<Plan[]>(DEFAULT_PLANS);
     const [isLoadingPlans, setIsLoadingPlans] = useState(false);
-
+    const paystackPublicKey = import.meta.env.VITE_PAYSTACK_TEST_PK || 'pk_live_3c875aee389f6ee11841c33b6500adf5d94a8bff'
+        
     useEffect(() => {
         if (user?.country) {
             setCurrency(user.country === 'Nigeria' ? 'NGN' : 'USD');
@@ -137,6 +138,10 @@ const Plans: React.FC = () => {
     const handleSubscribe = (planId: string) => {
         if (planId === 'free') {
             navigate('/dashboard');
+            return;
+        }
+        if (!paystackPublicKey) {
+            toast.error('Payments are temporarily unavailable. Missing Paystack public key.');
         }
     };
 
@@ -235,25 +240,35 @@ const Plans: React.FC = () => {
                                     </div>
 
                                     <div className="w-full">
-                                        <PaystackButton
-                                            className={`w-full py-4 rounded-full text-xs font-bold transition-all active:scale-95 shadow-lg ${plan.recommended
-                                                ? 'bg-teal-500 text-white hover:bg-teal-600'
-                                                : 'bg-teal-500 text-white hover:bg-teal-500/90'
-                                                }`}
-                                            publicKey={window.location.hostname === 'localhost' ? (import.meta.env.VITE_PAYSTACK_TEST_PK || import.meta.env.VITE_PAYSTACK_PUBLIC_KEY) : (import.meta.env.VITE_PAYSTACK_LIVE_PK || import.meta.env.VITE_PAYSTACK_PUBLIC_KEY)}
-
-                                            email={user?.email || ''}
-                                            amount={Math.round(price * 1.075 * 100)} // Paystack expects lowest currency unit with 7.5% VAT
-                                            currency={currency}
-                                            metadata={{
-                                                custom_fields: [
-                                                    { display_name: "Plan", variable_name: "plan", value: plan.id }
-                                                ]
-                                            }}
-                                            text={`Pay ${currency === 'USD' ? '$' : '₦'}${Math.round(price * 1.075).toLocaleString()}`}
-                                            onSuccess={(ref: any) => handlePaystackSuccess(ref, plan.id)}
-                                            onClose={handlePaystackClose}
-                                        />
+                                        {paystackPublicKey ? (
+                                            <PaystackButton
+                                                className={`w-full py-4 rounded-full text-xs font-bold transition-all active:scale-95 shadow-lg ${plan.recommended
+                                                    ? 'bg-teal-500 text-white hover:bg-teal-600'
+                                                    : 'bg-teal-500 text-white hover:bg-teal-500/90'
+                                                    }`}
+                                                publicKey={paystackPublicKey}
+                                                email={user?.email || ''}
+                                                amount={Math.round(price * 1.075 * 100)} // Paystack expects lowest currency unit with 7.5% VAT
+                                                currency={currency}
+                                                metadata={{
+                                                    custom_fields: [
+                                                        { display_name: "Plan", variable_name: "plan", value: plan.id }
+                                                    ]
+                                                }}
+                                                text={`Pay ${currency === 'USD' ? '$' : '₦'}${Math.round(price * 1.075).toLocaleString()}`}
+                                                onSuccess={(ref: any) => handlePaystackSuccess(ref, plan.id)}
+                                                onClose={handlePaystackClose}
+                                                onClick={() => handleSubscribe(plan.id)}
+                                            />
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSubscribe(plan.id)}
+                                                className="w-full py-4 rounded-full text-xs font-bold shadow-lg bg-slate-300 text-slate-700 cursor-not-allowed"
+                                            >
+                                                Payment Unavailable
+                                            </button>
+                                        )}
                                     </div>
                                 </MotionDiv>
                             );

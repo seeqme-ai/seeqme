@@ -36,11 +36,11 @@ type PlanLimits struct {
 }
 
 type SystemConfig struct {
-	MaintenanceMode bool         `json:"maintenanceMode" bson:"maintenanceMode"`
-	AllowSignups    bool         `json:"allowSignups" bson:"allowSignups"`
-	AIModel         string       `json:"aiModel" bson:"aiModel"` // e.g., "gemini-3-flash"
+	MaintenanceMode bool          `json:"maintenanceMode" bson:"maintenanceMode"`
+	AllowSignups    bool          `json:"allowSignups" bson:"allowSignups"`
+	AIModel         string        `json:"aiModel" bson:"aiModel"` // e.g., "gemini-3-flash"
 	PricingPlans    []PricingPlan `json:"pricingPlans" bson:"pricingPlans"`
-	UpdatedAt       time.Time    `json:"updatedAt" bson:"updatedAt"`
+	UpdatedAt       time.Time     `json:"updatedAt" bson:"updatedAt"`
 }
 
 func defaultPricingPlans() []PricingPlan {
@@ -54,7 +54,7 @@ func defaultPricingPlans() []PricingPlan {
 			},
 			Recommended: true,
 			Features: []string{
-				"5 Portfolio Projects",
+				"1 Portfolio Project",
 				"Advanced Customization",
 				"Priority Support",
 				"Custom Domain Connection",
@@ -62,7 +62,7 @@ func defaultPricingPlans() []PricingPlan {
 				"SEO Optimization Tools",
 				"SeeqMe Branding",
 			},
-			Limits: PlanLimits{Portfolios: 2, CustomDomain: true},
+			Limits: PlanLimits{Portfolios: 1, CustomDomain: true},
 		},
 		{
 			ID:   "premium",
@@ -206,7 +206,6 @@ func (h *Handler) GetPricingConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"pricingPlans": config.PricingPlans})
 }
 
-
 func (h *Handler) AdminGetUsers(c *gin.Context) {
 	db := database.Client.Database(database.DBName)
 	cursor, err := db.Collection("users").Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"createdAt": -1}))
@@ -336,7 +335,7 @@ func (h *Handler) AdminDeployPortfolio(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Owner not found or has no active profile"})
 		return
 	}
-	
+
 	// impersonate for the publish handler
 	c.Set("userId", user.ID.Hex())
 	c.Set("userEmail", user.Email)

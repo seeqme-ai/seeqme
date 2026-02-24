@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { getAnonymousId } from '@/lib/identify';
 
-const isDev = window.location.hostname === 'localhost';
-export const API_BASE_URL = isDev ? 'http://localhost:8080/api/v1' : 'https://seeqme.com/api/v1';
+const envBackendUrl = import.meta.env.VITE_BACKEND_URL?.trim();
+const normalizedEnvBase = envBackendUrl
+  ? `${envBackendUrl.replace(/\/+$/, '')}/api/v1`
+  : '';
+
+const isDev = import.meta.env.DEV;
+export const API_BASE_URL = normalizedEnvBase || (isDev ? 'http://localhost:8080/api/v1' : 'https://seeqme.com/api/v1');
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
