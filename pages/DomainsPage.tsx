@@ -408,10 +408,10 @@ const DomainsPage: React.FC = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800"
+                            className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-zinc-200"
                         >
                             {/* Header */}
-                            <div className="bg-gradient-to-r from-teal-600 to-teal-700 dark:from-teal-500 dark:to-teal-600 px-8 py-6 flex items-center justify-between">
+                            <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-8 py-6 flex items-center justify-between">
                                 <div>
                                     <h3 className="text-2xl font-bold text-white">Verify Domain</h3>
                                     <p className="text-teal-100 text-sm mt-1">Configure DNS records to activate {setupModalDomain.domain}</p>
@@ -426,11 +426,11 @@ const DomainsPage: React.FC = () => {
 
                             <div className="p-8">
                                 {/* Info Alert */}
-                                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl mb-8 flex gap-3">
-                                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 flex-shrink-0 mt-0.5" />
+                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-8 flex gap-3">
+                                    <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 flex-shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-1">How to Configure</p>
-                                        <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                                        <p className="text-sm font-semibold text-blue-900 mb-1">How to Configure</p>
+                                        <p className="text-xs text-blue-800 leading-relaxed">
                                             Log in to your domain registrar (GoDaddy, Namecheap, etc.) and add the DNS record below.
                                             DNS changes can take up to 24 hours to propagate.
                                         </p>
@@ -439,24 +439,24 @@ const DomainsPage: React.FC = () => {
 
                                 {/* DNS Records Table */}
                                 <div className="mb-8">
-                                    <h4 className="text-sm font-bold text-zinc-900 dark:text-white mb-4 uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                                    <h4 className="text-sm font-bold text-zinc-600 mb-4 uppercase tracking-wider">
                                         Add this DNS record:
                                     </h4>
-                                    <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
-                                        <div className="grid grid-cols-12 gap-4 p-4 bg-zinc-100 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
-                                            <div className="col-span-2 font-bold text-xs uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Type</div>
-                                            <div className="col-span-4 font-bold text-xs uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Name/Host</div>
-                                            <div className="col-span-6 font-bold text-xs uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Value</div>
+                                    <div className="bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200">
+                                        <div className="grid grid-cols-12 gap-4 p-4 bg-zinc-100 border-b border-zinc-200">
+                                            <div className="col-span-2 font-bold text-xs uppercase tracking-wider text-zinc-600">Type</div>
+                                            <div className="col-span-4 font-bold text-xs uppercase tracking-wider text-zinc-600">Name/Host</div>
+                                            <div className="col-span-6 font-bold text-xs uppercase tracking-wider text-zinc-600">Value</div>
                                         </div>
                                         <div className="grid grid-cols-12 gap-4 p-5 items-center">
-                                            <div className="col-span-2 font-mono font-bold text-lg text-teal-600 dark:text-teal-400">
+                                            <div className="col-span-2 font-mono font-bold text-lg text-teal-600">
                                                 {isRootDomain(setupModalDomain.domain) ? 'A' : 'CNAME'}
                                             </div>
-                                            <div className="col-span-4 font-mono text-sm font-semibold text-zinc-900 dark:text-white">
+                                            <div className="col-span-4 font-mono text-sm font-semibold text-zinc-900">
                                                 {isRootDomain(setupModalDomain.domain) ? '@' : setupModalDomain.domain.split('.')[0]}
                                             </div>
                                             <div className="col-span-6 flex items-center gap-3">
-                                                <code className="font-mono text-sm bg-white dark:bg-zinc-700/50 px-3 py-2 rounded-lg text-zinc-900 dark:text-white font-semibold flex-1 overflow-x-auto">
+                                                <code className="font-mono text-sm bg-white px-3 py-2 rounded-lg text-zinc-900 font-semibold flex-1 overflow-x-auto">
                                                     {isRootDomain(setupModalDomain.domain) ? '172.66.44.17' : `portfolio-${setupModalDomain.portfolioId || 'id'}.pages.dev`}
                                                 </code>
                                                 <button
@@ -465,10 +465,10 @@ const DomainsPage: React.FC = () => {
                                                         navigator.clipboard.writeText(val);
                                                         toast.success('Copied to clipboard!');
                                                     }}
-                                                    className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors flex-shrink-0"
+                                                    className="p-2 hover:bg-zinc-200 rounded-lg transition-colors flex-shrink-0"
                                                     title="Copy to clipboard"
                                                 >
-                                                    <Copy className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                                                    <Copy className="w-5 h-5 text-zinc-600" />
                                                 </button>
                                             </div>
                                         </div>
@@ -476,8 +476,8 @@ const DomainsPage: React.FC = () => {
                                 </div>
 
                                 {/* Additional Info */}
-                                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 p-4 rounded-xl mb-8">
-                                    <p className="text-sm text-amber-900 dark:text-amber-200">
+                                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-8">
+                                    <p className="text-sm text-amber-900">
                                         <strong>Tip:</strong> After adding the DNS record, it may take a few minutes to a few hours for verification to complete.
                                         Click the button below to check the status.
                                     </p>
@@ -488,7 +488,7 @@ const DomainsPage: React.FC = () => {
                                     <Button
                                         onClick={() => setSetupModalDomain(null)}
                                         variant="outline"
-                                        className="flex-1 h-11 rounded-lg border-zinc-300 dark:border-zinc-700"
+                                        className="flex-1 h-11 rounded-lg border-zinc-300"
                                     >
                                         Close
                                     </Button>
@@ -503,7 +503,7 @@ const DomainsPage: React.FC = () => {
                                             }
                                         }}
                                         disabled={isVerifying === setupModalDomain.id}
-                                        className="flex-1 bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 text-white font-bold h-11 rounded-lg transition-all"
+                                        className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold h-11 rounded-lg transition-all"
                                     >
                                         {isPolling || isVerifying === setupModalDomain.id ? (
                                             <>
