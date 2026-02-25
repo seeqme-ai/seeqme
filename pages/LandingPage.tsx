@@ -218,7 +218,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 <textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Describe your career goals, paste your experience or upload your Cv"
+                  placeholder="Describe your career goals, paste your experience or upload your Cv..."
                   className="w-full bg-transparent border-none focus:outline-none py-6 px-4 md:px-8 text-xl font-medium placeholder:text-muted-foreground/20 resize-none h-32 md:h-40 no-scrollbar"
                 />
               </div>
