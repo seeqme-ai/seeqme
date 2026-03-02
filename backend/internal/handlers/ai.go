@@ -53,7 +53,9 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	}
 
 	// --- Limit Enforcement Logic (Authenticated Users Only) ---
-	if userID != nil {
+	// Remix/redesign requests target an existing portfolio (PortfolioID set),
+	// and should not be blocked by free-plan generation limits.
+	if userID != nil && strings.TrimSpace(req.PortfolioID) == "" {
 		userObjID, _ := primitive.ObjectIDFromHex(userID.(string))
 		subCollection := database.Client.Database(database.DBName).Collection("subscriptions")
 		subCount, subErr := subCollection.CountDocuments(context.Background(), bson.M{"userId": userObjID, "status": "active"})
@@ -435,26 +437,7 @@ func (h *Handler) EditPortfolioWithAI(c *gin.Context) {
 	}
 
 	// --- Limit Enforcement Logic (Edit) ---
-	userObjID, _ := primitive.ObjectIDFromHex(userID.(string))
-	subCollection := database.Client.Database(database.DBName).Collection("subscriptions")
-	subCount, _ := subCollection.CountDocuments(context.Background(), bson.M{"userId": userObjID, "status": "active"})
-
-	if subCount == 0 {
-		userCollection := database.Client.Database(database.DBName).Collection("users")
-		var userDoc models.User
-		err := userCollection.FindOne(context.Background(), bson.M{"_id": userObjID}).Decode(&userDoc)
-		if err == nil {
-			if userDoc.PromptCount >= 3 {
-				c.JSON(http.StatusPaymentRequired, gin.H{
-					"error": "Free Plan Limit Reached. Upgrade to continue building.",
-					"code":  "LIMIT_REACHED",
-				})
-				return
-			}
-			// Increment Usage
-			_, _ = userCollection.UpdateOne(context.Background(), bson.M{"_id": userObjID}, bson.M{"$inc": bson.M{"promptCount": 1}})
-		}
-	}
+	// Edits/remixes are unrestricted and do not consume free-plan generation quota.
 
 	structuredContentJSON, err := json.Marshal(req.StructuredContent)
 	if err != nil {
