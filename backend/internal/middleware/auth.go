@@ -4,12 +4,15 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"seeqmeai/backend/internal/database"
+	"seeqmeai/backend/internal/models"
 	"strings"
 
 	"seeqmeai/backend/internal/auth"
-	"seeqmeai/backend/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // OptionalAuthMiddleware attempts to validate a JWT if present and attaches the
@@ -101,5 +104,81 @@ func AdminOnlyMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+func AdminPageAccessMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, exists := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+			c.Abort()
+			return
+		}
+
+		userOID, err := primitive.ObjectIDFromHex(user.ID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			c.Abort()
+			return
+		}
+
+		var dbUser struct {
+			AdminPageAccess []string `bson:"adminPageAccess"`
+		}
+		err = database.Client.Database(database.DBName).Collection("users").
+			FindOne(c.Request.Context(), bson.M{"_id": userOID}).
+			Decode(&dbUser)
+		if err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Unable to verify admin page access"})
+			c.Abort()
+			return
+		}
+
+		// Backward-compatible default: no explicit page access means full admin access.
+		if len(dbUser.AdminPageAccess) == 0 {
+			c.Next()
+			return
+		}
+
+		accessKey := resolveAdminAccessKey(c.Request.URL.Path)
+		if accessKey == "" {
+			c.Next()
+			return
+		}
+
+		for _, key := range dbUser.AdminPageAccess {
+			if strings.EqualFold(strings.TrimSpace(key), accessKey) {
+				c.Next()
+				return
+			}
+		}
+
+		c.JSON(http.StatusForbidden, gin.H{"error": "No access to this admin page"})
+		c.Abort()
+	}
+}
+
+func resolveAdminAccessKey(path string) string {
+	base := "/api/v1/admin"
+	route := strings.TrimPrefix(path, base)
+	route = strings.Trim(route, "/")
+	if route == "" || route == "stats" {
+		return "overview"
+	}
+
+	switch {
+	case strings.HasPrefix(route, "users"):
+		return "users"
+	case strings.HasPrefix(route, "portfolios"):
+		return "portfolios"
+	case strings.HasPrefix(route, "notifications"):
+		return "notifications"
+	case strings.HasPrefix(route, "templates"):
+		return "templates"
+	case strings.HasPrefix(route, "system-config"):
+		return "config"
+	default:
+		return ""
 	}
 }

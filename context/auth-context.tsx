@@ -9,6 +9,7 @@ interface User {
   country?: string;
   fullName: string;
   roles: string[];      
+  adminPageAccess?: string[];
   isActive: boolean;
   isVerified: boolean;
   avatarUrl?: string;

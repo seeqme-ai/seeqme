@@ -35,6 +35,31 @@ type PlanLimits struct {
 	CustomDomain bool `json:"customDomain" bson:"customDomain"`
 }
 
+var allowedAdminRoles = map[string]bool{
+	"user":  true,
+	"admin": true,
+}
+
+var allowedAdminPageAccess = map[string]bool{
+	"overview":      true,
+	"chats":         true,
+	"users":         true,
+	"portfolios":    true,
+	"notifications": true,
+	"templates":     true,
+	"config":        true,
+}
+
+var defaultAdminPageAccess = []string{
+	"overview",
+	"chats",
+	"users",
+	"portfolios",
+	"notifications",
+	"templates",
+	"config",
+}
+
 type SystemConfig struct {
 	MaintenanceMode bool          `json:"maintenanceMode" bson:"maintenanceMode"`
 	AllowSignups    bool          `json:"allowSignups" bson:"allowSignups"`
@@ -222,6 +247,113 @@ func (h *Handler) AdminGetUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, users)
+}
+
+type AdminUpdateUserAccessRequest struct {
+	Roles           []string `json:"roles"`
+	AdminPageAccess []string `json:"adminPageAccess"`
+}
+
+func (h *Handler) AdminUpdateUserAccess(c *gin.Context) {
+	targetID := c.Param("id")
+	targetOID, err := primitive.ObjectIDFromHex(targetID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var req AdminUpdateUserAccessRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if len(req.Roles) == 0 {
+		req.Roles = []string{"user"}
+	}
+
+	normalizedRoles := make([]string, 0, len(req.Roles))
+	roleSeen := map[string]bool{}
+	for _, role := range req.Roles {
+		r := strings.TrimSpace(strings.ToLower(role))
+		if r == "" || roleSeen[r] {
+			continue
+		}
+		if !allowedAdminRoles[r] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported role: " + r})
+			return
+		}
+		roleSeen[r] = true
+		normalizedRoles = append(normalizedRoles, r)
+	}
+	if len(normalizedRoles) == 0 {
+		normalizedRoles = []string{"user"}
+	}
+
+	requesterID, _ := c.Get("userId")
+	if requesterIDStr, ok := requesterID.(string); ok && requesterIDStr == targetID {
+		hasAdmin := false
+		for _, role := range normalizedRoles {
+			if role == "admin" {
+				hasAdmin = true
+				break
+			}
+		}
+		if !hasAdmin {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "You cannot remove your own admin role"})
+			return
+		}
+	}
+
+	isAdmin := false
+	for _, role := range normalizedRoles {
+		if role == "admin" {
+			isAdmin = true
+			break
+		}
+	}
+
+	normalizedAccess := []string{}
+	if isAdmin {
+		seenAccess := map[string]bool{}
+		for _, key := range req.AdminPageAccess {
+			k := strings.TrimSpace(strings.ToLower(key))
+			if k == "" || seenAccess[k] {
+				continue
+			}
+			if !allowedAdminPageAccess[k] {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported admin page access key: " + k})
+				return
+			}
+			seenAccess[k] = true
+			normalizedAccess = append(normalizedAccess, k)
+		}
+		if len(normalizedAccess) == 0 {
+			normalizedAccess = append(normalizedAccess, defaultAdminPageAccess...)
+		}
+	}
+
+	db := database.Client.Database(database.DBName)
+	update := bson.M{
+		"$set": bson.M{
+			"roles":           normalizedRoles,
+			"adminPageAccess": normalizedAccess,
+			"updatedAt":       time.Now(),
+		},
+	}
+	_, err = db.Collection("users").UpdateOne(context.Background(), bson.M{"_id": targetOID}, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user access"})
+		return
+	}
+
+	var user models.User
+	if err := db.Collection("users").FindOne(context.Background(), bson.M{"_id": targetOID}).Decode(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func (h *Handler) AdminGetAllPortfolios(c *gin.Context) {

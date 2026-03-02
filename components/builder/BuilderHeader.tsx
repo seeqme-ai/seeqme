@@ -7,6 +7,7 @@ import { BuildStatus, PortfolioData } from '@/types';
 
 interface BuilderHeaderProps {
     status: BuildStatus;
+    isPublishing: boolean;
     data: PortfolioData | null;
     historyLength: number;
     onRemix: () => void;
@@ -20,6 +21,7 @@ const MotionDiv = motion.div as any;
 
 const BuilderHeader: React.FC<BuilderHeaderProps> = ({
     status,
+    isPublishing,
     data,
     historyLength,
     onRemix,
@@ -79,11 +81,12 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
                     <button
                         data-tour="deploy-button"
                         onClick={onDeploy}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-semibold transition-all active:scale-95 shadow-md ${status === 'deploying' ? 'bg-amber-500 text-slate-950 animate-pulse' : 'bg-teal-500 text-white hover:bg-teal-600'}`}
+                        disabled={isPublishing}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-semibold transition-all active:scale-95 shadow-md disabled:opacity-70 disabled:cursor-not-allowed ${isPublishing ? 'bg-amber-500 text-slate-950 animate-pulse' : 'bg-teal-500 text-white hover:bg-teal-600'}`}
                     >
-                        {status === 'deploying' ? <ICONS.Loader className="w-4 h-4 animate-spin" /> : <ICONS.Globe className="w-4 h-4" />}
+                        {isPublishing ? <ICONS.Loader className="w-4 h-4 animate-spin" /> : <ICONS.Globe className="w-4 h-4" />}
                         <span>
-                            {status === 'deploying'
+                            {isPublishing
                                 ? 'Publishing'
                                 : (data && !data.id.startsWith('portfolio-') && ((data as any).url || (data as any).subdomain || (data as any).status === 'completed') ? 'Redeploy' : 'Publish')}
                         </span>

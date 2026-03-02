@@ -740,7 +740,7 @@ export const HERO_MINIMAL_CREATOR = (content: any) => `
 `;
 
 export const HERO_MINIMALIST_CREATOR = (content: any) => `
-    <section data-section="hero" class="min-h-screen pt-20 flex items-center bg-[var(--background)] px-6">
+    <section data-section="hero" class="min-h-screen pt-20 flex items-center bg-[var(--bg)] px-6">
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
             <div class="order-2 md:order-1 space-y-8">
                 <div>
@@ -752,7 +752,7 @@ export const HERO_MINIMALIST_CREATOR = (content: any) => `
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-4">
-                    <a href="${content.cta?.link || '#services'}" class="px-8 py-3 bg-[var(--heading)] text-[var(--background)] font-bold text-sm uppercase tracking-wider hover:bg-[var(--primary)] transition-colors rounded-sm shadow-lg" data-field="hero-ctaText">
+                    <a href="${content.cta?.link || '#services'}" class="px-8 py-3 bg-[var(--heading)] text-[var(--bg)] font-bold text-sm uppercase tracking-wider hover:bg-[var(--primary)] transition-colors rounded-sm shadow-lg" data-field="hero-ctaText">
                         ${content.cta?.text || 'Explore Work'}
                     </a>
                     <a href="#contact" class="px-8 py-3 bg-transparent border border-[var(--primary)] text-[var(--text)] font-bold text-sm uppercase tracking-wider hover:border-[var(--heading)] hover:text-[var(--heading)] transition-colors rounded-sm">
@@ -830,3 +830,4 @@ export const HeroRegistry: any = {
    HERO_MINIMALIST_CREATOR,
    HERO_DARK_SASS
 };
+

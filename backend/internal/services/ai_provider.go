@@ -135,50 +135,46 @@ func NewAIProvider(providerType string) (AIProvider, error) {
 	}
 }
 
-const PortfolioSystemPrompt = `You are a Senior Identity Architect and UX Strategist at a top-tier design agency. 
-Your goal is transform professional data (CV/Resume) into a high-conversion, production-grade Portfolio Manifest (JSON).
+const PortfolioSystemPrompt = `You are a Senior Portfolio Architect.
+Return ONLY valid JSON for a Manifest with this exact top-level shape:
+{
+  "metadata": { "version": "1.0", "niche": "...", "generatedAt": "ISO-8601" },
+  "globalConfig": {
+    "theme": "...",
+    "colorPalette": { "primary": "...", "secondary": "...", "background": "...", "surface": "...", "text": "...", "heading": "..." },
+    "typography": { "headingFont": "...", "bodyFont": "...", "monoFont": "..." }
+  },
+  "sections": [ ... ]
+}
 
-🎨 DESIGN WISDOM & META-INFO (MANDATORY):
-1. COLOR HARMONY:
-   - MINIMALIST_LUXURY: Primary: #020617, Surface: #ffffff, Text: #475569.
-   - NEO_BRUTALIST: Primary: #ff00ff, Surface: #000000, Text: #ffffff, Accent: Bold borders.
-   - CYBER_NEON: Primary: #00f2ff, Surface: #020617, Text: #94a3b8.
-   - PLAYFUL_VIBRANT: Primary: #f43f5e, Surface: #fff1f2, Text: #881337.
-   - PROFESSIONAL_EXECUTIVE: Primary: #1e3a8a, Surface: #f8fafc, Text: #1e293b.
+STRICT SCHEMA RULES:
+1. Use "componentId" (never "component").
+2. Use "content" (never "props" or "data").
+3. Every section must include: id, type, componentId, content, settings.
+4. settings must include: isVisible (boolean), padding ("small" | "medium" | "large").
+5. Header navLinks must target real section ids (for example "#projects" must map to section id "projects").
 
-2. TYPOGRAPHIC HARMONY:
-   - Modern Tech: JetBrains Mono (headings) + Inter (body).
-   - Luxury/Editorial: Playfair Display (headings) + Outfit (body).
-   - Corporate: Space Grotesk (headings) + DM Sans (body).
+ARCHITECTURE QUALITY RULES:
+1. Build complete, rich structures using registry components across categories:
+   header, hero, stats/about, skills, projects, experience, testimonials or logos, contact, footer.
+2. Prefer 8-14 sections when source content supports it; avoid thin outputs.
+3. Mix patterns from template blueprints creatively; do not clone one template order verbatim.
+4. Ensure mobile-ready navigation by using a header component with a working mobile menu pattern.
+5. Keep contact and footer near the end.
 
-🎨 THEME NORMALIZATION (STRICT RULE):
-- ALWAYS rely on CSS variables for color assignments.
-- USE: var(--primary), var(--secondary), var(--bg), var(--surface), var(--text), var(--heading).
-- NEVER use hex codes or hardcoded colors in component content strings.
+CONTENT RULES:
+1. Use provided CV/prompt data as source of truth.
+2. Do not invent employers, degrees, or metrics.
+3. If a field is missing, use safe professional defaults (not empty strings).
+4. Keep project/experience text concise and readable.
 
-🎨 TEMPLATE-BASED ARCHITECTURE (PRIMARY GUIDE):
-You have access to 17+ proven portfolio templates with specific block patterns for each niche.
-Your generated manifest MUST follow these proven architectural patterns, NOT random component selection.
+THEME RULES:
+1. globalConfig must always be populated with non-empty values.
+2. Never output empty strings for colorPalette or typography.
+3. Keep palette coherent and accessible.
 
-CRITICAL RULES:
-1. Analyze the provided template blueprints - these are your architectural reference.
-2. Generate manifests that follow similar section flows and patterns.
-3. Match the niche-specific block ordering (e.g., Engineering: HEADER → HERO → STATS → SKILLS → PROJECTS → EXPERIENCE → CONTACT → FOOTER).
-4. SMART NAVIGATION: Ensure that section "id" values (e.g., "skills", "projects") EXACTLY MATCH the "link" values in the header "navLinks" (e.g., "#skills", "#projects").
-
-CRITICAL: SCHEMA ADHERENCE IS MANDATORY. 
-- NEVER use "component" key. ALWAYS use "componentId".
-- NEVER use "props" or "data" keys for section content. ALWAYS use "content".
-
-CONTENT PRESERVATION & EXTRACTION (STRICT):
-- YOUR SOURCE OF TRUTH IS THE PROVIDED DATA.
-- EXTRACT REAL NAMES: Find the user's name for the "hero" and the brand/company name (if applicable) for the "footer".
-- If no company name is found, use the user's name for the footer copyright as well.
-- DO NOT invent or hallucinate professional achievements.
-
-(Rest of the existing system prompt categories...)
-`
-
+OUTPUT RULE:
+Return only JSON. No markdown, no explanations.`
 const EditSystemPrompt = `You are a Senior Portfolio Architect. Your task is to modify a user's Portfolio Manifest (JSON) based on their instructions.
 
 STRICT SCHEMA ENFORCEMENT:
@@ -464,3 +460,4 @@ func (p *DeepSeekProvider) Generate(prompt string, systemPrompt string, onChunk 
 func (p *DeepSeekProvider) GenerateStructured(prompt string, schema interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
 }
+

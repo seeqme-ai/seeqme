@@ -85,6 +85,7 @@ const PortfolioBuilder: React.FC = () => {
   const [selectedNiche, setSelectedNiche] = useState('Engineering');
   const [selectedFile, setSelectedFile] = useState<{ name: string; type: string; size: number; preview?: string; url?: string; content?: string } | null>(null);
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [chosenSubdomain, setChosenSubdomain] = useState('');
   const [selectedDomainId, setSelectedDomainId] = useState<string>('subdomain');
   const [availableDomains, setAvailableDomains] = useState<any[]>([]);
@@ -97,6 +98,12 @@ const PortfolioBuilder: React.FC = () => {
   const [isIframeLoading, setIsIframeLoading] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [subscriptionPlanId, setSubscriptionPlanId] = useState<string>('free');
+  const isPublishingRef = useRef(false);
+
+  useEffect(() => {
+    isPublishingRef.current = isPublishing;
+  }, [isPublishing]);
 
   useEffect(() => {
     // Check if user has seen tour
@@ -129,6 +136,24 @@ const PortfolioBuilder: React.FC = () => {
 
 
   useEffect(() => {
+    const fetchSubscriptionPlan = async () => {
+      if (!user) {
+        setSubscriptionPlanId('free');
+        return;
+      }
+      try {
+        const sub = await subscriptionService.getSubscription();
+        const plan = String(sub?.planId || 'free').toLowerCase();
+        const isActive = sub?.status === 'active';
+        setSubscriptionPlanId(isActive ? plan : 'free');
+      } catch {
+        setSubscriptionPlanId('free');
+      }
+    };
+    fetchSubscriptionPlan();
+  }, [user?.id]);
+
+  useEffect(() => {
     // Connect socket on mount (always for live build logs)
     const token = localStorage.getItem('token');
     const stableId = user?.id;
@@ -141,17 +166,11 @@ const PortfolioBuilder: React.FC = () => {
     socketService.setCallbacks(
       (log) => {
         setLogs(prev => [...prev, log]);
-        // Intercept success log to force UI update if explicit complete event is missed
-        if (log.message?.includes('✅ Deployed!') || log.message?.includes('Site live at')) {
-          setStatus('completed');
-          const match = log.message.match(/https:\/\/[^\s,]+/);
-          if (match) setDeployedUrl(match[0]);
-          setIsSuccessDrawerOpen(true);
-        }
       },
       (completeData) => {
         setDeployedUrl(completeData.url);
         setStatus('completed');
+        setIsPublishing(false);
         setIsSuccessDrawerOpen(true);
         setIsDeployModalOpen(false); // Close modal on success
 
@@ -161,10 +180,15 @@ const PortfolioBuilder: React.FC = () => {
           setData(prev => prev ? ({ ...prev, structuredContent: sc }) : null);
         }
 
-        addLog('Deployment verified. Site is now live!', 'success');
+        if (completeData?.propagationPending) {
+          addLog('Deployment completed, but edge propagation is still in progress. If you see a 522, retry in 1-3 minutes.', 'warn');
+        } else {
+          addLog('Deployment verified. Site is now live!', 'success');
+        }
       },
       (errorData) => {
         setStatus('ready');
+        setIsPublishing(false);
         setLogs(prev => [...prev, {
           message: `❌ Deployment Failed: ${errorData.error}`,
           type: 'error',
@@ -194,7 +218,7 @@ const PortfolioBuilder: React.FC = () => {
 
       try {
         const activeSession = await sessionService.getActiveSession();
-        if (activeSession && activeSession.status === 'active') {
+        if (activeSession && activeSession.status === 'active' && activeSession.id === builderSessionId) {
           addLog('Active session detected. Resuming build workflow...', 'info');
 
           // Reconstruct logs from session
@@ -230,7 +254,13 @@ const PortfolioBuilder: React.FC = () => {
             return;
           }
 
-          setStatus('deploying'); // Shift to active state
+          if (activeSession.type === 'deployment') {
+            setStatus('deploying');
+            setIsPublishing(true);
+          } else {
+            setStatus('ready');
+            setIsPublishing(false);
+          }
           setIsTerminalCollapsed(false); // Show the progress
           return;
         }
@@ -493,12 +523,28 @@ const PortfolioBuilder: React.FC = () => {
     iframeRef.current.srcdoc = finalHtml;
   };
 
+  const normalizeAIFiles = (files?: any[]) => {
+    if (!files || files.length === 0) return [];
+    return files
+      .map((file) => ({
+        filename: file?.filename || file?.name || 'upload',
+        type: file?.type || 'document',
+        content: file?.content || file?.url || ''
+      }))
+      .filter((file) => !!file.content);
+  };
+
   const handleBuild = async (customInput?: string, files?: any[]) => {
     // If we are in the middle of a build, don't start another one
     if (status === 'synthesizing' || status === 'generating') return;
 
-    const inputToUse = customInput || synthesisInput;
-    if (!inputToUse && (!files || files.length === 0)) {
+    const normalizedFiles = normalizeAIFiles(files);
+    const inputToUse = (customInput || synthesisInput || '').trim();
+    const finalPrompt = inputToUse || (normalizedFiles.length > 0
+      ? 'Generate a professional portfolio using the uploaded file content.'
+      : '');
+
+    if (!finalPrompt && normalizedFiles.length === 0) {
       toast.error("Please provide a prompt or a file for the build.");
       return;
     }
@@ -536,9 +582,9 @@ const PortfolioBuilder: React.FC = () => {
 
       const result = await generatePortfolio({
         type: 'omni',
-        value: inputToUse,
+        value: finalPrompt,
         baseHtml: template?.html,
-        files: files,
+        files: normalizedFiles,
         sessionId: builderSessionId,
         portfolioId: persistentId,
         templateId: selectedTemplateId || undefined,
@@ -724,7 +770,8 @@ const PortfolioBuilder: React.FC = () => {
     });
 
     try {
-      let finalPrompt = prompt;
+      const normalizedFiles = normalizeAIFiles(file ? [file] : undefined);
+      let finalPrompt = (prompt || '').trim();
       if (file) {
         if (file.type === 'image' || file.type.startsWith('image/')) {
           finalPrompt += `\n\n[Context: User attached image: ${file.name}]\nImage URL: ${file.url || ''}`;
@@ -733,8 +780,11 @@ const PortfolioBuilder: React.FC = () => {
         }
       }
 
+      if (!finalPrompt.trim() && normalizedFiles.length > 0) {
+        finalPrompt = 'Refine the portfolio using the uploaded file context while preserving the current design quality.';
+      }
 
-      const updated = await refinePortfolio(data, finalPrompt, file ? [file] : undefined);
+      const updated = await refinePortfolio(data, finalPrompt, normalizedFiles);
 
       timeouts.forEach(clearTimeout);
       setProgress(100);
@@ -804,6 +854,7 @@ const PortfolioBuilder: React.FC = () => {
 
     setIsDeployModalOpen(false);
     setStatus('deploying');
+    setIsPublishing(true);
     addLog('Preparing deployment...', 'info');
 
     const useSubdomain = selectedDomainId === 'subdomain';
@@ -816,6 +867,7 @@ const PortfolioBuilder: React.FC = () => {
       if (!finalHtml || finalHtml.trim() === '') {
         toast.error('Cannot deploy an empty portfolio. Please ensure your portfolio has content.');
         setStatus('ready');
+        setIsPublishing(false);
         return;
       }
 
@@ -877,6 +929,7 @@ const PortfolioBuilder: React.FC = () => {
         (completeData: any) => {
           const deployedUrl = completeData.url || `https://${subdomain}.seeqme.com`;
           setStatus('completed');
+          setIsPublishing(false);
           setDeployedUrl(deployedUrl);
           setIsSuccessDrawerOpen(true);
           addLog(`✅ Deployed! Site live at ${deployedUrl}`, 'success');
@@ -887,6 +940,7 @@ const PortfolioBuilder: React.FC = () => {
         // onFailure - deployment failed
         (errorData: any) => {
           setStatus('ready');
+          setIsPublishing(false);
           const errorMsg = errorData.error || errorData.message || 'Deployment failed';
           addLog(`❌ Deployment failed: ${errorMsg}`, 'error');
 
@@ -914,17 +968,19 @@ const PortfolioBuilder: React.FC = () => {
 
       // Fallback timeout in case WebSocket events don't arrive
       setTimeout(() => {
-        if (status === 'deploying') {
+        if (isPublishingRef.current) {
           addLog('Checking deployment status via fallback...', 'warn');
           deploymentService.getDeploymentStatus(portfolioId as string).then((statusData) => {
             if (statusData.status === 'completed') {
               const deployedUrl = statusData.url || `https://${subdomain}.seeqme.com`;
               setStatus('completed');
+              setIsPublishing(false);
               setDeployedUrl(deployedUrl);
               addLog(`✅ Deployed! Site live at ${deployedUrl}`, 'success');
               toast.success('Portfolio deployed successfully!');
             } else if (statusData.status === 'failed') {
               setStatus('ready');
+              setIsPublishing(false);
               addLog(`❌ Deployment failed`, 'error');
               toast.error('Deployment failed');
             }
@@ -936,6 +992,7 @@ const PortfolioBuilder: React.FC = () => {
 
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
+        setIsPublishing(false);
         const { message, existingPortfolioId } = error.response.data;
         setConflictModal({
           isOpen: true,
@@ -947,6 +1004,7 @@ const PortfolioBuilder: React.FC = () => {
         const errorMessage = error.response?.data?.error || error.message || 'Failed to deploy';
         addLog(`Deployment Error: ${errorMessage}`, 'error');
         setStatus('ready');
+        setIsPublishing(false);
         toast.error('Deployment initiation failed. Please check logs.');
       }
     }
@@ -1303,6 +1361,7 @@ const PortfolioBuilder: React.FC = () => {
     <div className={`h-screen flex flex-col overflow-hidden transition-colors duration-700 ${currentTheme === 'dark' ? 'bg-background text-foreground' : 'bg-background text-foreground'}`}>
       <BuilderHeader
         status={status}
+        isPublishing={isPublishing}
         data={data}
         historyLength={history.length}
         onRemix={handleRemix}
@@ -1350,6 +1409,7 @@ const PortfolioBuilder: React.FC = () => {
         onUpdate={handleContentUpdate}
         isOpen={isEditorOpen}
         onClose={() => setIsEditorOpen(false)}
+        canUsePremiumAnalyticsScript={subscriptionPlanId === 'premium' || subscriptionPlanId === 'enterprise'}
       />
 
       <TemplateSelectorDrawer

@@ -13,7 +13,7 @@ interface FloatingPromptInputProps {
 
 const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isGenerating, className, onToggleTerminal }) => {
     const [prompt, setPrompt] = useState('');
-    const [mode, setMode] = useState<'refine' | 'new'>('refine');
+    const [mode, setMode] = useState<'refine' | 'new'>('new');
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ name: string; type: string; content?: string; url?: string } | null>(null);
     const [isUploading, setIsUploading] = useState(false);

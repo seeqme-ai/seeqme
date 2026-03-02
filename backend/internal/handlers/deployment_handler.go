@@ -863,6 +863,14 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	finalURL := fmt.Sprintf("https://%s", fullDomain)
 
+	// Wait for edge reachability before reporting completed to reduce immediate 522s after deploy.
+	propagationPending := false
+	if err := h.waitForSiteReadiness(finalURL, 3*time.Minute, 10*time.Second, streamLog); err != nil {
+		propagationPending = true
+		// We still continue as deployment can be valid while DNS/edge propagation completes.
+		streamLog("Edge propagation is still in progress. The site may take 1-3 minutes to become reachable globally.", "warn")
+	}
+
 	update := bson.M{
 		"$set": bson.M{
 			"gitHubRepoURL":       fmt.Sprintf("https://github.com/%s/%s", cfg.GitHubOwner, repoName),
@@ -884,11 +892,6 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	if userName == "" {
 		userName = "User"
 	}
-	portfolioName, _ := portfolio["name"].(string)
-	if portfolioName == "" {
-		portfolioName = "My Portfolio"
-	}
-
 	emailData := map[string]interface{}{
 		"FullName":       userName,
 		"PortfolioTitle": fullDomain,
@@ -929,9 +932,39 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	// Emit final completion event
 	websocket.BroadcastToPortfolio(portfolioID, "deployment_complete", gin.H{
-		"url": finalURL,
+		"url":                finalURL,
+		"propagationPending": propagationPending,
 	})
 
 	// Close session in SessionManager
 	services.GlobalSessionManager.CloseSession(sessionID, "completed", finalURL)
+}
+
+func (h *Handler) waitForSiteReadiness(url string, timeout time.Duration, interval time.Duration, streamLog func(string, string)) error {
+	deadline := time.Now().Add(timeout)
+	client := &http.Client{Timeout: 8 * time.Second}
+	attempt := 0
+
+	for time.Now().Before(deadline) {
+		attempt++
+		streamLog(fmt.Sprintf("Verifying edge readiness (attempt %d)...", attempt), "info")
+
+		resp, err := client.Get(url)
+		if err == nil && resp != nil {
+			status := resp.StatusCode
+			resp.Body.Close()
+			if status >= 200 && status < 400 {
+				streamLog("Edge network ready. Site is reachable.", "success")
+				return nil
+			}
+			// 522 and other 5xx are treated as not-ready yet.
+			streamLog(fmt.Sprintf("Edge not ready yet (HTTP %d). Retrying...", status), "warn")
+		} else if err != nil {
+			streamLog(fmt.Sprintf("Edge check pending (%v). Retrying...", err), "warn")
+		}
+
+		time.Sleep(interval)
+	}
+
+	return fmt.Errorf("timed out waiting for site readiness: %s", url)
 }

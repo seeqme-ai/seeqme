@@ -164,6 +164,7 @@ func main() {
 			admin.POST("/system-config/reload", h.ReloadSystemConfig)
 
 			admin.GET("/users", h.AdminGetUsers)
+			admin.PUT("/users/:id/permissions", h.AdminUpdateUserAccess)
 			admin.GET("/portfolios", h.AdminGetAllPortfolios)
 			admin.GET("/stats", h.AdminGetStats)
 			admin.POST("/portfolios/:id/deploy", h.AdminDeployPortfolio)

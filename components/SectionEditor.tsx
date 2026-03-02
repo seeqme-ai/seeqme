@@ -26,11 +26,20 @@ const extractPublicId = (url: string) => {
     return match ? match[1] : null;
 };
 
+const normalizeFaviconUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        return url.replace('/upload/', '/upload/w_64,h_64,c_fill,r_16,f_png,q_auto/');
+    }
+    return url;
+};
+
 interface SectionEditorProps {
     structuredContent: any;
     onUpdate: (newContent: any) => void;
     isOpen: boolean;
     onClose: () => void;
+    canUsePremiumAnalyticsScript?: boolean;
 }
 
 const isImageUrl = (value: string) => {
@@ -316,7 +325,13 @@ const JsonNodeEditor = ({ path, node, onContentChange }) => {
     return <SmartInput path={path} value={node} onContentChange={onContentChange} />;
 };
 
-const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpdate, isOpen, onClose }) => {
+const SectionEditor: React.FC<SectionEditorProps> = ({
+    structuredContent,
+    onUpdate,
+    isOpen,
+    onClose,
+    canUsePremiumAnalyticsScript = false
+}) => {
     // Local state to keep track of changes before syncing to parent
     const [localContent, setLocalContent] = useState(structuredContent);
 
@@ -346,7 +361,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
         };
     }, [debouncedUpdate]);
 
-    const isV1 = localContent?.metadata?.version === '1.0';
+    const hasSectionLayout = Array.isArray(localContent?.sections);
 
     const handleContentChange = (path: string, value: any) => {
         const newContent = produce(localContent, (draft: any) => {
@@ -366,8 +381,8 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
     };
 
     const reorderSection = (index: number, direction: 'up' | 'down') => {
-        if (!isV1) return;
-        const newSections = [...localContent.sections];
+        if (!hasSectionLayout) return;
+        const newSections = [...(localContent?.sections || [])];
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
         if (targetIndex < 0 || targetIndex >= newSections.length) return;
 
@@ -379,8 +394,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
     };
 
     const swapComponent = (index: number) => {
-        if (!isV1) return;
-        const section = localContent.sections[index];
+        if (!hasSectionLayout) return;
+        const section = localContent?.sections?.[index];
+        if (!section) return;
         const available = getAvailableComponents(section.type as any);
         if (available.length <= 1) {
             toast.info(`Only one ${section.type} style available in registry`);
@@ -395,6 +411,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
     };
 
     const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
+    const [isFaviconUploading, setIsFaviconUploading] = useState(false);
+    const faviconInputRef = useRef<HTMLInputElement>(null);
+    const [faviconMode, setFaviconMode] = useState<'link' | 'upload'>('link');
 
     const deleteSection = (index: number) => {
         setSectionToDelete(index);
@@ -402,11 +421,39 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
 
     const confirmDeleteSection = () => {
         if (sectionToDelete === null) return;
-        const newSections = [...localContent.sections];
+        const newSections = [...(localContent?.sections || [])];
         newSections.splice(sectionToDelete, 1);
         handleContentChange('sections', newSections);
         setSectionToDelete(null);
         toast.success("Section removed");
+    };
+
+    const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsFaviconUploading(true);
+        try {
+            const oldFavicon = localContent?.globalConfig?.favicon || '';
+            const oldPublicId = extractPublicId(oldFavicon);
+            if (oldPublicId) {
+                await cloudinaryService.deleteFile(oldPublicId);
+            }
+
+            const result = await cloudinaryService.uploadFile(file);
+            const newUrl = result?.secureUrl || result?.url;
+            if (!newUrl) {
+                throw new Error('Upload response missing URL');
+            }
+
+            handleContentChange('globalConfig.favicon', normalizeFaviconUrl(newUrl));
+            toast.success('Favicon uploaded');
+        } catch (err: any) {
+            console.error('[SectionEditor] Favicon upload failed:', err);
+            toast.error(err?.message || 'Failed to upload favicon');
+        } finally {
+            setIsFaviconUploading(false);
+        }
     };
 
     return (
@@ -440,7 +487,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                            {isV1 ? (
+                            {hasSectionLayout ? (
                                 <>
                                     {/* Global config (Theming) */}
                                     <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-4">
@@ -453,7 +500,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">Creative Direction</label>
                                                 <div className="relative">
                                                     <select
-                                                        value={localContent.globalConfig.theme}
+                                                        value={localContent?.globalConfig?.theme || 'dark'}
                                                         onChange={(e) => handleContentChange('globalConfig.theme', e.target.value)}
                                                         className="w-full bg-white border border-slate-200 rounded-xl py-3.5 px-4 text-xs focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-bold text-slate-900 appearance-none cursor-pointer shadow-sm"
                                                     >
@@ -476,6 +523,64 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">Favicon (Browser/Google Icon)</label>
+                                                {localContent?.globalConfig?.favicon && (
+                                                    <div className="w-12 h-12 rounded-lg border border-slate-200 bg-white p-1">
+                                                        <img src={localContent.globalConfig.favicon} alt="Favicon preview" className="w-full h-full object-contain" />
+                                                    </div>
+                                                )}
+                                                <div className="flex bg-slate-100 rounded-lg p-1 border border-slate-200 w-fit">
+                                                    <button
+                                                        onClick={() => setFaviconMode('link')}
+                                                        className={`px-2 py-1 text-[10px] uppercase font-bold rounded-md transition-all ${faviconMode === 'link' ? 'bg-white shadow text-teal-600' : 'text-slate-500 hover:text-slate-900'}`}
+                                                    >
+                                                        Link
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setFaviconMode('upload')}
+                                                        className={`px-2 py-1 text-[10px] uppercase font-bold rounded-md transition-all ${faviconMode === 'upload' ? 'bg-white shadow text-teal-600' : 'text-slate-500 hover:text-slate-900'}`}
+                                                    >
+                                                        Upload
+                                                    </button>
+                                                </div>
+
+                                                {faviconMode === 'link' ? (
+                                                    <div className="relative">
+                                                        <ICONS.Link className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                        <input
+                                                            type="text"
+                                                            value={localContent?.globalConfig?.favicon || ''}
+                                                            onChange={(e) => handleContentChange('globalConfig.favicon', e.target.value)}
+                                                            placeholder="https://.../favicon.png"
+                                                            className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        onClick={() => !isFaviconUploading && faviconInputRef.current?.click()}
+                                                        className={`w-full border-2 border-dashed border-slate-200 rounded-xl py-4 flex flex-col items-center justify-center cursor-pointer transition-all group ${isFaviconUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-teal-500/50 hover:bg-teal-50'}`}
+                                                    >
+                                                        {isFaviconUploading ? (
+                                                            <Loader className="text-teal-500 animate-spin mb-2" />
+                                                        ) : (
+                                                            <ICONS.Upload className="w-5 h-5 text-slate-400 group-hover:text-teal-500 mb-2 transition-colors" />
+                                                        )}
+                                                        <span className="text-xs font-medium text-slate-500 group-hover:text-teal-600">
+                                                            {isFaviconUploading ? 'Uploading...' : 'Click to Select File'}
+                                                        </span>
+                                                        <input
+                                                            ref={faviconInputRef}
+                                                            type="file"
+                                                            accept="image/x-icon,image/png,image/svg+xml,image/webp,image/jpeg"
+                                                            className="hidden"
+                                                            onChange={handleFaviconUpload}
+                                                            disabled={isFaviconUploading}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -483,11 +588,11 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 pl-2">Layout Sections</h3>
-                                            <span className="text-[10px] font-bold text-slate-600 px-2 py-0.5 border border-slate-200 rounded-full">{localContent.sections.length} Units</span>
+                                            <span className="text-[10px] font-bold text-slate-600 px-2 py-0.5 border border-slate-200 rounded-full">{(localContent?.sections || []).length} Units</span>
                                         </div>
 
                                         <div className="space-y-4">
-                                            {localContent.sections.map((section: any, idx: number) => (
+                                            {(localContent?.sections || []).map((section: any, idx: number) => (
                                                 <div key={section.id} className="relative group/section">
                                                     <div className={`p-4 rounded-2xl border transition-all ${expandedSection === section.id ? 'bg-white shadow-md border-teal-500' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
                                                         <div className="flex items-center gap-4">
@@ -549,6 +654,32 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                             ))}
                                         </div>
                                     </div>
+
+                                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Custom Analytics Script</label>
+                                            {!canUsePremiumAnalyticsScript && (
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                                    Premium
+                                                </span>
+                                            )}
+                                        </div>
+                                        <textarea
+                                            value={localContent?.globalConfig?.analyticsScript || ''}
+                                            onChange={(e) => handleContentChange('globalConfig.analyticsScript', e.target.value)}
+                                            placeholder={canUsePremiumAnalyticsScript ? 'Paste analytics JS here (without <script> tags).' : 'Upgrade to Premium to add a custom analytics script.'}
+                                            disabled={!canUsePremiumAnalyticsScript}
+                                            className={`w-full rounded-xl py-3 px-4 text-xs transition-all font-medium min-h-[100px] max-h-56 ${canUsePremiumAnalyticsScript
+                                                ? 'bg-white border border-slate-200 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 placeholder:text-slate-400 shadow-sm'
+                                                : 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
+                                                }`}
+                                        />
+                                        <p className="text-[10px] text-slate-500 pl-1">
+                                            {canUsePremiumAnalyticsScript
+                                                ? 'Injected into <head> during publish/render.'
+                                                : 'This field is available on Premium plans only.'}
+                                        </p>
+                                    </div>
                                 </>
                             ) : (
                                 <>
@@ -582,6 +713,34 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ structuredContent, onUpda
                                         </div>
                                     ))}
                                 </>
+                            )}
+
+                            {!hasSectionLayout && (
+                                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Custom Analytics Script</label>
+                                        {!canUsePremiumAnalyticsScript && (
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                                Premium
+                                            </span>
+                                        )}
+                                    </div>
+                                    <textarea
+                                        value={localContent?.globalConfig?.analyticsScript || ''}
+                                        onChange={(e) => handleContentChange('globalConfig.analyticsScript', e.target.value)}
+                                        placeholder={canUsePremiumAnalyticsScript ? 'Paste analytics JS here (without <script> tags).' : 'Upgrade to Premium to add a custom analytics script.'}
+                                        disabled={!canUsePremiumAnalyticsScript}
+                                        className={`w-full rounded-xl py-3 px-4 text-xs transition-all font-medium min-h-[100px] max-h-56 ${canUsePremiumAnalyticsScript
+                                            ? 'bg-white border border-slate-200 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 placeholder:text-slate-400 shadow-sm'
+                                            : 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
+                                            }`}
+                                    />
+                                    <p className="text-[10px] text-slate-500 pl-1">
+                                        {canUsePremiumAnalyticsScript
+                                            ? 'Injected into <head> during publish/render.'
+                                            : 'This field is available on Premium plans only.'}
+                                    </p>
+                                </div>
                             )}
                         </div>
 

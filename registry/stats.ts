@@ -263,5 +263,7 @@ export const StatsRegistry: any = {
   STATS_ICON_CARDS,
   STATS_MINIMAL_INLINE,
   STATS_LARGE_NUMBERS,
-  STATS_AGENCY_TICKER
+  STATS_AGENCY_TICKER,
+  // Alias used in template blueprint examples.
+  STATS_TICKER: STATS_AGENCY_TICKER
 };

@@ -126,6 +126,8 @@ export interface Manifest {
   };
   globalConfig: {
     theme: string; // Resolves to DESIGN_SCHEMES (e.g. 'CYBER_NEON', 'dark', 'light')
+    favicon?: string;
+    analyticsScript?: string;
     colorPalette: {
       primary: string;
       secondary: string;

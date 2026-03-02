@@ -65,6 +65,9 @@ const DEFAULT_PRICING_PLANS = [
     }
 ];
 
+const ADMIN_PAGE_KEYS = ['overview', 'chats', 'users', 'portfolios', 'notifications', 'templates', 'config'] as const;
+type AdminPageKey = typeof ADMIN_PAGE_KEYS[number];
+
 interface ChatSummary {
     userId: string;
     userName: string;
@@ -155,9 +158,17 @@ const AdminDashboard: React.FC = () => {
     const [templateUserSearch, setTemplateUserSearch] = useState('');
     const [templateValidationErrors, setTemplateValidationErrors] = useState<string[]>([]);
     const [editingTemplateDbId, setEditingTemplateDbId] = useState<string | null>(null);
+    const [isSavingUserId, setIsSavingUserId] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { user: currentUser } = useAuth();
+    const allowedAdminTabs = useMemo(() => {
+        const configured = currentUser?.adminPageAccess;
+        if (!Array.isArray(configured) || configured.length === 0) {
+            return [...ADMIN_PAGE_KEYS] as AdminPageKey[];
+        }
+        return ADMIN_PAGE_KEYS.filter((key) => configured.includes(key));
+    }, [currentUser?.adminPageAccess]);
     const nicheOptions = useMemo(() => {
         const base = PORTFOLIO_TEMPLATES.map((t) => t.niche).filter(Boolean);
         const admin = adminTemplates.map((t) => t.niche).filter(Boolean);
@@ -210,10 +221,15 @@ const AdminDashboard: React.FC = () => {
     useEffect(() => {
         const path = location.pathname.split('/').pop();
         const tab = path === 'admin' ? 'overview' : path;
-        if (['overview', 'chats', 'users', 'portfolios', 'config', 'notifications', 'templates'].includes(tab as string)) {
-            setActiveTab(tab as any);
+        if (ADMIN_PAGE_KEYS.includes(tab as AdminPageKey)) {
+            if (allowedAdminTabs.includes(tab as AdminPageKey)) {
+                setActiveTab(tab as any);
+            } else {
+                const fallback = allowedAdminTabs[0] || 'overview';
+                navigate(fallback === 'overview' ? '/admin' : `/admin/${fallback}`, { replace: true });
+            }
         }
-    }, [location.pathname]);
+    }, [allowedAdminTabs, location.pathname, navigate]);
 
     useEffect(() => {
         if (activeTab !== 'config') return;
@@ -318,6 +334,19 @@ const AdminDashboard: React.FC = () => {
 
     const handleSelectChat = (id: string) => {
         setSelectedChat(id);
+    };
+
+    const handleUpdateUserPermissions = async (userId: string, roles: string[], adminPageAccess: string[]) => {
+        setIsSavingUserId(userId);
+        try {
+            const updated = await adminService.updateUserPermissions(userId, { roles, adminPageAccess });
+            setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
+            toast.success('User role and page access updated.');
+        } catch (error: any) {
+            toast.error(error?.response?.data?.error || 'Failed to update user permissions.');
+        } finally {
+            setIsSavingUserId(null);
+        }
     };
 
     const validatePricingConfig = (config: any) => {
@@ -792,7 +821,12 @@ const AdminDashboard: React.FC = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                     >
-                                        <AdminUsersTab users={filteredUsers} />
+                                        <AdminUsersTab
+                                            users={filteredUsers}
+                                            currentUserId={currentUser?.id}
+                                            isSavingUserId={isSavingUserId}
+                                            onSavePermissions={handleUpdateUserPermissions}
+                                        />
                                     </motion.div>
                                 )}
 

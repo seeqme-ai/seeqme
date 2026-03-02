@@ -3,6 +3,81 @@ import { Manifest, ManifestSection } from '../types';
 import { Registry } from '../registry';
 import { DESIGN_SCHEMES } from '../registry/schemes';
 
+const FALLBACK_COMPONENT_BY_TYPE: Record<string, string> = {
+  header: 'HEADER_MINIMALIST',
+  hero: 'HERO_MODERN_SPLIT',
+  about: 'ABOUT_NARRATIVE',
+  skills: 'SKILLS_MARQUEE',
+  projects: 'PROJ_MINIMAL_CARDS',
+  experience: 'EXP_TIMELINE_VERTICAL',
+  testimonials: 'TESTIMONIALS_BENTO',
+  contact: 'CONTACT_SPLIT',
+  footer: 'FOOTER_MINIMAL',
+  stats: 'STATS_COUNTER_GRID',
+  services: 'SERVICES_MINIMAL_LIST',
+  cta: 'CTA_HERO_INLINE',
+  faq: 'FAQ_ACCORDION_NEON',
+  pricing: 'PRICING_MINIMAL_CARDS',
+  logos: 'LOGOS_STRIP_CLEAN',
+  process: 'PROCESS_STEPS_VERTICAL',
+  gallery: 'GALLERY_MASONRY_GLASS',
+  team: 'TEAM_GRID_EDITORIAL'
+};
+
+const safeText = (value: any, fallback = ''): string => {
+  if (value === undefined || value === null) return fallback;
+  const str = String(value).trim();
+  const normalized = str.toLowerCase();
+  if (!str || normalized === 'undefined' || normalized === 'null' || normalized === '[object object]') {
+    return fallback;
+  }
+  return str;
+};
+
+const sanitizeAnalyticsScript = (raw: any): string => {
+  const script = safeText(raw, '');
+  if (!script) return '';
+  // Allow users to paste either raw JS or wrapped <script>...</script>.
+  return script
+    .replace(/<script[^>]*>/gi, '')
+    .replace(/<\/script>/gi, '')
+    .trim();
+};
+
+const normalizeFaviconUrl = (raw: any): string => {
+  const url = safeText(raw, '');
+  if (!url) return '';
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    // Mirror backend favicon crop strategy: 64x64, fill, rounded, png.
+    return url.replace('/upload/', '/upload/w_64,h_64,c_fill,r_16,f_png,q_auto/');
+  }
+  return url;
+};
+
+const resolveRendererComponent = (section: ManifestSection): string => {
+  const directId = safeText(section.componentId);
+  if (directId && Registry[directId]) return directId;
+  const typeKey = safeText(section.type).toLowerCase();
+  const fallbackId = FALLBACK_COMPONENT_BY_TYPE[typeKey];
+  if (fallbackId && Registry[fallbackId]) return fallbackId;
+
+  // Content-shape fallback when type/component is invalid.
+  const content: any = section.content || {};
+  if (Array.isArray(content?.navLinks) || content?.cta) return 'HEADER_MINIMALIST';
+  if (content?.bio || content?.title || content?.name) return 'HERO_MODERN_SPLIT';
+  if (Array.isArray(content?.items)) {
+    if (content.items.some((x: any) => x?.role || x?.company || x?.period)) return 'EXP_TIMELINE_VERTICAL';
+    if (content.items.some((x: any) => x?.description || x?.tech || x?.link)) return 'PROJ_MINIMAL_CARDS';
+    if (content.items.some((x: any) => x?.question || x?.answer)) return 'FAQ_ACCORDION_NEON';
+    if (content.items.some((x: any) => x?.price || x?.features)) return 'PRICING_MINIMAL_CARDS';
+  }
+  if (Array.isArray(content?.skills) || Array.isArray(content?.tags)) return 'SKILLS_MARQUEE';
+  if (content?.email || content?.phone || Array.isArray(content?.socials)) return 'CONTACT_SPLIT';
+  if (content?.copyright || content?.footerEmail) return 'FOOTER_MINIMAL';
+
+  return '';
+};
+
 /**
  * Production-grade Template Engine
  * Renders HTML by replacing {{key}} placeholders, handling loops (#each) and conditionals (#if).
@@ -124,6 +199,8 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
 
   // 1. Resolve Global Config & Design Scheme
   const userConfig: any = manifest.globalConfig || {};
+  const favicon = normalizeFaviconUrl(userConfig.favicon);
+  const analyticsScript = sanitizeAnalyticsScript(userConfig.analyticsScript);
   const schemeId = userConfig.theme || 'dark';
   const scheme = DESIGN_SCHEMES[schemeId] || {
     id: 'DEFAULT',
@@ -210,8 +287,8 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
         if (typeCounters[type] > 1) section.id += `-${typeCounters[type]}`;
       }
 
-      // Check for Generative Template (Custom AI View)
-      if (section.template) {
+      // Only render custom template when explicitly requested.
+      if (safeText(section.componentId) === 'GEN_TEMPLATE' && section.template) {
         try {
           const html = renderGenerativeTemplate(section.template, section.content);
           const paddingClass = section.settings?.padding === 'large' ? 'py-32' : section.settings?.padding === 'small' ? 'py-12' : '';
@@ -227,10 +304,11 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
       }
 
       //  Fallback to Registry Component
-      const componentFn = Registry[section.componentId];
+      const resolvedComponentId = resolveRendererComponent(section);
+      const componentFn = resolvedComponentId ? Registry[resolvedComponentId] : undefined;
       if (!componentFn) {
         console.warn(`[Renderer] Component ${section.componentId} not found in Registry.`);
-        return `<!-- Component ${section.componentId} not found -->`;
+        return '';
       }
 
       try {
@@ -254,9 +332,11 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
   // Extract SEO Data
   const heroSection = sections.find(s => s.type === 'hero');
   const heroContent = heroSection?.content || {};
-  const pageTitle = heroContent.name ? `${heroContent.name} | ${heroContent.title || 'Portfolio'}` : 'Professional Portfolio';
-  const pageDescription = heroContent.bio || heroContent.description || 'Welcome to my professional portfolio.';
-  const pageImage = heroContent.image || '';
+  const safeHeroName = safeText(heroContent.name);
+  const safeHeroTitle = safeText(heroContent.title, 'Portfolio');
+  const pageTitle = safeHeroName ? `${safeHeroName} | ${safeHeroTitle}` : 'Professional Portfolio';
+  const pageDescription = safeText(heroContent.bio || heroContent.description, 'Welcome to my professional portfolio.');
+  const pageImage = safeText(heroContent.image, '');
 
   const brandingHTML = showBranding ? `
     <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
@@ -290,6 +370,7 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
     <meta property="og:description" content="${pageDescription}">
     <meta property="og:image" content="${pageImage}">
     <meta property="og:type" content="website">
+    ${favicon ? `<link rel="icon" href="${favicon}" type="image/png">` : ''}
     <script src="https://cdn.tailwindcss.com"></script>
     ${fontsLink}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -305,6 +386,7 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
+    ${analyticsScript ? `<script id="custom-analytics-script">${analyticsScript}</script>` : ''}
 </head>
 <body class="transition-colors duration-500 relative min-h-screen font-body">
     <main>
@@ -330,21 +412,63 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
        document.addEventListener('DOMContentLoaded', () => {
           document.querySelectorAll("img").forEach(__applyImageFallback);
 
+          const closeMobileMenu = (menu) => {
+             if (!menu) return;
+             menu.classList.add('opacity-0', 'pointer-events-none');
+             menu.querySelectorAll('.mobile-link').forEach(link => {
+                link.classList.add('opacity-0', 'translate-y-4', 'translate-x-10');
+             });
+          };
+
+          const openMobileMenu = (menu) => {
+             if (!menu) return;
+             menu.classList.remove('opacity-0', 'pointer-events-none');
+             menu.querySelectorAll('.mobile-link').forEach(link => {
+                link.classList.remove('opacity-0', 'translate-y-4', 'translate-x-10');
+             });
+          };
+
+          // Standardized mobile menu fallback: works even when section scripts are missing.
+          document.addEventListener('click', (e) => {
+             const btn = e.target && e.target.closest ? e.target.closest('[id^="mobile-menu-btn-"]') : null;
+             if (!btn) return;
+             if (btn.dataset && btn.dataset.menuBound === '1') return;
+             const suffix = btn.id.replace('mobile-menu-btn-', '');
+             const menu = document.getElementById('mobile-menu-' + suffix);
+             const icon = document.getElementById('menu-icon-' + suffix);
+             if (!menu) return;
+
+             const isClosed = menu.classList.contains('opacity-0') || menu.classList.contains('pointer-events-none');
+             if (isClosed) {
+                openMobileMenu(menu);
+                if (icon) {
+                  icon.classList.remove('fa-bars');
+                  icon.classList.add('fa-times');
+                }
+             } else {
+                closeMobileMenu(menu);
+                if (icon) {
+                  icon.classList.remove('fa-times');
+                  icon.classList.add('fa-bars');
+                }
+             }
+          });
+
           // Global smooth-scroll listener for all anchor links
           document.body.addEventListener('click', function(e) {
              const link = e.target.closest('a[href^="#"]');
              if (link) {
                 const targetId = link.getAttribute('href').substring(1);
-                if (!targetId) return;
+                if (!targetId) {
+                   e.preventDefault();
+                   return;
+                }
                 const target = document.getElementById(targetId);
                 if (target) {
                    e.preventDefault();
                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                   // Close mobile menus if they exist (standard class)
-                   const mobileMenu = document.querySelector('[data-mobile-menu]');
-                   if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                      mobileMenu.classList.add('hidden');
-                   }
+                   // Close any active mobile menus after navigation
+                   document.querySelectorAll('[data-mobile-menu]').forEach(closeMobileMenu);
                 }
              }
           });

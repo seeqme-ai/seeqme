@@ -993,6 +993,8 @@ export const SkillsRegistry: any = {
     SKILLS_HEXAGON_GRID,
     SKILLS_RADAR_CHART,
     SKILLS_DARK_SAAS,
+    // Backward/AI alias: prompt/library may reference this older ID spelling.
+    SKILLS_DARK_SASS,
     SKILLS_AGENCY,
     SKILLS_ENG_BENTO,
     SKILLS_ENG_TERMINAL,

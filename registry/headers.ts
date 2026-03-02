@@ -1,6 +1,6 @@
 
 export const HEADER_MINIMALIST = (content: any) => `
-    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--background)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <a href="#" class="text-xl font-serif font-bold text-[var(--heading)] tracking-wide">
                 ${content.username || content.name || 'Portfolio'}
@@ -21,7 +21,7 @@ export const HEADER_MINIMALIST = (content: any) => `
                 <i class="fas fa-bars text-xl transition-all" id="menu-icon-min"></i>
             </button>
         </div>
-        <div id="mobile-menu-min" data-mobile-menu class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-min" data-mobile-menu class="fixed inset-0 bg-[var(--bg)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
             ${(content.navLinks || []).map((nav: any) => `
             <a href="${nav.link}" class="mobile-link text-2xl font-serif text-[var(--heading)] hover:text-[var(--primary)] transition-all transform translate-y-4 opacity-0">
                 ${nav.label}
@@ -36,6 +36,7 @@ export const HEADER_MINIMALIST = (content: any) => `
                 const links = menu ? menu.querySelectorAll('.mobile-link') : [];
                 let isOpen = false;
                 if (btn && menu) {
+                    btn.dataset.menuBound = '1';
                     btn.addEventListener('click', () => {
                         isOpen = !isOpen;
                         if (isOpen) {
@@ -63,14 +64,14 @@ export const HEADER_MINIMALIST = (content: any) => `
 `;
 
 export const HEADER_AGENCY_VIBRANT = (content: any) => `
-    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/90 backdrop-blur-md border-b border-[var(--text)]/5 transition-all duration-300" id="main-header">
-        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-            <a href="#" class="text-2xl font-black uppercase tracking-wider text-[var(--heading)] hover:text-[var(--primary)] transition-colors relative z-50">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--surface)] md:bg-[var(--bg)]/90 backdrop-blur-md border-b border-[var(--text)]/5 transition-all duration-300" id="main-header" style="background-color: var(--surface);">
+        <div class="max-w-7xl mx-auto px-6 h-16 md:h-24 flex items-center justify-between">
+            <a href="#home" class="text-2xl font-black uppercase tracking-wider text-[var(--heading)] hover:text-[var(--primary)] transition-colors relative z-50">
                 ${content.username || content.name || 'AGENCY'}
             </a>
             <nav class="hidden md:flex items-center gap-10">
                 ${(content.navLinks || []).map((nav: any) => `
-                <a href="${nav.link}" class="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] font-sans uppercase tracking-widest transition-colors relative group">
+                <a href="${nav.link || '#home'}" class="text-sm font-bold text-[var(--text)] hover:text-[var(--primary)] font-sans uppercase tracking-widest transition-colors relative group">
                     ${nav.label}
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--primary)] transition-all group-hover:w-full"></span>
                 </a>
@@ -79,17 +80,17 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
                     ${content.cta?.text || 'Start Project'}
                 </a>
             </nav>
-            <button id="mobile-menu-btn-agc" class="md:hidden text-[var(--heading)] z-50 relative w-10 h-10 flex items-center justify-center">
+            <button id="mobile-menu-btn-agc" class="md:hidden text-[var(--heading)] z-[70] relative w-10 h-10 flex items-center justify-center">
                 <i class="fas fa-bars text-xl transition-all" id="menu-icon-agc"></i>
             </button>
         </div>
-        <div id="mobile-menu-agc" data-mobile-menu class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-agc" data-mobile-menu class="fixed inset-0 z-[60] bg-[var(--surface)] backdrop-blur-xl flex flex-col items-center justify-start gap-6 pt-24 pb-10 px-6 overflow-y-auto opacity-0 pointer-events-none transition-all duration-300" style="background-color: var(--surface);">
             ${(content.navLinks || []).map((nav: any) => `
-            <a href="${nav.link}" class="mobile-link text-4xl font-black uppercase tracking-tighter text-[var(--heading)] hover:text-[var(--primary)] transition-all transform translate-y-8 opacity-0">
+            <a href="${nav.link || '#home'}" class="mobile-link text-2xl sm:text-3xl font-black uppercase tracking-tight text-[var(--heading)] hover:text-[var(--primary)] transition-all transform translate-y-6 opacity-0 text-center">
                 ${nav.label}
             </a>
             `).join('')}
-             <a href="${content.cta?.link || '#contact'}" class="mobile-link text-xl font-bold text-[var(--primary)] opacity-0 translate-y-8 transition-all delay-100 uppercase border-b-2 border-[var(--primary)]">
+             <a href="${content.cta?.link || '#contact'}" class="mobile-link text-lg font-bold text-[var(--primary)] opacity-0 translate-y-6 transition-all delay-100 uppercase border-b-2 border-[var(--primary)]">
                 ${content.cta?.text || 'Start Project'}
             </a>
         </div>
@@ -101,6 +102,7 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
                 const links = menu ? menu.querySelectorAll('.mobile-link') : [];
                 let isOpen = false;
                 if (btn && menu) {
+                    btn.dataset.menuBound = '1';
                     btn.addEventListener('click', () => {
                         isOpen = !isOpen;
                         if (isOpen) {
@@ -108,13 +110,13 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
                             icon.classList.remove('fa-bars');
                             icon.classList.add('fa-times');
                             document.body.style.overflow = 'hidden';
-                            links.forEach((link, idx) => setTimeout(() => link.classList.remove('translate-y-8', 'opacity-0'), 100 + (idx * 50)));
+                            links.forEach((link, idx) => setTimeout(() => link.classList.remove('translate-y-6', 'opacity-0'), 100 + (idx * 50)));
                         } else {
                             menu.classList.add('opacity-0', 'pointer-events-none');
                             icon.classList.remove('fa-times');
                             icon.classList.add('fa-bars');
                             document.body.style.overflow = '';
-                            links.forEach(link => link.classList.add('translate-y-8', 'opacity-0'));
+                            links.forEach(link => link.classList.add('translate-y-6', 'opacity-0'));
                         }
                     });
                     links.forEach(link => link.addEventListener('click', () => {
@@ -131,7 +133,7 @@ export const HEADER_AGENCY_VIBRANT = (content: any) => `
 `;
 
 export const HEADER_TECH_GLOW = (content: any) => `
-    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--background)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <a href="#" class="text-xl font-mono font-bold tracking-tighter text-[var(--heading)] hover:text-[var(--primary)] transition-colors relative z-50 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse"></span>
@@ -153,7 +155,7 @@ export const HEADER_TECH_GLOW = (content: any) => `
                 <i class="fas fa-bars text-lg transition-all" id="menu-icon-tech"></i>
             </button>
         </div>
-        <div id="mobile-menu-tech" data-mobile-menu class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-6 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="mobile-menu-tech" data-mobile-menu class="fixed inset-0 bg-[var(--bg)] z-40 flex flex-col items-center justify-center gap-6 opacity-0 pointer-events-none transition-all duration-300">
              ${(content.navLinks || []).map((nav: any) => `
             <a href="${nav.link}" class="mobile-link text-xl font-mono font-bold text-[var(--text)] hover:text-[var(--primary)] transition-all transform translate-x-10 opacity-0 flex items-center gap-2">
                 <span class="text-[var(--primary)]">></span> ${nav.label}
@@ -168,6 +170,7 @@ export const HEADER_TECH_GLOW = (content: any) => `
                 const links = menu ? menu.querySelectorAll('.mobile-link') : [];
                 let isOpen = false;
                 if (btn && menu) {
+                    btn.dataset.menuBound = '1';
                     btn.addEventListener('click', () => {
                         isOpen = !isOpen;
                         if (isOpen) {
@@ -195,7 +198,7 @@ export const HEADER_TECH_GLOW = (content: any) => `
 `;
 
 export const HEADER_MINIMALIST_CREATOR = (content: any) => `
-     <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--background)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
+     <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--text)]/10 transition-all duration-300" id="main-header">
          <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
              <a href="#" class="text-xl font-serif font-bold text-[var(--heading)] tracking-wide">
                  ${content.username || content.name || 'Portfolio'}
@@ -211,7 +214,7 @@ export const HEADER_MINIMALIST_CREATOR = (content: any) => `
                  <i class="fas fa-bars text-xl transition-all" id="menu-icon-min-creator"></i>
              </button>
          </div>
-         <div id="mobile-menu-min-creator" class="fixed inset-0 bg-[var(--background)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
+         <div id="mobile-menu-min-creator" data-mobile-menu class="fixed inset-0 bg-[var(--bg)] z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300">
              ${(content.navLinks || []).map((nav: any) => `
              <a href="${nav.link}" class="mobile-link text-2xl font-serif text-[var(--heading)] hover:text-[var(--primary)] transition-all transform translate-y-4 opacity-0">
                  ${nav.label}
@@ -226,6 +229,7 @@ export const HEADER_MINIMALIST_CREATOR = (content: any) => `
                  const links = menu ? menu.querySelectorAll('.mobile-link') : [];
                  let isOpen = false;
                  if (btn && menu) {
+                     btn.dataset.menuBound = '1';
                      btn.addEventListener('click', () => {
                          isOpen = !isOpen;
                          if (isOpen) {
@@ -297,6 +301,7 @@ export const HEADER_DARK_SASS = (content: any) => `
                 const links = menu ? menu.querySelectorAll('.mobile-link') : [];
                 let isOpen = false;
                 if (btn && menu) {
+                    btn.dataset.menuBound = '1';
                     btn.addEventListener('click', () => {
                         isOpen = !isOpen;
                         if (isOpen) {
@@ -327,6 +332,8 @@ export const HeaderRegistry: any = {
     HEADER_MINIMALIST,
     HEADER_AGENCY_VIBRANT,
     HEADER_TECH_GLOW,
+    // Alias used by blueprint guidance in backend services.
+    HEADER_TECH: HEADER_TECH_GLOW,
     HEADER_MINIMALIST_CREATOR,
     HEADER_DARK_SASS
 };

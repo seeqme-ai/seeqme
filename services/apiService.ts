@@ -269,6 +269,10 @@ export const adminService = {
     const response = await apiClient.get('/admin/users');
     return response.data;
   },
+  updateUserPermissions: async (userId: string, data: { roles: string[]; adminPageAccess: string[] }) => {
+    const response = await apiClient.put(`/admin/users/${userId}/permissions`, data);
+    return response.data;
+  },
   getAllPortfolios: async () => {
     const response = await apiClient.get('/admin/portfolios');
     return response.data;

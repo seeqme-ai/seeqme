@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +32,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const deleteInFlightRef = useRef(false);
   const [connectDomainPortfolio, setConnectDomainPortfolio] = useState<Portfolio | null>(null);
 
   const [isDeployDrawerOpen, setIsDeployDrawerOpen] = useState(false);
@@ -81,6 +82,8 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   };
 
   const handleDelete = async (id: string) => {
+    if (!id || deleteInFlightRef.current) return;
+    deleteInFlightRef.current = true;
     try {
       setIsDeleting(true);
       await portfolioService.deletePortfolio(id);
@@ -88,9 +91,17 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
       setDeleteConfirm(null);
       toast.success('Project deleted');
     } catch (error: any) {
-      toast.error('Could not delete project.');
+      if (error?.response?.status === 404) {
+        // Idempotent UX: if already gone, keep local state consistent.
+        setPortfolios(prev => prev.filter(p => p.id !== id));
+        setDeleteConfirm(null);
+        toast.success('Project already deleted.');
+      } else {
+        toast.error('Could not delete project.');
+      }
     } finally {
       setIsDeleting(false);
+      deleteInFlightRef.current = false;
     }
   };
 
@@ -353,9 +364,10 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                             <RefreshCw className="w-4 h-4 text-amber-600 flex-shrink-0" /> <span className="font-semibold">Rollback</span>
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => navigate(`/portfolio/${p.id}/template-preview`)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
+                        {p.status === 'completed' && <DropdownMenuItem onClick={() => navigate(`/portfolio/${p.id}/template-preview`)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
                           <Layers className="w-4 h-4 text-indigo-600 flex-shrink-0" /> <span className="font-semibold">Swap Template</span>
                         </DropdownMenuItem>
+                        }
                         <DropdownMenuSeparator className="my-2" />
                         <DropdownMenuItem onClick={() => setDeleteConfirm(p.id!)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-red-50 text-red-500 focus:text-red-500 cursor-pointer text-sm ">
                           <Trash2 className="w-4 h-4 flex-shrink-0" /> <span className="font-semibold">Delete</span>
@@ -451,12 +463,14 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                 <Button
                   variant="ghost"
                   onClick={() => setDeleteConfirm(null)}
+                  disabled={isDeleting}
                   className="flex-1 h-10 sm:h-14 rounded-lg sm:rounded-2xl font-bold text-slate-500 hover:bg-slate-100 text-sm sm:text-base"
                 >
                   Keep Project
                 </Button>
                 <Button
                   onClick={() => handleDelete(deleteConfirm)}
+                  disabled={isDeleting}
                   className="flex-1 h-10 sm:h-14 rounded-lg sm:rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 shadow-lg shadow-red-500/20 text-sm sm:text-base"
                 >
                   {isDeleting ? 'Deleting...' : 'Confirm Delete'}

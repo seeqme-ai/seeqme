@@ -25,6 +25,7 @@ type User struct {
 	Password               string             `bson:"password,omitempty" json:"-"`
 	FullName               string             `bson:"fullName" json:"fullName"`
 	Roles                  []string           `bson:"roles" json:"roles"`
+	AdminPageAccess        []string           `bson:"adminPageAccess,omitempty" json:"adminPageAccess,omitempty"`
 	IsActive               bool               `bson:"isActive" json:"isActive"`
 	IsVerified             bool               `bson:"isVerified" json:"isVerified"`
 	Country                string             `bson:"country,omitempty" json:"country,omitempty"`

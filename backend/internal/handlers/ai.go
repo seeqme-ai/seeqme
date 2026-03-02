@@ -360,6 +360,7 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	}
 
 	streamLog("Commit successful.", "success")
+	_ = services.GlobalSessionManager.CloseSession(sessionID, "completed", "")
 	c.JSON(http.StatusOK, gin.H{
 		"portfolioId":       portfolioID.Hex(),
 		"sessionId":         sessionID,

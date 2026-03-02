@@ -231,16 +231,17 @@ func (h *Handler) GetMe(c *gin.Context) {
 // userResponseWithSubscription formats user data with subscription for API responses
 func userResponseWithSubscription(user models.User, subscription string) gin.H {
 	return gin.H{
-		"id":           user.ID.Hex(),
-		"email":        user.Email,
-		"fullName":     user.FullName,
-		"roles":        user.Roles,
-		"isActive":     user.IsActive,
-		"isVerified":   user.IsVerified,
-		"avatarUrl":    user.AvatarURL,
-		"country":      user.Country,
-		"authProvider": user.AuthProvider,
-		"subscription": subscription,
+		"id":              user.ID.Hex(),
+		"email":           user.Email,
+		"fullName":        user.FullName,
+		"roles":           user.Roles,
+		"adminPageAccess": user.AdminPageAccess,
+		"isActive":        user.IsActive,
+		"isVerified":      user.IsVerified,
+		"avatarUrl":       user.AvatarURL,
+		"country":         user.Country,
+		"authProvider":    user.AuthProvider,
+		"subscription":    subscription,
 	}
 }
 
@@ -577,14 +578,15 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 // userResponse formats user data for API responses
 func userResponse(user models.User) gin.H {
 	return gin.H{
-		"id":           user.ID.Hex(),
-		"email":        user.Email,
-		"fullName":     user.FullName,
-		"roles":        user.Roles,
-		"isActive":     user.IsActive,
-		"isVerified":   user.IsVerified,
-		"avatarUrl":    user.AvatarURL,
-		"country":      user.Country,
-		"authProvider": user.AuthProvider,
+		"id":              user.ID.Hex(),
+		"email":           user.Email,
+		"fullName":        user.FullName,
+		"roles":           user.Roles,
+		"adminPageAccess": user.AdminPageAccess,
+		"isActive":        user.IsActive,
+		"isVerified":      user.IsVerified,
+		"avatarUrl":       user.AvatarURL,
+		"country":         user.Country,
+		"authProvider":    user.AuthProvider,
 	}
 }

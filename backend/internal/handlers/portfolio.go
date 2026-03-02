@@ -578,28 +578,58 @@ func (h *Handler) DeletePortfolio(c *gin.Context) {
 		return
 	}
 
-	// If the portfolio is completed, delete associated external resources
-	if portfolio.Status == "completed" {
+	cleanup := gin.H{
+		"dnsDeleted":        false,
+		"dnsError":          "",
+		"cloudflareDeleted": false,
+		"cloudflareError":   "",
+		"githubDeleted":     false,
+		"githubError":       "",
+		"githubRepo":        "",
+	}
+
+	shouldCleanupExternal := portfolio.Status == "completed" ||
+		strings.TrimSpace(portfolio.DNSRecordID) != "" ||
+		strings.TrimSpace(portfolio.CloudflareProjectID) != "" ||
+		strings.TrimSpace(portfolio.GitHubRepoURL) != "" ||
+		strings.TrimSpace(portfolio.Subdomain) != ""
+
+	// Delete associated external resources when deployment metadata is present.
+	if shouldCleanupExternal {
 		cfg := h.Config
 		githubService := github.NewGitHubService(cfg.GitHubToken, cfg.GitHubOwner, logrus.New())
 		cloudflareService := cloudflare.NewClient(cfg)
 
-		// 1. Delete DNS Record (if exists)
-		if portfolio.DNSRecordID != "" {
-			if err := cloudflareService.DeleteSubdomain(portfolio.DNSRecordID); err != nil {
-				log.Printf("ERROR: Failed to delete Cloudflare DNS record %s for portfolio %s: %v", portfolio.DNSRecordID, portfolioID, err)
-				// Continue with other deletions, don't block
+		// 1. Delete DNS Record by record ID, with a subdomain lookup fallback.
+		dnsRecordID := strings.TrimSpace(portfolio.DNSRecordID)
+		if dnsRecordID == "" && strings.TrimSpace(portfolio.Subdomain) != "" {
+			recordName := fmt.Sprintf("%s.%s", strings.TrimSpace(portfolio.Subdomain), strings.TrimSpace(cfg.DNSProviderDomain))
+			lookedUpID, lookupErr := cloudflareService.GetDNSRecordID(recordName)
+			if lookupErr != nil {
+				cleanup["dnsError"] = fmt.Sprintf("lookup failed for %s: %v", recordName, lookupErr)
+				log.Printf("WARN: Could not look up DNS record for %s (portfolio %s): %v", recordName, portfolioID, lookupErr)
 			} else {
-				log.Printf("Deleted Cloudflare DNS record %s for portfolio %s", portfolio.DNSRecordID, portfolioID)
+				dnsRecordID = lookedUpID
+			}
+		}
+		if dnsRecordID != "" {
+			if err := cloudflareService.DeleteSubdomain(dnsRecordID); err != nil {
+				msg := fmt.Sprintf("delete failed for record %s: %v", dnsRecordID, err)
+				cleanup["dnsError"] = msg
+				log.Printf("ERROR: Failed to delete Cloudflare DNS record %s for portfolio %s: %v", dnsRecordID, portfolioID, err)
+			} else {
+				cleanup["dnsDeleted"] = true
+				log.Printf("Deleted Cloudflare DNS record %s for portfolio %s", dnsRecordID, portfolioID)
 			}
 		}
 
 		// 2. Delete Cloudflare Pages Project (if exists)
 		if portfolio.CloudflareProjectID != "" {
 			if err := cloudflareService.DeleteProject(portfolio.CloudflareProjectID); err != nil {
+				cleanup["cloudflareError"] = err.Error()
 				log.Printf("ERROR: Failed to delete Cloudflare Pages project %s for portfolio %s: %v", portfolio.CloudflareProjectID, portfolioID, err)
-				// Continue with other deletions, don't block
 			} else {
+				cleanup["cloudflareDeleted"] = true
 				log.Printf("Deleted Cloudflare Pages project %s for portfolio %s", portfolio.CloudflareProjectID, portfolioID)
 			}
 		}
@@ -620,11 +650,13 @@ func (h *Handler) DeletePortfolio(c *gin.Context) {
 			// Extract repo name from URL
 			parts := strings.Split(githubURL, "/")
 			repoName := strings.TrimSuffix(parts[len(parts)-1], ".git")
+			cleanup["githubRepo"] = repoName
 			if repoName != "" {
 				if err := githubService.DeleteRepo(context.Background(), repoName); err != nil {
+					cleanup["githubError"] = err.Error()
 					log.Printf("ERROR: Failed to delete GitHub repository %s for portfolio %s: %v", repoName, portfolioID, err)
-					// Continue with other deletions, don't block
 				} else {
+					cleanup["githubDeleted"] = true
 					log.Printf("Deleted GitHub repository %s for portfolio %s", repoName, portfolioID)
 				}
 			}
@@ -646,7 +678,10 @@ func (h *Handler) DeletePortfolio(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{
+		"deleted": true,
+		"cleanup": cleanup,
+	})
 }
 
 // PublishPortfolio publishes a specific portfolio

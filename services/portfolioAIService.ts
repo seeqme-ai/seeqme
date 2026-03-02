@@ -1,6 +1,7 @@
 import { aiService } from './apiService';
 import { PortfolioData } from '../types';
 import { renderManifest } from '../utils/renderer';
+import { Registry } from '../registry';
 
 const portfolioSchema = {
   type: 'object',
@@ -32,6 +33,170 @@ const portfolioSchema = {
   },
   required: ['html', 'css', 'js', 'structuredContent']
 };
+
+const REGISTRY_COMPONENT_IDS = new Set(Object.keys(Registry || {}));
+const FALLBACK_COMPONENT_BY_TYPE: Record<string, string> = {
+  header: 'HEADER_MINIMALIST',
+  hero: 'HERO_MODERN_SPLIT',
+  about: 'ABOUT_NARRATIVE',
+  skills: 'SKILLS_MARQUEE',
+  projects: 'PROJ_MINIMAL_CARDS',
+  experience: 'EXP_TIMELINE_VERTICAL',
+  testimonials: 'TESTIMONIALS_BENTO',
+  contact: 'CONTACT_SPLIT',
+  footer: 'FOOTER_MINIMAL',
+  stats: 'STATS_COUNTER_GRID',
+  services: 'SERVICES_MINIMAL_LIST',
+  cta: 'CTA_HERO_INLINE',
+  faq: 'FAQ_ACCORDION_NEON',
+  pricing: 'PRICING_MINIMAL_CARDS',
+  logos: 'LOGOS_STRIP_CLEAN',
+  process: 'PROCESS_STEPS_VERTICAL',
+  gallery: 'GALLERY_MASONRY_GLASS',
+  team: 'TEAM_GRID_EDITORIAL'
+};
+
+const INVALID_LITERAL_VALUES = new Set(['undefined', 'null', '[object object]', 'nan']);
+
+function isPoisonedString(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return true;
+  if (INVALID_LITERAL_VALUES.has(normalized)) return true;
+  if (normalized.startsWith('mailto:undefined')) return true;
+  return false;
+}
+
+function cleanString(value: any, fallback: string = ''): string {
+  if (value === undefined || value === null) return fallback;
+  const str = String(value).trim();
+  return isPoisonedString(str) ? fallback : str;
+}
+
+function sanitizeHref(value: any, fallback: string = '#'): string {
+  const href = cleanString(value, fallback);
+  if (!href) return fallback;
+  return href;
+}
+
+function sanitizeDeep<T = any>(value: T): T {
+  if (value === undefined || value === null) return value;
+  if (typeof value === 'string') {
+    return cleanString(value) as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeDeep(item)) as T;
+  }
+  if (typeof value === 'object') {
+    const out: Record<string, any> = {};
+    Object.entries(value as Record<string, any>).forEach(([k, v]) => {
+      out[k] = sanitizeDeep(v);
+    });
+    return out as T;
+  }
+  return value;
+}
+
+function resolveComponentId(rawComponentId: any, rawType?: any): string {
+  const componentId = cleanString(rawComponentId);
+  if (componentId && REGISTRY_COMPONENT_IDS.has(componentId)) return componentId;
+
+  const inferredType = cleanString(rawType).toLowerCase() || inferTypeFromComponentId(componentId || '').toLowerCase();
+  const fallback = FALLBACK_COMPONENT_BY_TYPE[inferredType];
+  if (fallback && REGISTRY_COMPONENT_IDS.has(fallback)) {
+    return fallback;
+  }
+
+  return 'HERO_MODERN_SPLIT';
+}
+
+function normalizeManifestSections(sections: any[]): any[] {
+  if (!Array.isArray(sections)) return [];
+  const normalized = sections.map((section: any, index: number) => {
+    const resolvedComponentId = resolveComponentId(section?.componentId || section?.component, section?.type);
+    const resolvedType = cleanString(section?.type) || inferTypeFromComponentId(resolvedComponentId);
+    const normalizedContent = normalizeSectionContent(
+      resolvedComponentId,
+      section?.content || section?.props || section?.data
+    );
+
+    return {
+      ...section,
+      id: cleanString(section?.id, `${resolvedType || 'section'}-${index + 1}`),
+      type: resolvedType,
+      componentId: resolvedComponentId,
+      content: sanitizeDeep(normalizedContent),
+      settings: section?.settings || { isVisible: true, padding: 'medium' },
+      template: cleanString(resolvedComponentId) === 'GEN_TEMPLATE' ? section?.template : undefined
+    };
+  });
+
+  return harmonizeHeaderNavLinks(normalized);
+}
+
+function harmonizeHeaderNavLinks(sections: any[]): any[] {
+  if (!Array.isArray(sections) || sections.length === 0) return sections;
+
+  const firstNonHeader = sections.find((s: any) => cleanString(s?.type).toLowerCase() !== 'header')?.id || 'home';
+  const sectionIds = new Set(
+    sections
+      .map((s: any) => cleanString(s?.id))
+      .filter(Boolean)
+  );
+
+  const targetByType: Record<string, string> = {};
+  sections.forEach((s: any) => {
+    const t = cleanString(s?.type).toLowerCase();
+    const id = cleanString(s?.id);
+    if (t && id && !targetByType[t]) targetByType[t] = id;
+  });
+
+  const resolveBestTarget = (label: string): string => {
+    const l = cleanString(label).toLowerCase();
+    if (l.includes('home')) return targetByType.hero || targetByType.home || firstNonHeader;
+    if (l.includes('about')) return targetByType.about || firstNonHeader;
+    if (l.includes('skill')) return targetByType.skills || firstNonHeader;
+    if (l.includes('project') || l.includes('work')) return targetByType.projects || firstNonHeader;
+    if (l.includes('experience') || l.includes('career')) return targetByType.experience || firstNonHeader;
+    if (l.includes('testimonial')) return targetByType.testimonials || firstNonHeader;
+    if (l.includes('service')) return targetByType.services || firstNonHeader;
+    if (l.includes('pricing') || l.includes('plan')) return targetByType.pricing || firstNonHeader;
+    if (l.includes('contact')) return targetByType.contact || targetByType.footer || firstNonHeader;
+    if (l.includes('blog')) return targetByType.blog || firstNonHeader;
+    return firstNonHeader;
+  };
+
+  const isValidHashLink = (link: string): boolean => {
+    if (!link.startsWith('#')) return false;
+    const id = cleanString(link.slice(1));
+    return !!id && sectionIds.has(id);
+  };
+
+  return sections.map((section: any) => {
+    if (cleanString(section?.type).toLowerCase() !== 'header') return section;
+    const content = section.content || {};
+    const navLinks = Array.isArray(content.navLinks) ? content.navLinks : [];
+    const normalizedNavLinks = navLinks.map((nav: any) => {
+      const label = cleanString(nav?.label || nav?.name, 'Section');
+      const rawLink = cleanString(nav?.link || nav?.url, '#');
+      const finalLink = isValidHashLink(rawLink) ? rawLink : `#${resolveBestTarget(label)}`;
+      return { ...nav, label, link: finalLink };
+    });
+
+    const ctaLinkRaw = cleanString(content?.cta?.link, '#');
+    const ctaResolved = isValidHashLink(ctaLinkRaw)
+      ? ctaLinkRaw
+      : (targetByType.contact ? `#${targetByType.contact}` : `#${firstNonHeader}`);
+
+    return {
+      ...section,
+      content: {
+        ...content,
+        navLinks: normalizedNavLinks,
+        cta: content.cta ? { ...content.cta, link: ctaResolved } : content.cta
+      }
+    };
+  });
+}
 
 // Helper to extract structuredContent from HTML using data-field attributes
 function extractStructuredContentFromHtml(html: string): any {
@@ -286,20 +451,14 @@ export async function generatePortfolio(input: {
     let sc: any;
     if (structuredContent?.sections && Array.isArray(structuredContent.sections)) {
       // Already in Manifest format, but normalize section keys (AI may use component/props instead of componentId/content)
-      const normalizedSections = structuredContent.sections.map((section: any) => ({
-        id: section.id,
-        type: section.type || inferTypeFromComponentId(section.componentId || section.component),
-        componentId: section.componentId || section.component,
-        content: normalizeSectionContent(section.componentId || section.component, section.content || section.props || section.data),
-        settings: section.settings || { isVisible: true, padding: 'medium' },
-        template: section.template
-      }));
+      const normalizedSections = normalizeManifestSections(structuredContent.sections);
 
       sc = {
         ...structuredContent,
         sections: normalizedSections,
         metadata: structuredContent.metadata || { version: '1.0', niche: 'General', generatedAt: new Date().toISOString() }
       };
+      sc = ensureManifestDefaults(sc);
 
     } else {
       // Flat content format, needs normalization
@@ -307,9 +466,8 @@ export async function generatePortfolio(input: {
 
     }
 
-    // Generate HTML from structured content if not provided by AI
-    if ((!html || html.length < 100) && sc) {
-
+    // Always render from sanitized manifest to keep output strictly registry-aligned.
+    if (sc) {
       try {
         html = renderManifest(sc);
       } catch (err) {
@@ -345,13 +503,7 @@ export async function refinePortfolio(currentData: PortfolioData, prompt: string
     addLog(`Synthesizing updated visual structure...`);
 
     // Normalize sections and ensure metadata is preserved
-    const normalizedSections = (updatedStructuredContent.sections || []).map((section: any) => ({
-      ...section,
-      type: section.type || inferTypeFromComponentId(section.componentId || section.component),
-      componentId: section.componentId || section.component,
-      content: normalizeSectionContent(section.componentId || section.component, section.content || section.props || section.data),
-      settings: section.settings || { isVisible: true, padding: 'medium' }
-    }));
+    const normalizedSections = normalizeManifestSections(updatedStructuredContent.sections || []);
 
     // CRITICAL: If the AI returned a Manifest structure, we keep it but ensure sections are normalized
     let sc = {
@@ -509,18 +661,43 @@ export function normalizeSectionContent(componentId: string, content: any): any 
   if (!content) return {};
   const id = componentId ? componentId.toUpperCase() : '';
 
+  // HEADER normalization
+  if (id.startsWith('HEADER')) {
+    const normalizedNavLinks = Array.isArray(content.navLinks)
+      ? content.navLinks.map((nav: any, index: number) => ({
+        label: cleanString(nav?.label || nav?.name, `Section ${index + 1}`),
+        link: sanitizeHref(nav?.link ?? nav?.url, '#')
+      }))
+      : [];
+
+    return {
+      ...content,
+      name: cleanString(content.name || content.username || content.brand || content.logoText, 'Portfolio'),
+      username: cleanString(content.username || content.name || content.brand || content.logoText, 'Portfolio'),
+      navLinks: normalizedNavLinks.length > 0 ? normalizedNavLinks : [
+        { label: 'Home', link: '#hero' },
+        { label: 'Projects', link: '#projects' },
+        { label: 'Contact', link: '#contact' }
+      ],
+      cta: content.cta ? {
+        text: cleanString(content.cta.text || content.cta.label, 'Contact'),
+        link: sanitizeHref(content.cta.link, '#contact')
+      } : undefined
+    };
+  }
+
   // HERO normalization
   if (id.startsWith('HERO')) {
     return {
-      name: content.name || content.title || content.userName || '',
-      title: content.title || content.subtitle || content.role || content.tagline || '',
-      bio: content.bio || content.description || content.summary || '',
-      image: content.image || content.backgroundImage || content.profileImage || '',
-      greeting: content.greeting || content.hello || 'Hello, I am',
+      name: cleanString(content.name || content.title || content.userName),
+      title: cleanString(content.title || content.subtitle || content.role || content.tagline),
+      bio: cleanString(content.bio || content.description || content.summary),
+      image: cleanString(content.image || content.backgroundImage || content.profileImage),
+      greeting: cleanString(content.greeting || content.hello, 'Hello, I am'),
       highlights: Array.isArray(content.highlights) ? content.highlights : [],
       cta: content.cta || {
-        text: content.primaryCta?.label || content.ctaText || 'Explore Work',
-        link: content.primaryCta?.link || content.ctaLink || '#projects'
+        text: cleanString(content.primaryCta?.label || content.ctaText, 'Explore Work'),
+        link: sanitizeHref(content.primaryCta?.link || content.ctaLink, '#projects')
       },
       ...content
     };
@@ -574,13 +751,13 @@ export function normalizeSectionContent(componentId: string, content: any): any 
   if (id.startsWith('CONTACT')) {
     const socials = content.socials || content.socialLinks || content.links || [];
     return {
-      title: content.title || content.heading || "Let's Connect",
-      email: content.email || '',
-      phone: content.phone || '',
-      location: content.location || '',
+      title: cleanString(content.title || content.heading, "Let's Connect"),
+      email: cleanString(content.email),
+      phone: cleanString(content.phone),
+      location: cleanString(content.location),
       socials: Array.isArray(socials) ? socials.map((s: any) => ({
-        platform: s.platform || s.name || 'Platform',
-        link: s.link || s.url || '#'
+        platform: cleanString(s.platform || s.name, 'Platform'),
+        link: sanitizeHref(s.link || s.url, '#')
       })) : [],
       ...content
     };
@@ -768,6 +945,42 @@ export function normalizeSectionContent(componentId: string, content: any): any 
     };
   }
 
+  // FOOTER normalization
+  if (id.startsWith('FOOTER')) {
+    const rawSocials = content.socials || content.links || content.socialLinks || [];
+    const socials = Array.isArray(rawSocials) ? rawSocials.map((s: any, index: number) => {
+      if (typeof s === 'string') {
+        return { platform: s, name: s, url: '#', link: '#' };
+      }
+      const platform = s.platform || s.name || s.label || `Link ${index + 1}`;
+      const url = sanitizeHref(s.url || s.link, '#');
+      return {
+        platform: cleanString(platform, `Link ${index + 1}`),
+        name: cleanString(platform, `Link ${index + 1}`),
+        url,
+        link: url
+      };
+    }) : [];
+
+    const normalizedLinks = Array.isArray(content.links)
+      ? content.links.map((l: any) => {
+        if (typeof l === 'string') return l;
+        return l.label || l.name || l.title || '';
+      }).filter(Boolean)
+      : [];
+
+    return {
+      ...content,
+      name: cleanString(content.name || content.logoText || content.brand || content.username, 'Portfolio'),
+      logoText: cleanString(content.logoText || content.name || content.brand || content.username, 'Portfolio'),
+      copyright: cleanString(content.copyright),
+      email: cleanString(content.email || content.footerEmail),
+      footerEmail: cleanString(content.footerEmail || content.email),
+      socials,
+      links: normalizedLinks.length > 0 ? normalizedLinks : content.links || []
+    };
+  }
+
   return content;
 }
 
@@ -775,12 +988,13 @@ export function normalizeSectionContent(componentId: string, content: any): any 
 export function inferTypeFromComponentId(componentId: string): string {
   if (!componentId) return 'unknown';
   const id = componentId.toUpperCase();
+  if (id.startsWith('HEADER')) return 'header';
   if (id.startsWith('HERO')) return 'hero';
   if (id.startsWith('ABOUT')) return 'about';
   if (id.startsWith('PROJ')) return 'projects';
   if (id.startsWith('EXP')) return 'experience';
   if (id.startsWith('SKILL')) return 'skills';
-  if (id.startsWith('CONTACT')) return 'contact';
+  if (id.startsWith('CONTACT') || id.startsWith('FORM')) return 'contact';
   if (id.startsWith('FOOTER')) return 'footer';
   if (id.startsWith('CTA')) return 'cta';
   if (id.startsWith('STATS')) return 'stats';
@@ -792,6 +1006,7 @@ export function inferTypeFromComponentId(componentId: string): string {
   if (id.startsWith('GALLERY')) return 'gallery';
   if (id.startsWith('PROCESS')) return 'process';
   if (id.startsWith('LOGOS')) return 'logos';
+  if (id.startsWith('BLOG')) return 'blog';
   return 'section';
 }
 
@@ -1189,7 +1404,12 @@ export function transformPlaceholdersToStructuredContent(placeholders: any[]): a
 
 export function normalizeToManifest(flatContent: any, layout: string = 'MODERN_VERTICAL'): any {
   // If already in Manifest format with sections, return as-is
-  if (flatContent?.sections && Array.isArray(flatContent.sections)) return flatContent;
+  if (flatContent?.sections && Array.isArray(flatContent.sections)) {
+    return ensureManifestDefaults({
+      ...flatContent,
+      sections: normalizeManifestSections(flatContent.sections)
+    });
+  }
 
   const sections: any[] = [];
 
@@ -1309,7 +1529,60 @@ export function normalizeToManifest(flatContent: any, layout: string = 'MODERN_V
         monoFont: 'JetBrains Mono'
       }
     },
-    sections
+    sections: normalizeManifestSections(sections)
   };
+}
+
+function ensureManifestDefaults(manifest: any): any {
+  const fallback = {
+    metadata: {
+      version: '1.0',
+      niche: 'General',
+      generatedAt: new Date().toISOString()
+    },
+    globalConfig: {
+      theme: 'dark',
+      colorPalette: {
+        primary: '#00f2ff',
+        secondary: '#00d1ff',
+        background: '#020617',
+        surface: '#0f172a',
+        text: '#94a3b8',
+        heading: '#ffffff'
+      },
+      typography: {
+        headingFont: 'Space Grotesk',
+        bodyFont: 'Inter',
+        monoFont: 'JetBrains Mono'
+      }
+    }
+  };
+
+  const merged = {
+    ...manifest,
+    metadata: {
+      ...fallback.metadata,
+      ...(manifest?.metadata || {})
+    },
+    globalConfig: {
+      ...fallback.globalConfig,
+      ...(manifest?.globalConfig || {}),
+      colorPalette: {
+        ...fallback.globalConfig.colorPalette,
+        ...(manifest?.globalConfig?.colorPalette || {})
+      },
+      typography: {
+        ...fallback.globalConfig.typography,
+        ...(manifest?.globalConfig?.typography || {})
+      }
+    }
+  };
+
+  // Prevent empty-string theme values from breaking CSS variables and scheme resolution.
+  if (!merged.globalConfig?.theme || !String(merged.globalConfig.theme).trim()) {
+    merged.globalConfig.theme = fallback.globalConfig.theme;
+  }
+
+  return merged;
 }
 

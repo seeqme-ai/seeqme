@@ -17,15 +17,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
 
+    const hasPageAccess = (key: string) => {
+        const access = user?.adminPageAccess;
+        if (!Array.isArray(access) || access.length === 0) return true;
+        return access.includes(key);
+    };
+
     const navItems = [
-        { icon: Zap, label: 'Overview', path: '/admin', end: true },
-        { icon: MessageCircle, label: 'Chats', path: '/admin/chats' },
-        { icon: Users, label: 'User', path: '/admin/users' },
-        { icon: Globe, label: 'Portfolios', path: '/admin/portfolios' },
-        { icon: FileEdit, label: 'Templates', path: '/admin/templates' },
-        { icon: Send, label: 'Notifications', path: '/admin/notifications' },
-        { icon: Settings, label: 'System Config', path: '/admin/config' },
-    ];
+        { icon: Zap, label: 'Overview', path: '/admin', end: true, key: 'overview' },
+        { icon: MessageCircle, label: 'Chats', path: '/admin/chats', key: 'chats' },
+        { icon: Users, label: 'User', path: '/admin/users', key: 'users' },
+        { icon: Globe, label: 'Portfolios', path: '/admin/portfolios', key: 'portfolios' },
+        { icon: FileEdit, label: 'Templates', path: '/admin/templates', key: 'templates' },
+        { icon: Send, label: 'Notifications', path: '/admin/notifications', key: 'notifications' },
+        { icon: Settings, label: 'System Config', path: '/admin/config', key: 'config' },
+    ].filter((item) => hasPageAccess(item.key));
 
     const handleLogout = () => {
         logout();

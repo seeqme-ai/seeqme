@@ -208,7 +208,7 @@ Templates follow proven section ordering and component selection patterns. When 
 4. FOOTER: Always end with footer block
 
 COMPONENT SELECTION PRINCIPLES (from template analysis):
-- Use GEN_TEMPLATE for custom, niche-specific designs
+- Use only concrete registry component IDs (for example HERO_*, PROJ_*, SKILLS_*, CONTACT_*, FOOTER_*).
 - Match component styling to template theme (light/dark)
 - Ensure color scheme consistency across all blocks
 - Follow typography hierarchy from template patterns
