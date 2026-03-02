@@ -417,8 +417,7 @@ func (h *Handler) EditPortfolioWithAI(c *gin.Context) {
 		log.Printf("[AI Edit] File %d: %s (%s), content length: %d", i, f.Filename, f.Type, len(f.Content))
 	}
 
-	userID, exists := c.Get("userId")
-	if !exists {
+	if _, exists := c.Get("userId"); !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
 		return
 	}
