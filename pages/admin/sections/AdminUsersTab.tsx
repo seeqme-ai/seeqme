@@ -16,6 +16,7 @@ interface AdminUsersTabProps {
   users: any[];
   currentUserId?: string;
   isSavingUserId: string | null;
+  canManagePermissions?: boolean;
   onSavePermissions: (userId: string, roles: string[], adminPageAccess: string[]) => Promise<void>;
 }
 
@@ -29,7 +30,7 @@ const sanitizeAccess = (access: string[]): AccessKey[] => {
   return ADMIN_ACCESS_OPTIONS.map((o) => o.key).filter((key) => normalized.includes(key));
 };
 
-const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ users, currentUserId, onSavePermissions, isSavingUserId }) => {
+const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ users, currentUserId, onSavePermissions, isSavingUserId, canManagePermissions = false }) => {
   const [draftRolesByUser, setDraftRolesByUser] = React.useState<Record<string, string[]>>({});
   const [draftAccessByUser, setDraftAccessByUser] = React.useState<Record<string, AccessKey[]>>({});
 
@@ -58,6 +59,14 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ users, currentUserId, onS
   };
 
   const renderPermissionEditor = (u: any) => {
+    if (!canManagePermissions) {
+      return (
+        <p className="text-[11px] text-slate-500 font-medium">
+          Read-only. You do not have permission to assign roles or privileges.
+        </p>
+      );
+    }
+
     const draftRoles = getDraftRoles(u);
     const isAdmin = draftRoles.includes('admin');
     const draftAccess = getDraftAccess(u);
@@ -104,6 +113,11 @@ const AdminUsersTab: React.FC<AdminUsersTabProps> = ({ users, currentUserId, onS
 
   return (
     <div>
+      {!canManagePermissions && (
+        <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+          Role and privilege management is restricted.
+        </div>
+      )}
       <div className="hidden md:block bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <table className="w-full text-left">
           <thead>

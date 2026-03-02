@@ -60,6 +60,12 @@ var defaultAdminPageAccess = []string{
 	"config",
 }
 
+const privilegedAdminEmail = "muhammadjhmeel01@gmail.com"
+
+func isPrivilegedAdminEmail(email string) bool {
+	return strings.EqualFold(strings.TrimSpace(email), privilegedAdminEmail)
+}
+
 type SystemConfig struct {
 	MaintenanceMode bool          `json:"maintenanceMode" bson:"maintenanceMode"`
 	AllowSignups    bool          `json:"allowSignups" bson:"allowSignups"`
@@ -255,6 +261,16 @@ type AdminUpdateUserAccessRequest struct {
 }
 
 func (h *Handler) AdminUpdateUserAccess(c *gin.Context) {
+	requester, exists := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+	if !isPrivilegedAdminEmail(requester.Email) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to perform this action"})
+		return
+	}
+
 	targetID := c.Param("id")
 	targetOID, err := primitive.ObjectIDFromHex(targetID)
 	if err != nil {
@@ -379,6 +395,8 @@ func (h *Handler) AdminGetStats(c *gin.Context) {
 	defer cancel()
 
 	db := database.Client.Database(database.DBName)
+	requester, _ := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	canViewRevenue := requester != nil && isPrivilegedAdminEmail(requester.Email)
 
 	// Basic Stats
 	totalUsers, _ := db.Collection("users").CountDocuments(ctx, bson.M{})
@@ -434,14 +452,21 @@ func (h *Handler) AdminGetStats(c *gin.Context) {
 	var revenueGrowth []bson.M
 	rCursor.All(ctx, &revenueGrowth)
 
-	c.JSON(http.StatusOK, gin.H{
+	response := gin.H{
 		"totalUsers":      totalUsers,
 		"totalPortfolios": totalPortfolios,
 		"liveSites":       liveSites,
-		"totalRevenue":    totalRevenue,
 		"userGrowth":      userGrowth,
-		"revenueGrowth":   revenueGrowth,
-	})
+	}
+	if canViewRevenue {
+		response["totalRevenue"] = totalRevenue
+		response["revenueGrowth"] = revenueGrowth
+	} else {
+		response["totalRevenue"] = 0
+		response["revenueGrowth"] = []bson.M{}
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *Handler) AdminDeployPortfolio(c *gin.Context) {

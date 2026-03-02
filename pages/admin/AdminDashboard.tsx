@@ -67,6 +67,7 @@ const DEFAULT_PRICING_PLANS = [
 
 const ADMIN_PAGE_KEYS = ['overview', 'chats', 'users', 'portfolios', 'notifications', 'templates', 'config'] as const;
 type AdminPageKey = typeof ADMIN_PAGE_KEYS[number];
+const PRIVILEGED_ADMIN_EMAIL = 'muhammadjhmeel01@gmail.com';
 
 interface ChatSummary {
     userId: string;
@@ -162,6 +163,8 @@ const AdminDashboard: React.FC = () => {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { user: currentUser } = useAuth();
+    const canManageRolesAndPrivileges = (currentUser?.email || '').toLowerCase() === PRIVILEGED_ADMIN_EMAIL;
+    const canViewRevenueStats = canManageRolesAndPrivileges;
     const allowedAdminTabs = useMemo(() => {
         const configured = currentUser?.adminPageAccess;
         if (!Array.isArray(configured) || configured.length === 0) {
@@ -337,6 +340,10 @@ const AdminDashboard: React.FC = () => {
     };
 
     const handleUpdateUserPermissions = async (userId: string, roles: string[], adminPageAccess: string[]) => {
+        if (!canManageRolesAndPrivileges) {
+            toast.error('You do not have permission to assign roles and privileges.');
+            return;
+        }
         setIsSavingUserId(userId);
         try {
             const updated = await adminService.updateUserPermissions(userId, { roles, adminPageAccess });
@@ -780,7 +787,12 @@ const AdminDashboard: React.FC = () => {
                                         exit={{ opacity: 0, y: -10 }}
                                         className="space-y-4"
                                     >
-                                        <AdminOverviewTab stats={stats} users={users} portfolios={portfolios} />
+                                        <AdminOverviewTab
+                                            stats={stats}
+                                            users={users}
+                                            portfolios={portfolios}
+                                            canViewRevenueStats={canViewRevenueStats}
+                                        />
                                     </motion.div>
                                 )}
 
@@ -825,6 +837,7 @@ const AdminDashboard: React.FC = () => {
                                             users={filteredUsers}
                                             currentUserId={currentUser?.id}
                                             isSavingUserId={isSavingUserId}
+                                            canManagePermissions={canManageRolesAndPrivileges}
                                             onSavePermissions={handleUpdateUserPermissions}
                                         />
                                     </motion.div>
