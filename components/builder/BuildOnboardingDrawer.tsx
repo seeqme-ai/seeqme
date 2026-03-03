@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, X } from 'lucide-react';
 
@@ -21,30 +21,71 @@ const defaultSlides: [string, string, string] = [
   '/demo3.jpg'
 ];
 
+const FALLBACK_IMG = '/placeholder.svg';
+
+function normalizeSlideImages(images?: [string, string, string]): [string, string, string] {
+  const source = images || defaultSlides;
+  return [
+    source[0] || defaultSlides[0] || FALLBACK_IMG,
+    source[1] || defaultSlides[1] || FALLBACK_IMG,
+    source[2] || defaultSlides[2] || FALLBACK_IMG
+  ];
+}
+
+function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error(`Failed to load: ${src}`));
+    img.src = src;
+  });
+}
+
 const BuildOnboardingDrawer: React.FC<BuildOnboardingDrawerProps> = ({
   isOpen,
   onClose,
   onNeverShowAgain,
   slideImages
 }) => {
-  const images = slideImages || defaultSlides;
+  const [resolvedImages, setResolvedImages] = useState<[string, string, string]>(() => normalizeSlideImages(slideImages));
+  const preloadedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    setResolvedImages(normalizeSlideImages(slideImages));
+  }, [slideImages]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    resolvedImages.forEach((src, idx) => {
+      if (!src || preloadedRef.current.has(src)) return;
+      preloadedRef.current.add(src);
+      preloadImage(src).catch(() => {
+        setResolvedImages((prev) => {
+          const next: [string, string, string] = [...prev] as [string, string, string];
+          next[idx] = defaultSlides[idx] || FALLBACK_IMG;
+          return next;
+        });
+      });
+    });
+  }, [isOpen, resolvedImages]);
+
   const slides = useMemo<Slide[]>(() => ([
     {
       title: 'Open Section Editor',
       caption: 'Use Edit Sections to start customizing your portfolio content and layout.',
-      image: images[0] || '/placeholder.svg'
+      image: resolvedImages[0] || FALLBACK_IMG
     },
     {
       title: 'Edit Every Section',
       caption: 'In this screen, arrow 1 points to the theme dropdown so you can change the visual style. Arrow 2 points to Edit Sections, where you can update Header, Hero, Skills, Projects, Experience, Contact, and other section content (text, links, images, and files).',
-      image: images[1] || '/placeholder.svg'
+      image: resolvedImages[1] || FALLBACK_IMG
     },
     {
       title: 'Publish Live',
       caption: 'When you are done editing, use Publish to deploy your portfolio to a live URL.',
-      image: images[2] || '/placeholder.svg'
+      image: resolvedImages[2] || FALLBACK_IMG
     }
-  ]), [images]);
+  ]), [resolvedImages]);
 
   const [index, setIndex] = useState(0);
   const isLast = index === slides.length - 1;
@@ -97,13 +138,19 @@ const BuildOnboardingDrawer: React.FC<BuildOnboardingDrawerProps> = ({
               <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-[1.15fr_1fr] md:items-center">
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:p-3">
                   <img
+                    key={`${index}-${slides[index].image}`}
                     src={slides[index].image || '/placeholder.svg'}
                     alt={slides[index].title}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     className="h-56 w-full object-contain sm:h-72"
                     onError={(e) => {
-                      const img = e.currentTarget;
-                      if (img.src.endsWith('/placeholder.svg')) return;
-                      img.src = '/placeholder.svg';
+                      setResolvedImages((prev) => {
+                        const next: [string, string, string] = [...prev] as [string, string, string];
+                        next[index] = FALLBACK_IMG;
+                        return next;
+                      });
                     }}
                   />
                 </div>

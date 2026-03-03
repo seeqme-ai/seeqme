@@ -43,7 +43,7 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({ onSubmit, isG
                 // CV / Document extraction
                 const { content } = await uploadService.extractCV(file);
                 setSelectedFile({ name: file.name, type: 'document', content });
-                toast.success('Document analyzed successfully');
+               
             } else if (file.type.startsWith('image/')) {
                 // Image upload
                 const { url } = await uploadService.uploadFile(file);

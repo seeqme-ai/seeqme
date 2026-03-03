@@ -111,7 +111,7 @@ const SmartInput = ({ path, value, onContentChange }) => {
                 if (result && (result.url || result.secureUrl)) {
                     const newUrl = result.secureUrl || result.url;
                     onContentChange(path, newUrl);
-                    toast.success('Image uploaded to Cloudinary');
+                    toast.success('Image uploaded successfully');
                 } else {
                     throw new Error('Upload response missing URL');
                 }
