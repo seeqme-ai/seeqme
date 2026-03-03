@@ -33,6 +33,8 @@ var DesignPersonas = []string{
 	"CREATIVE_VIGOR: Unconventional grid placements, overlapping elements, artistic backgrounds, and bold visual storytelling.",
 }
 
+const freePlanGenerationLimit = 8
+
 func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	var req GenerateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -55,8 +57,11 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	// --- Limit Enforcement Logic (Authenticated Users Only) ---
 	// Remix/redesign requests target an existing portfolio (PortfolioID set),
 	// and should not be blocked by free-plan generation limits.
+	shouldIncrementFreePlanPromptCount := false
+	var freePlanUserObjID primitive.ObjectID
 	if userID != nil && strings.TrimSpace(req.PortfolioID) == "" {
 		userObjID, _ := primitive.ObjectIDFromHex(userID.(string))
+		freePlanUserObjID = userObjID
 		subCollection := database.Client.Database(database.DBName).Collection("subscriptions")
 		subCount, subErr := subCollection.CountDocuments(context.Background(), bson.M{"userId": userObjID, "status": "active"})
 
@@ -67,15 +72,15 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 			var userDoc models.User
 			err := userCollection.FindOne(context.Background(), bson.M{"_id": userObjID}).Decode(&userDoc)
 			if err == nil {
-				if userDoc.PromptCount >= 3 {
+				if userDoc.PromptCount >= freePlanGenerationLimit {
 					c.JSON(http.StatusPaymentRequired, gin.H{
 						"error": "Free Plan Limit Reached. Upgrade to continue building.",
 						"code":  "LIMIT_REACHED",
 					})
 					return
 				}
-				// Increment Usage
-				_, _ = userCollection.UpdateOne(context.Background(), bson.M{"_id": userObjID}, bson.M{"$inc": bson.M{"promptCount": 1}})
+				// Count usage only after successful generation/save.
+				shouldIncrementFreePlanPromptCount = true
 			}
 		}
 	}
@@ -359,6 +364,14 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 		streamLog("CRITICAL: Failed to commit portfolio to storage.", "error")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save portfolio to database: " + err.Error()})
 		return
+	}
+
+	if shouldIncrementFreePlanPromptCount {
+		_, _ = database.Client.Database(database.DBName).Collection("users").UpdateOne(
+			context.Background(),
+			bson.M{"_id": freePlanUserObjID},
+			bson.M{"$inc": bson.M{"promptCount": 1}},
+		)
 	}
 
 	streamLog("Commit successful.", "success")
