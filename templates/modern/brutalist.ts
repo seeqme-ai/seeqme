@@ -110,7 +110,7 @@ export const DEV_BRUTALIST: Manifest = {
             type: 'hero',
             componentId: 'GEN_TEMPLATE',
             template: `
-                <section class="min-h-screen p-4 pt-34 border-b-2 border-black font-mono">
+                <section class="min-h-screen p-4 pt-24 border-b-2 border-black font-mono">
                     <div class="border-2 border-black h-full p-4 md:p-12 relative">
                         <div class="absolute top-0 left-0 bg-black text-white px-2 py-1 text-sm">index.html</div>
                         <div class="absolute top-0 right-0 p-2">

@@ -1,5 +1,5 @@
 export const HERO_MODERN_SPLIT = (content: any) => `
-  <section data-section="hero" class="relative min-h-[80vh] flex items-center py-12 md:py-24 overflow-hidden">
+  <section data-section="hero" class="relative min-h-[80vh] flex items-center pt-28 pb-12 md:py-24 overflow-hidden">
     <div class="max-w-7xl mx-auto px-6 w-full flex flex-col-reverse lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
       <div class="space-y-6 md:space-y-8 relative z-10 w-full text-center lg:text-left">
         <h1 class="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase break-words" data-field="hero-name">
