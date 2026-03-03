@@ -403,7 +403,11 @@ export async function generatePortfolio(input: {
   sessionId?: string,
   portfolioId?: string,
   templateId?: string,
-  niche?: string
+  niche?: string,
+  lockToTemplate?: boolean,
+  selectedTemplateManifest?: any,
+  templateCandidates?: Array<{ id: string; niche?: string; structuredContent?: any }>,
+  templateSelectionNonce?: string
 }) {
   try {
     const response = await aiService.generatePortfolio({
@@ -464,6 +468,23 @@ export async function generatePortfolio(input: {
       // Flat content format, needs normalization
       sc = normalizeToManifest(structuredContent, 'MODERN_VERTICAL');
 
+    }
+
+    // Template-locked mode: preserve a professional template skeleton and only inject user data.
+    if (input.lockToTemplate) {
+      const profileFromManifest = extractProfileFromManifest(sc);
+      const profileFromRaw = extractProfileFromRawInput(input.value, input.files);
+      const profile = mergeDefined(profileFromManifest, profileFromRaw || {});
+      const templateManifest = pickTemplateManifestForProfile({
+        selectedTemplateManifest: input.selectedTemplateManifest,
+        templateCandidates: input.templateCandidates,
+        profile,
+        targetNiche: input.niche || sc?.metadata?.niche,
+        selectionSeed: `${textFromInputSources(input.value, input.files).slice(0, 1500)}|${cleanString(input.niche)}|${cleanString(input.templateId)}|${cleanString(input.templateSelectionNonce)}`
+      });
+      if (templateManifest?.sections?.length) {
+        sc = materializeTemplateWithProfile(templateManifest, profile, input.niche || sc?.metadata?.niche || 'General');
+      }
     }
 
     // Always render from sanitized manifest to keep output strictly registry-aligned.
@@ -659,6 +680,7 @@ function mergeSectionsPreserveContent(
 // Normalizes content fields to match what Registry components expect
 export function normalizeSectionContent(componentId: string, content: any): any {
   if (!content) return {};
+  content = sanitizeDeep(content);
   const id = componentId ? componentId.toUpperCase() : '';
 
   // HEADER normalization
@@ -943,6 +965,24 @@ export function normalizeSectionContent(componentId: string, content: any): any 
       })) : [],
       ...content
     };
+  }
+
+  // SKILLS normalization for marquee/ticker-like components that expect string arrays.
+  if (id.startsWith('SKILLS')) {
+    const rawSkills = content.skills || content.items || [];
+    if (id.includes('MARQUEE') && Array.isArray(rawSkills)) {
+      const labels = rawSkills
+        .map((s: any) => {
+          if (typeof s === 'string') return cleanString(s, '');
+          if (s && typeof s === 'object') return cleanString(s.name || s.title || s.label, '');
+          return '';
+        })
+        .filter(Boolean);
+      return {
+        ...content,
+        skills: labels
+      };
+    }
   }
 
   // FOOTER normalization
@@ -1400,6 +1440,649 @@ export function transformPlaceholdersToStructuredContent(placeholders: any[]): a
   }
 
   return structuredContent;
+}
+
+function hasValue(value: any): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return cleanString(value) !== '';
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return true;
+}
+
+function textFromInputSources(prompt?: string, files?: any[]): string {
+  const parts: string[] = [];
+  if (typeof prompt === 'string' && prompt.trim()) parts.push(prompt.trim());
+  if (Array.isArray(files)) {
+    files.forEach((f: any) => {
+      const content = typeof f?.content === 'string' ? f.content : (typeof f?.url === 'string' ? '' : '');
+      if (content && content.trim()) parts.push(content.trim());
+    });
+  }
+  return parts.join('\n\n');
+}
+
+function extractNameFromText(text: string): string {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const nameLike = lines.find((line) => {
+    if (line.length < 3 || line.length > 60) return false;
+    if (/@|https?:\/\/|www\.|objective|summary|experience|education|skills|projects|contact/i.test(line)) return false;
+    const words = line.split(/\s+/);
+    if (words.length < 2 || words.length > 4) return false;
+    return words.every((w) => /^[A-Za-z][A-Za-z'.-]*$/.test(w));
+  });
+  return cleanString(nameLike, '');
+}
+
+function extractTitleFromText(text: string, name?: string): string {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const roleRegex = /(engineer|developer|designer|architect|manager|consultant|specialist|analyst|lead|director|founder|product|devops|sre|marketer|writer|photographer|creator)/i;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (name && line.toLowerCase() === name.toLowerCase()) {
+      const next = lines[i + 1] || '';
+      if (roleRegex.test(next) && next.length <= 120) return cleanString(next, '');
+    }
+    if (roleRegex.test(line) && line.length <= 120 && !/@|https?:\/\//i.test(line)) return cleanString(line, '');
+  }
+  return '';
+}
+
+function extractSummaryFromText(text: string): string {
+  const normalized = text.replace(/\r/g, '');
+  const headingMatch = normalized.match(/(?:^|\n)(summary|profile|about|objective)\s*:?\s*\n([\s\S]{40,500}?)(?:\n\s*\n|$)/i);
+  if (headingMatch?.[2]) {
+    return cleanString(headingMatch[2].replace(/\n+/g, ' ').trim(), '');
+  }
+
+  const sentences = normalized
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 60 && !/@|https?:\/\//i.test(line));
+  return cleanString(sentences[0] || '', '');
+}
+
+function extractSkillsFromText(text: string): string[] {
+  const lines = text.split(/\r?\n/).map((l) => l.trim());
+  const skills: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^skills\s*:?\s*$/i.test(line) && lines[i + 1]) {
+      lines[i + 1].split(/,|\||•|·/).forEach((token) => {
+        const s = cleanString(token, '');
+        if (s && s.length <= 30) skills.push(s);
+      });
+    }
+    if (/^(skills|tech stack|technologies)\s*:/i.test(line)) {
+      line.replace(/^(skills|tech stack|technologies)\s*:/i, '').split(/,|\||•|·/).forEach((token) => {
+        const s = cleanString(token, '');
+        if (s && s.length <= 30) skills.push(s);
+      });
+    }
+  }
+  return Array.from(new Set(skills)).slice(0, 24);
+}
+
+function extractProfileFromRawInput(prompt?: string, files?: any[]) {
+  const text = textFromInputSources(prompt, files);
+  if (!text) return null;
+
+  const name = extractNameFromText(text);
+  const title = extractTitleFromText(text, name);
+  const bio = extractSummaryFromText(text);
+  const email = cleanString(text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0], '');
+  const phone = cleanString(text.match(/(?:\+\d{1,3}\s*)?(?:\(?\d{2,4}\)?[\s.-]*)?\d{3,4}[\s.-]*\d{3,4}/)?.[0], '');
+  const linkedin = cleanString(text.match(/https?:\/\/(?:[a-z]{2,3}\.)?linkedin\.com\/in\/[^\s)]+/i)?.[0], '');
+  const github = cleanString(text.match(/https?:\/\/(?:www\.)?github\.com\/[^\s)]+/i)?.[0], '');
+  const skills = extractSkillsFromText(text);
+
+  const socials: any[] = [];
+  if (linkedin) socials.push({ platform: 'LinkedIn', url: linkedin });
+  if (github) socials.push({ platform: 'GitHub', url: github });
+
+  return {
+    hero: {
+      name,
+      title,
+      bio,
+      ctaText: 'Get in Touch',
+      ctaLink: '#contact'
+    },
+    contact: {
+      email,
+      phone
+    },
+    socials,
+    skills
+  };
+}
+
+function mergeDefined(base: any, updates: any): any {
+  if (!hasValue(updates)) return base;
+  if (Array.isArray(base) || Array.isArray(updates)) {
+    return hasValue(updates) ? updates : base;
+  }
+  if (typeof base === 'object' && base !== null && typeof updates === 'object' && updates !== null) {
+    const out: Record<string, any> = { ...base };
+    Object.entries(updates).forEach(([k, v]) => {
+      out[k] = mergeDefined(base?.[k], v);
+    });
+    return out;
+  }
+  return updates;
+}
+
+function extractProfileFromManifest(manifest: any) {
+  const profile: any = {
+    hero: {},
+    about: {},
+    skills: [] as string[],
+    projects: [] as any[],
+    experience: [] as any[],
+    testimonials: [] as any[],
+    contact: {},
+    socials: [] as any[],
+    stats: [] as any[],
+    services: [] as any[],
+    pricing: [] as any[],
+    faq: [] as any[],
+    process: [] as any[],
+    cta: {}
+  };
+
+  const sections = Array.isArray(manifest?.sections) ? manifest.sections : [];
+  sections.forEach((section: any) => {
+    const type = cleanString(section?.type).toLowerCase();
+    const c = normalizeSectionContent(section?.componentId || '', section?.content || {});
+
+    if (type === 'hero') {
+      profile.hero = {
+        name: cleanString(c.name || c.username),
+        title: cleanString(c.title || c.statusTag),
+        bio: cleanString(c.bio || c.heroTagline || c.description),
+        image: cleanString(c.image || c.avatarImage || c.profileImage),
+        ctaText: cleanString(c?.cta?.text || c.ctaText),
+        ctaLink: sanitizeHref(c?.cta?.link || c.ctaLink, '#contact')
+      };
+    }
+    if (type === 'about') {
+      profile.about = {
+        title: cleanString(c.title),
+        content: cleanString(c.content || c.description || c.bio)
+      };
+    }
+    if (type === 'skills') {
+      const raw = c.skills || c.items || c.tags || [];
+      if (Array.isArray(raw)) {
+        raw.forEach((s: any) => {
+          if (typeof s === 'string') {
+            const val = cleanString(s);
+            if (val) profile.skills.push(val);
+          } else if (s && typeof s === 'object') {
+            if (Array.isArray(s.items)) {
+              s.items.forEach((item: any) => {
+                const val = cleanString(item?.name || item?.title || item);
+                if (val) profile.skills.push(val);
+              });
+            } else {
+              const val = cleanString(s.name || s.title || s.label);
+              if (val) profile.skills.push(val);
+            }
+          }
+        });
+      }
+    }
+    if (type === 'projects') {
+      const items = Array.isArray(c.items) ? c.items : (Array.isArray(c.projects) ? c.projects : []);
+      profile.projects.push(...items.map((p: any) => ({
+        title: cleanString(p.title),
+        description: cleanString(p.description || p.desc),
+        technologies: Array.isArray(p.tech) ? p.tech.join(', ') : cleanString(p.technologies || p.tech),
+        image: cleanString(p.image || p.img),
+        link: sanitizeHref(p.link || p.url, '#')
+      })).filter((p: any) => hasValue(p.title) || hasValue(p.description)));
+    }
+    if (type === 'experience') {
+      const items = Array.isArray(c.items) ? c.items : (Array.isArray(c.experiences) ? c.experiences : []);
+      profile.experience.push(...items.map((e: any) => ({
+        role: cleanString(e.role || e.position || e.title),
+        company: cleanString(e.company),
+        period: cleanString(e.period || e.date || e.duration),
+        description: cleanString(e.description || e.desc)
+      })).filter((e: any) => hasValue(e.role) || hasValue(e.company)));
+    }
+    if (type === 'testimonials') {
+      const items = Array.isArray(c.items) ? c.items : (Array.isArray(c.testimonials) ? c.testimonials : []);
+      profile.testimonials.push(...items.map((t: any) => ({
+        name: cleanString(t.name || t.author),
+        role: cleanString(t.role || t.title),
+        content: cleanString(t.content || t.text || t.quote)
+      })).filter((t: any) => hasValue(t.content)));
+    }
+    if (type === 'stats') {
+      const stats = Array.isArray(c.stats) ? c.stats : [];
+      profile.stats.push(...stats.map((s: any) => ({
+        label: cleanString(s.label || s.title),
+        value: cleanString(s.value || s.count),
+        description: cleanString(s.description || s.desc)
+      })).filter((s: any) => hasValue(s.label) || hasValue(s.value)));
+    }
+    if (type === 'services') {
+      const items = Array.isArray(c.items) ? c.items : (Array.isArray(c.services) ? c.services : []);
+      profile.services.push(...items.map((s: any) => ({
+        title: cleanString(s.title || s.name),
+        description: cleanString(s.description || s.desc)
+      })).filter((s: any) => hasValue(s.title)));
+    }
+    if (type === 'pricing') {
+      const items = Array.isArray(c.items) ? c.items : (Array.isArray(c.plans) ? c.plans : []);
+      profile.pricing.push(...items.map((p: any) => ({
+        name: cleanString(p.name || p.title),
+        price: cleanString(p.price || p.amount),
+        features: Array.isArray(p.features) ? p.features : []
+      })).filter((p: any) => hasValue(p.name)));
+    }
+    if (type === 'faq') {
+      const items = Array.isArray(c.items) ? c.items : [];
+      profile.faq.push(...items.map((f: any) => ({
+        question: cleanString(f.question || f.title),
+        answer: cleanString(f.answer || f.content || f.description)
+      })).filter((f: any) => hasValue(f.question)));
+    }
+    if (type === 'process') {
+      const steps = Array.isArray(c.steps) ? c.steps : (Array.isArray(c.items) ? c.items : []);
+      profile.process.push(...steps.map((s: any) => ({
+        title: cleanString(s.title || s.name),
+        description: cleanString(s.description || s.desc)
+      })).filter((s: any) => hasValue(s.title)));
+    }
+    if (type === 'cta') {
+      profile.cta = {
+        title: cleanString(c.title || c.heading),
+        description: cleanString(c.description || c.desc),
+        buttonText: cleanString(c.buttonText || c?.cta?.text || c.ctaText),
+        buttonLink: sanitizeHref(c.buttonLink || c?.cta?.link || c.ctaLink, '#contact')
+      };
+    }
+    if (type === 'contact') {
+      profile.contact = {
+        title: cleanString(c.title),
+        email: cleanString(c.email),
+        phone: cleanString(c.phone),
+        location: cleanString(c.location)
+      };
+      const socials = Array.isArray(c.socials) ? c.socials : [];
+      profile.socials.push(...socials.map((s: any) => ({
+        platform: cleanString(s.platform || s.name),
+        url: sanitizeHref(s.url || s.link, '#')
+      })).filter((s: any) => hasValue(s.platform)));
+    }
+  });
+
+  // Deduplicate skills while preserving order.
+  profile.skills = Array.from(new Set(profile.skills));
+  return profile;
+}
+
+function scoreTemplateForProfile(templateManifest: any, profile: any, targetNiche?: string): number {
+  const sections = Array.isArray(templateManifest?.sections) ? templateManifest.sections : [];
+  if (sections.length === 0) return -1;
+
+  const sectionTypes = new Set(sections.map((s: any) => cleanString(s?.type).toLowerCase()).filter(Boolean));
+  let score = 0;
+
+  if (targetNiche && cleanString(templateManifest?.metadata?.niche).toLowerCase().includes(cleanString(targetNiche).toLowerCase())) {
+    score += 40;
+  }
+  if (profile?.projects?.length && sectionTypes.has('projects')) score += 20;
+  if (profile?.experience?.length && sectionTypes.has('experience')) score += 15;
+  if (profile?.skills?.length && sectionTypes.has('skills')) score += 15;
+  if (hasValue(profile?.about?.content) && sectionTypes.has('about')) score += 10;
+  if (hasValue(profile?.contact?.email) && sectionTypes.has('contact')) score += 10;
+  if (hasValue(profile?.hero?.name) && sectionTypes.has('hero')) score += 10;
+
+  return score + Math.min(sections.length, 12);
+}
+
+function pickTemplateManifestForProfile(input: {
+  selectedTemplateManifest?: any;
+  templateCandidates?: Array<{ id: string; niche?: string; structuredContent?: any }>;
+  profile: any;
+  targetNiche?: string;
+  selectionSeed?: string;
+}): any | null {
+  const selected = input.selectedTemplateManifest;
+  if (selected?.sections?.length) {
+    return selected;
+  }
+
+  const candidates = (input.templateCandidates || [])
+    .map((t) => t.structuredContent)
+    .filter((sc: any) => sc?.sections?.length);
+  if (candidates.length === 0) return null;
+
+  const ranked = candidates
+    .map((candidate) => ({
+      candidate,
+      score: scoreTemplateForProfile(candidate, input.profile, input.targetNiche)
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const bestScore = ranked[0]?.score ?? -1;
+  // Keep quality high but allow more stylistic variation across good fits.
+  const topBand = ranked.filter((x) => x.score >= bestScore - 12).slice(0, 8);
+  if (topBand.length <= 1) return topBand[0]?.candidate || candidates[0];
+
+  const seed = cleanString(input.selectionSeed, JSON.stringify(input.profile));
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % topBand.length;
+  return topBand[index].candidate;
+}
+
+function mapSkillsIntoTemplate(templateSkills: any, incoming: string[]): any {
+  if (!Array.isArray(templateSkills) || incoming.length === 0) return templateSkills;
+  const first = templateSkills[0];
+  if (typeof first === 'string') {
+    return incoming;
+  }
+  if (first && typeof first === 'object' && Array.isArray(first.items)) {
+    const buckets = templateSkills.length || 1;
+    const chunkSize = Math.ceil(incoming.length / buckets);
+    return templateSkills.map((bucket: any, idx: number) => ({
+      ...bucket,
+      items: incoming.slice(idx * chunkSize, (idx + 1) * chunkSize)
+    }));
+  }
+  return incoming.map((name) => ({ ...(first || {}), name }));
+}
+
+function fillSectionContent(type: string, baseContent: any, profile: any): any {
+  const content = { ...(baseContent || {}) };
+
+  if (type === 'header') {
+    const updates: any = {};
+    if (hasValue(profile?.hero?.name)) {
+      updates.username = profile.hero.name;
+      updates.name = profile.hero.name;
+    }
+    return mergeDefined(content, updates);
+  }
+
+  if (type === 'hero') {
+    const updates: any = {
+      name: profile?.hero?.name,
+      title: profile?.hero?.title,
+      bio: profile?.hero?.bio,
+      heroTagline: profile?.hero?.bio,
+      image: profile?.hero?.image,
+      avatarImage: profile?.hero?.image,
+      cta: {
+        ...(content?.cta || {}),
+        text: profile?.hero?.ctaText,
+        link: profile?.hero?.ctaLink
+      }
+    };
+    return mergeDefined(content, updates);
+  }
+
+  if (type === 'about') {
+    return mergeDefined(content, {
+      title: profile?.about?.title,
+      content: profile?.about?.content
+    });
+  }
+
+  if (type === 'skills') {
+    const mappedSkills = mapSkillsIntoTemplate(content.skills || content.items, profile?.skills || []);
+    const updates: any = {};
+    if (Array.isArray(content.skills)) updates.skills = mappedSkills;
+    if (Array.isArray(content.items)) updates.items = mappedSkills;
+    return mergeDefined(content, updates);
+  }
+
+  if (type === 'projects' && profile?.projects?.length) {
+    const baseItems = Array.isArray(content.items) ? content.items : (Array.isArray(content.projects) ? content.projects : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const items = profile.projects.map((p: any) => ({
+      ...example,
+      title: p.title || example.title,
+      description: p.description || example.description || example.desc,
+      desc: p.description || example.desc,
+      technologies: p.technologies || example.technologies,
+      tech: p.technologies || example.tech,
+      image: p.image || example.image || example.img,
+      img: p.image || example.img,
+      link: p.link || example.link || '#'
+    }));
+    if (Array.isArray(content.items)) return { ...content, items };
+    if (Array.isArray(content.projects)) return { ...content, projects: items };
+  }
+
+  if (type === 'experience' && profile?.experience?.length) {
+    const baseItems = Array.isArray(content.items) ? content.items : (Array.isArray(content.experiences) ? content.experiences : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const items = profile.experience.map((e: any) => ({
+      ...example,
+      role: e.role || example.role || example.position,
+      title: e.role || example.title,
+      company: e.company || example.company,
+      period: e.period || example.period || example.date,
+      date: e.period || example.date,
+      description: e.description || example.description || example.desc,
+      desc: e.description || example.desc
+    }));
+    if (Array.isArray(content.items)) return { ...content, items };
+    if (Array.isArray(content.experiences)) return { ...content, experiences: items };
+  }
+
+  if (type === 'stats' && profile?.stats?.length) {
+    const baseItems = Array.isArray(content.stats) ? content.stats : (Array.isArray(content.items) ? content.items : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const stats = profile.stats.map((s: any) => ({
+      ...example,
+      label: s.label || example.label || example.title,
+      title: s.label || example.title,
+      value: s.value || example.value || example.count,
+      description: s.description || example.description || example.desc
+    }));
+    if (Array.isArray(content.stats)) return { ...content, stats };
+    if (Array.isArray(content.items)) return { ...content, items: stats };
+  }
+
+  if (type === 'services' && profile?.services?.length) {
+    const baseItems = Array.isArray(content.items) ? content.items : (Array.isArray(content.services) ? content.services : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const items = profile.services.map((s: any) => ({
+      ...example,
+      title: s.title || example.title || example.name,
+      name: s.title || example.name,
+      description: s.description || example.description || example.desc,
+      desc: s.description || example.desc
+    }));
+    if (Array.isArray(content.items)) return { ...content, items };
+    if (Array.isArray(content.services)) return { ...content, services: items };
+  }
+
+  if (type === 'pricing' && profile?.pricing?.length) {
+    const baseItems = Array.isArray(content.items) ? content.items : (Array.isArray(content.plans) ? content.plans : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const items = profile.pricing.map((p: any) => ({
+      ...example,
+      name: p.name || example.name || example.title,
+      title: p.name || example.title,
+      price: p.price || example.price || example.amount,
+      features: Array.isArray(p.features) && p.features.length > 0 ? p.features : (Array.isArray(example.features) ? example.features : [])
+    }));
+    if (Array.isArray(content.items)) return { ...content, items };
+    if (Array.isArray(content.plans)) return { ...content, plans: items };
+  }
+
+  if (type === 'faq' && profile?.faq?.length) {
+    const baseItems = Array.isArray(content.items) ? content.items : [];
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const items = profile.faq.map((f: any) => ({
+      ...example,
+      question: f.question || example.question || example.title,
+      answer: f.answer || example.answer || example.content || example.description
+    }));
+    if (Array.isArray(content.items)) return { ...content, items };
+  }
+
+  if (type === 'process' && profile?.process?.length) {
+    const baseItems = Array.isArray(content.steps) ? content.steps : (Array.isArray(content.items) ? content.items : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const steps = profile.process.map((s: any) => ({
+      ...example,
+      title: s.title || example.title || example.name,
+      name: s.title || example.name,
+      description: s.description || example.description || example.desc,
+      desc: s.description || example.desc
+    }));
+    if (Array.isArray(content.steps)) return { ...content, steps };
+    if (Array.isArray(content.items)) return { ...content, items: steps };
+  }
+
+  if (type === 'cta') {
+    const defaultText = profile?.hero?.ctaText || profile?.cta?.buttonText || content?.buttonText || content?.cta?.text || content?.ctaText;
+    const defaultLink = profile?.hero?.ctaLink || profile?.cta?.buttonLink || content?.buttonLink || content?.cta?.link || content?.ctaLink || '#contact';
+    const updates: any = {
+      title: profile?.cta?.title || content?.title,
+      description: profile?.cta?.description || content?.description,
+      buttonText: defaultText,
+      ctaText: defaultText,
+      buttonLink: defaultLink,
+      ctaLink: defaultLink,
+      cta: {
+        ...(content?.cta || {}),
+        text: defaultText,
+        link: defaultLink
+      }
+    };
+    return mergeDefined(content, updates);
+  }
+
+  if (type === 'testimonials' && profile?.testimonials?.length) {
+    const baseItems = Array.isArray(content.items) ? content.items : (Array.isArray(content.testimonials) ? content.testimonials : []);
+    const example = (baseItems[0] && typeof baseItems[0] === 'object') ? baseItems[0] : {};
+    const items = profile.testimonials.map((t: any) => ({
+      ...example,
+      name: t.name || example.name || example.author,
+      author: t.name || example.author,
+      role: t.role || example.role,
+      content: t.content || example.content || example.text,
+      text: t.content || example.text,
+      quote: t.content || example.quote
+    }));
+    if (Array.isArray(content.items)) return { ...content, items };
+    if (Array.isArray(content.testimonials)) return { ...content, testimonials: items };
+  }
+
+  if (type === 'contact') {
+    const updates: any = {
+      title: profile?.contact?.title,
+      email: profile?.contact?.email,
+      phone: profile?.contact?.phone,
+      location: profile?.contact?.location
+    };
+    if (Array.isArray(content.socials) && profile?.socials?.length) {
+      updates.socials = profile.socials;
+    }
+    return mergeDefined(content, updates);
+  }
+
+  if (type === 'footer') {
+    const updates: any = {};
+    if (hasValue(profile?.hero?.name)) updates.footerHeading = profile.hero.name;
+    if (hasValue(profile?.contact?.email)) {
+      updates.footerEmail = profile.contact.email;
+      updates.email = profile.contact.email;
+    }
+    if (hasValue(profile?.hero?.name)) {
+      updates.name = profile.hero.name;
+      updates.logoText = profile.hero.name;
+      updates.brand = profile.hero.name;
+    }
+    if (Array.isArray(content.socials) && profile?.socials?.length) {
+      updates.socials = profile.socials.map((s: any) => ({
+        platform: s.platform,
+        name: s.platform,
+        link: s.url,
+        url: s.url
+      }));
+    }
+    return mergeDefined(content, updates);
+  }
+
+  return content;
+}
+
+function isLikelyImageFieldKey(key: string): boolean {
+  return /(image|img|photo|avatar|logo|icon|thumbnail|thumb|cover|banner|background|src|media|portrait)/i.test(key);
+}
+
+function normalizePlaceholderImageValue(value: any): string {
+  const current = cleanString(value, '');
+  if (!current) return '/placeholder.svg';
+  const lower = current.toLowerCase();
+  if (lower.includes('via.placeholder.com') || lower.includes('placehold.co') || lower.includes('placeholder.com')) {
+    return '/placeholder.svg';
+  }
+  return current;
+}
+
+function applyImagePlaceholderDeep(value: any, parentKey: string = ''): any {
+  if (Array.isArray(value)) {
+    return value.map((item) => applyImagePlaceholderDeep(item, parentKey));
+  }
+
+  if (value && typeof value === 'object') {
+    const out: Record<string, any> = {};
+    Object.entries(value).forEach(([key, raw]) => {
+      if (isLikelyImageFieldKey(key)) {
+        out[key] = normalizePlaceholderImageValue(raw);
+      } else {
+        out[key] = applyImagePlaceholderDeep(raw, key);
+      }
+    });
+    return out;
+  }
+
+  if (isLikelyImageFieldKey(parentKey)) {
+    return normalizePlaceholderImageValue(value);
+  }
+
+  return value;
+}
+
+function materializeTemplateWithProfile(templateManifest: any, profile: any, niche: string): any {
+  const cloned = JSON.parse(JSON.stringify(templateManifest || {}));
+  const sections = Array.isArray(cloned?.sections) ? cloned.sections : [];
+  const filledSections = sections.map((section: any) => {
+    const type = cleanString(section?.type).toLowerCase();
+    const filledContent = fillSectionContent(type, section?.content || {}, profile);
+    return {
+      ...section,
+      // Initial-build policy: all missing image-like fields resolve to a valid placeholder.
+      content: applyImagePlaceholderDeep(filledContent)
+    };
+  });
+
+  const manifest = {
+    ...cloned,
+    metadata: {
+      ...(cloned?.metadata || {}),
+      version: '1.0',
+      niche: niche || cloned?.metadata?.niche || 'General',
+      generatedAt: new Date().toISOString()
+    },
+    sections: normalizeManifestSections(filledSections)
+  };
+
+  return ensureManifestDefaults(manifest);
 }
 
 export function normalizeToManifest(flatContent: any, layout: string = 'MODERN_VERTICAL'): any {

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { ICONS } from '@/constants';
 import { PortfolioData, LogEntry, BuildStatus, LayoutType } from '@/types';
-import { generatePortfolio, refinePortfolio, redesignLayout, transformPlaceholdersToStructuredContent } from '@/services/portfolioAIService';
+import { generatePortfolio, refinePortfolio, redesignLayout, transformPlaceholdersToStructuredContent, normalizeToManifest } from '@/services/portfolioAIService';
 import { generateTemplateHTML } from '@/templates';
 import { usePublicTemplates } from '@/hooks/usePublicTemplates';
 import { useTemplate } from '@/context/template-context';
@@ -17,6 +17,7 @@ import BuilderViewport from '@/components/builder/BuilderViewport';
 import BuilderHeader from '@/components/builder/BuilderHeader';
 import BuilderSidebar from '@/components/builder/BuilderSidebar';
 import DeploymentModal from '@/components/builder/DeploymentModal';
+import BuildOnboardingDrawer from '@/components/builder/BuildOnboardingDrawer';
 import Joyride, { Step } from 'react-joyride';
 import TemplateSelectorDrawer from '@/components/TemplateSelectorDrawer';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -60,6 +61,8 @@ const TOUR_STEPS: Step[] = [
   },
 ];
 
+const BUILD_ONBOARDING_NEVER_SHOW_KEY = 'seeqme_build_onboarding_never_show';
+
 const PortfolioBuilder: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -99,6 +102,7 @@ const PortfolioBuilder: React.FC = () => {
   const [runTour, setRunTour] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [subscriptionPlanId, setSubscriptionPlanId] = useState<string>('free');
+  const [isBuildOnboardingOpen, setIsBuildOnboardingOpen] = useState(false);
   const isPublishingRef = useRef(false);
 
   useEffect(() => {
@@ -458,7 +462,7 @@ const PortfolioBuilder: React.FC = () => {
       const timer = setTimeout(() => tryUpdate(0), 100);
       return () => clearTimeout(timer);
     }
-  }, [currentTheme, currentLayout, status]);
+  }, [data, currentTheme, currentLayout, status]);
 
   const addLog = (message: string, type: LogEntry['type'] = 'info') => {
     const timestamp = new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -476,8 +480,9 @@ const PortfolioBuilder: React.FC = () => {
 
     addLog(`Loading template: ${template.name}...`);
 
-    const sc = template.structuredContent ||
+    const rawStructuredContent = template.structuredContent ||
       (template.initialPlaceholders ? transformPlaceholdersToStructuredContent(template.initialPlaceholders) : {});
+    const sc = normalizeToManifest(rawStructuredContent, currentLayout);
 
 
     const initialPortfolio: PortfolioData = {
@@ -534,6 +539,11 @@ const PortfolioBuilder: React.FC = () => {
       .filter((file) => !!file.content);
   };
 
+  const handleNeverShowBuildOnboarding = () => {
+    localStorage.setItem(BUILD_ONBOARDING_NEVER_SHOW_KEY, 'true');
+    setIsBuildOnboardingOpen(false);
+  };
+
   const handleBuild = async (customInput?: string, files?: any[]) => {
     // If we are in the middle of a build, don't start another one
     if (status === 'synthesizing' || status === 'generating') return;
@@ -588,7 +598,17 @@ const PortfolioBuilder: React.FC = () => {
         sessionId: builderSessionId,
         portfolioId: persistentId,
         templateId: selectedTemplateId || undefined,
-        niche: template?.niche || template?.structuredContent?.metadata?.niche || selectedNiche || undefined
+        niche: template?.niche || template?.structuredContent?.metadata?.niche || selectedNiche || undefined,
+        lockToTemplate: true,
+        selectedTemplateManifest: template?.structuredContent,
+        templateSelectionNonce: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        templateCandidates: publicTemplates
+          .filter((t: any) => t?.structuredContent?.sections?.length)
+          .map((t: any) => ({
+            id: t.id,
+            niche: t.niche,
+            structuredContent: t.structuredContent
+          }))
       } as any);
 
       timeouts.forEach(clearTimeout);
@@ -612,9 +632,14 @@ const PortfolioBuilder: React.FC = () => {
       setStatus('ready');
       setIsDirty(true); // AI build is a major change
       setSynthesisInput('');
-      setSelectedTemplateId(null);
+      setSelectedTemplateId('');
       addLog("Build complete! Your portfolio is ready.", "success");
       setIsTerminalCollapsed(true);
+
+      const neverShowBuildOnboarding = localStorage.getItem(BUILD_ONBOARDING_NEVER_SHOW_KEY) === 'true';
+      if (!neverShowBuildOnboarding) {
+        setIsBuildOnboardingOpen(true);
+      }
 
     } catch (error: any) {
       timeouts.forEach(clearTimeout);
@@ -1439,6 +1464,11 @@ const PortfolioBuilder: React.FC = () => {
         domain={selectedDomainId === 'subdomain' ? `${chosenSubdomain}.seeqme.com` : availableDomains.find(d => d.id === selectedDomainId)?.name}
         status={status === 'completed' ? 'completed' : status === 'deploying' ? 'deploying' : 'failed'}
         logs={logs.map(l => l.message)}
+      />
+      <BuildOnboardingDrawer
+        isOpen={isBuildOnboardingOpen}
+        onClose={() => setIsBuildOnboardingOpen(false)}
+        onNeverShowAgain={handleNeverShowBuildOnboarding}
       />
 
       <ConfirmModal
