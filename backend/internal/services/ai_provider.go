@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"seeqmeai/backend/internal/config"
@@ -340,9 +342,34 @@ func (p *GeminiProvider) Generate(prompt string, systemPrompt string, onChunk fu
 	client := &http.Client{
 		Timeout: 2 * time.Minute,
 	}
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return "", err
+	var resp *http.Response
+	var err error
+	backoffs := []time.Duration{0, 800 * time.Millisecond, 1600 * time.Millisecond}
+	for attempt := 0; attempt < len(backoffs); attempt++ {
+		if backoffs[attempt] > 0 {
+			time.Sleep(backoffs[attempt])
+		}
+		resp, err = client.Post(url, "application/json", bytes.NewBuffer(jsonBody))
+		if err != nil {
+			if shouldRetryGeminiTransport(err) && attempt < len(backoffs)-1 {
+				log.Printf("[Gemini] transient transport error (attempt %d/%d): %v", attempt+1, len(backoffs), err)
+				continue
+			}
+			return "", err
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
+			if attempt < len(backoffs)-1 {
+				log.Printf("[Gemini] transient status %d (attempt %d/%d), retrying", resp.StatusCode, attempt+1, len(backoffs))
+				resp.Body.Close()
+				resp = nil
+				continue
+			}
+		}
+		break
+	}
+	if resp == nil {
+		return "", fmt.Errorf("gemini request failed after retries")
 	}
 	defer resp.Body.Close()
 
@@ -403,6 +430,26 @@ func (p *GeminiProvider) Generate(prompt string, systemPrompt string, onChunk fu
 	return text, nil
 }
 
+func shouldRetryGeminiTransport(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	if strings.Contains(msg, "no such host") || strings.Contains(msg, "temporary failure in name resolution") {
+		return true
+	}
+
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		return true
+	}
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return netErr.Timeout() || netErr.Temporary()
+	}
+	return false
+}
+
 func (p *GeminiProvider) GenerateStructured(prompt string, schema interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
 }
@@ -460,4 +507,3 @@ func (p *DeepSeekProvider) Generate(prompt string, systemPrompt string, onChunk 
 func (p *DeepSeekProvider) GenerateStructured(prompt string, schema interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
 }
-

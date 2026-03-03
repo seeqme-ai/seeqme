@@ -15,13 +15,20 @@ type Slide = {
   image: string;
 };
 
+const withBase = (path: string): string => {
+  const base = (import.meta as any)?.env?.BASE_URL || '/';
+  const normalizedBase = String(base).endsWith('/') ? String(base) : `${String(base)}/`;
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
 const defaultSlides: [string, string, string] = [
-  '/demo1.jpg',
-  '/demo2.jpg',
-  '/demo3.jpg'
+  withBase('demo1.jpg?v=1'),
+  withBase('demo2.jpg?v=1'),
+  withBase('demo3.jpg?v=1')
 ];
 
-const FALLBACK_IMG = '/placeholder.svg';
+const FALLBACK_IMG = withBase('placeholder.svg?v=1');
 
 function normalizeSlideImages(images?: [string, string, string]): [string, string, string] {
   const source = images || defaultSlides;

@@ -103,6 +103,7 @@ const PortfolioBuilder: React.FC = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [subscriptionPlanId, setSubscriptionPlanId] = useState<string>('free');
   const [isBuildOnboardingOpen, setIsBuildOnboardingOpen] = useState(false);
+  const [isTemplateLockedForBuild, setIsTemplateLockedForBuild] = useState(false);
   const isPublishingRef = useRef(false);
 
   useEffect(() => {
@@ -331,6 +332,7 @@ const PortfolioBuilder: React.FC = () => {
           const template = publicTemplates.find(t => t.id === explicitTemplateId);
           if (template) {
             setSelectedTemplateId(template.id);
+            setIsTemplateLockedForBuild(true);
             if (overrideTemplateId === template.id) {
               sessionStorage.removeItem('seeqme_template_override');
             }
@@ -586,6 +588,7 @@ const PortfolioBuilder: React.FC = () => {
 
     try {
       const template = publicTemplates.find(t => t.id === selectedTemplateId);
+      const lockedTemplate = isTemplateLockedForBuild ? template : undefined;
 
       // Determine if we have a persistent portfolio ID (not a temp one based on Date.now)
       const persistentId = data?.id && !data.id.startsWith('portfolio-') ? data.id : undefined;
@@ -593,14 +596,14 @@ const PortfolioBuilder: React.FC = () => {
       const result = await generatePortfolio({
         type: 'omni',
         value: finalPrompt,
-        baseHtml: template?.html,
+        baseHtml: lockedTemplate?.html,
         files: normalizedFiles,
         sessionId: builderSessionId,
         portfolioId: persistentId,
-        templateId: selectedTemplateId || undefined,
-        niche: template?.niche || template?.structuredContent?.metadata?.niche || selectedNiche || undefined,
+        templateId: isTemplateLockedForBuild ? (selectedTemplateId || undefined) : undefined,
+        niche: lockedTemplate?.niche || lockedTemplate?.structuredContent?.metadata?.niche || selectedNiche || undefined,
         lockToTemplate: true,
-        selectedTemplateManifest: template?.structuredContent,
+        selectedTemplateManifest: lockedTemplate?.structuredContent,
         templateSelectionNonce: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
         templateCandidates: publicTemplates
           .filter((t: any) => t?.structuredContent?.sections?.length)
@@ -615,16 +618,16 @@ const PortfolioBuilder: React.FC = () => {
       setProgress(100);
 
       const aiHtml = result.html || '';
-      const finalHtml = aiHtml || template?.html || '';
+      const finalHtml = aiHtml || lockedTemplate?.html || '';
 
       const completeData: PortfolioData = {
         ...result,
         id: result.portfolioId || result.id || `portfolio-${Date.now()}`,
-        name: result.name || template?.name || 'My Portfolio',
+        name: result.name || lockedTemplate?.name || 'My Portfolio',
         theme: currentTheme,
         layout: currentLayout,
         html: finalHtml,
-        css: result.css || template?.css || '',
+        css: result.css || lockedTemplate?.css || '',
         js: result.js || ''
       };
 
@@ -633,6 +636,7 @@ const PortfolioBuilder: React.FC = () => {
       setIsDirty(true); // AI build is a major change
       setSynthesisInput('');
       setSelectedTemplateId('');
+      setIsTemplateLockedForBuild(false);
       addLog("Build complete! Your portfolio is ready.", "success");
       setIsTerminalCollapsed(true);
 
@@ -1443,6 +1447,7 @@ const PortfolioBuilder: React.FC = () => {
         onSelect={(id) => {
           loadTemplate(id);
           setSelectedTemplateId(id);
+          setIsTemplateLockedForBuild(true);
         }}
         onAddBlock={handleInjectBlock}
         currentTemplateId={selectedTemplateId || data?.templateId}
