@@ -25,15 +25,12 @@ const BuilderViewport: React.FC<BuilderViewportProps> = ({
     iframeRef,
     onIframeLoad,
 }) => {
-    const isActivelyGenerating = status === 'synthesizing' || status === 'generating' || status === 'analyzing' || status === 'styling';
+    const isActivelyGenerating = status === 'synthesizing' || status === 'generating';
     const loaderTitle =
-        status === 'analyzing'
-            ? 'Loading...'
-            : status === 'styling'
-                ? 'Styling...'
-                : status === 'generating'
-                    ? (refinementPrompt ? 'Refining...' : 'Remixing...')
-                    : 'Building...';
+        status === 'generating'
+            ? (refinementPrompt ? 'Refining...' : 'Remixing...')
+            : 'Building...';
+    const showSpinnerOverlay = isIframeLoading && !isActivelyGenerating;
 
     return (
         <div className="flex-1 relative overflow-hidden bg-background">
@@ -46,7 +43,7 @@ const BuilderViewport: React.FC<BuilderViewportProps> = ({
                     />
                 ) : data ? (
                     <MotionDiv key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative">
-                        {isIframeLoading && (
+                        {showSpinnerOverlay && (
                             <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-all duration-500">
                                 <div className="flex flex-col items-center gap-4">
                                     <Loader className='text-teal-500 animate-spin' />
@@ -67,6 +64,13 @@ const BuilderViewport: React.FC<BuilderViewportProps> = ({
                         animate={{ opacity: 1 }}
                         className="w-full h-full flex items-center justify-center px-6"
                     >
+                        {showSpinnerOverlay && (
+                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-all duration-500">
+                                <div className="flex flex-col items-center gap-4">
+                                    <Loader className='text-teal-500 animate-spin' />
+                                </div>
+                            </div>
+                        )}
                         <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-sm p-8 text-center">
                             <div className="w-12 h-12 mx-auto rounded-xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center mb-4">
                                 <Blocks className="w-6 h-6" />
