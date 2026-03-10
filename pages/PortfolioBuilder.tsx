@@ -242,6 +242,7 @@ const PortfolioBuilder: React.FC = () => {
 
           // Hydrate portfolio data from session
           if (activeSession.portfolioId) {
+            setIsIframeLoading(true);
             const fetchedPortfolio = await portfolioService.getPortfolio(activeSession.portfolioId);
             const sc = fetchedPortfolio.structuredContent || transformPlaceholdersToStructuredContent(fetchedPortfolio.placeholders || []);
             setData({
@@ -272,6 +273,7 @@ const PortfolioBuilder: React.FC = () => {
       } catch (err) {
         // No active session or fetch failed, proceed with normal init
         console.log("No active session to resume.");
+        setIsIframeLoading(false);
       }
 
       // Check for autoDeploy flag from /plans successful payment redirect
@@ -300,7 +302,8 @@ const PortfolioBuilder: React.FC = () => {
       if (resolvedPortfolioId && !data) {
         try {
           setStatus('analyzing');
-          addLog(`Loading portfolio ${resolvedPortfolioId} from backend...`, 'info');
+          setIsIframeLoading(true);
+          addLog(`Loading portfolio ${resolvedPortfolioId}...`, 'info');
           const fetchedPortfolio = await portfolioService.getPortfolio(resolvedPortfolioId);
           // Hydrate structuredContent if missing (legacy version)
           const structuredContent = fetchedPortfolio.structuredContent || transformPlaceholdersToStructuredContent(fetchedPortfolio.placeholders || []);
@@ -310,12 +313,13 @@ const PortfolioBuilder: React.FC = () => {
             placeholders: fetchedPortfolio.placeholders || []
           });
           setStatus('ready');
-          addLog('Portfolio loaded successfully from backend.', 'success');
+          addLog('Portfolio loaded successfully', 'success');
           return;
         } catch (error: any) {
           const errorMessage = error?.response?.data?.error || error?.message || 'Failed to load portfolio.';
           toast.error(errorMessage);
           addLog(`Failed to load portfolio: ${errorMessage}`, 'error');
+          setIsIframeLoading(false);
           setStatus('idle');
           const newUrl = window.location.pathname;
           window.history.replaceState({}, '', newUrl);
@@ -473,9 +477,11 @@ const PortfolioBuilder: React.FC = () => {
 
   const loadTemplate = (id: string) => {
     setStatus('analyzing');
+    setIsIframeLoading(true);
     const template = publicTemplates.find(t => t.id === id);
     if (!template) {
       addLog(`ERR_RESOLVE: Template ${id} not found.`, 'error');
+      setIsIframeLoading(false);
       setStatus('idle');
       return;
     }

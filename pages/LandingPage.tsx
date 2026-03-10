@@ -324,7 +324,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                   <button
                     key={n}
                     onClick={() => setSelectedNiche(n)}
-                    className={`px-4 py-3  rounded-full text-xs font-semibold tracking-wide transition-all border whitespace-nowrap ${selectedNiche === n ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/20' : 'bg-white border-border text-muted-foreground hover:text-foreground'}`}
+                    className={`px-4 rounded-full text-xs font-semibold tracking-wide transition-all border whitespace-nowrap ${selectedNiche === n ? 'bg-teal-600 text-white border-teal-600 shadow-lg shadow-teal-500/20' : 'bg-white border-border text-muted-foreground hover:text-foreground'}`}
                   >
                     {n}
                   </button>

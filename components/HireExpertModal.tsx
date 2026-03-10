@@ -145,7 +145,7 @@ export const HireExpertModal: React.FC<HireExpertModalProps> = ({ isOpen, onClos
                                 <div className="w-12 h-12 bg-white/20 text-white rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-inner">
                                     <Code2 className="w-6 h-6" />
                                 </div>
-                                <h2 className="text-2xl font-black tracking-tight mb-2 text-white">Hire an Expert</h2>
+                                <h2 className="text-2xl font-black tracking-tight mb-2 text-white">Hire an Expert Designer</h2>
                                 <p className="text-slate-300 text-sm font-medium leading-relaxed max-w-[85%]">
                                     Need a highly customized, sophisticated portfolio? Connect directly with our elite designers and developers.
                                 </p>

@@ -25,17 +25,22 @@ const BuilderViewport: React.FC<BuilderViewportProps> = ({
     iframeRef,
     onIframeLoad,
 }) => {
-    const isActivelyGenerating = status === 'synthesizing' || status === 'generating';
+    const isActivelyGenerating = status === 'synthesizing' || status === 'generating' || status === 'analyzing' || status === 'styling';
+    const loaderTitle =
+        status === 'analyzing'
+            ? 'Loading...'
+            : status === 'styling'
+                ? 'Styling...'
+                : status === 'generating'
+                    ? (refinementPrompt ? 'Refining...' : 'Remixing...')
+                    : 'Building...';
 
     return (
         <div className="flex-1 relative overflow-hidden bg-background">
             <AnimatePresence mode="wait">
                 {isActivelyGenerating ? (
                     <BuilderLoader
-                        title={status === 'generating'
-                            ? (refinementPrompt ? "Refining..." : "Remixing...")
-                            : "Building..."
-                        }
+                        title={loaderTitle}
                         currentStep={progress}
                         totalSteps={100}
                     />

@@ -51,7 +51,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <button onClick={() => navigate('/contact')} className="hover:text-teal-500 transition-colors">Contact Us</button>
           <div className="relative group flex items-center">
             <button onClick={() => setIsHireModalOpen(true)} className="text-teal-600 hover:text-teal-700 transition-colors flex items-center gap-1">
-              <Code2 className="w-3 h-3" /> Hire Expert
+              <Code2 className="w-3 h-3" /> Hire a Designer
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 p-3 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-active:opacity-100 group-active:visible transition-all shadow-xl z-50 text-center pointer-events-none normal-case font-medium">
               Need a custom layout? Let our elite designers build it for you.
@@ -93,7 +93,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <button onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }} className="text-3xl font-bold hover:text-teal-500 transition-colors">DASHBOARD</button>
             <button onClick={() => { navigate('/templates'); setMobileMenuOpen(false); }} className="text-3xl font-bold hover:text-teal-500 transition-colors">TEMPLATES</button>
             <button onClick={() => { navigate('/contact'); setMobileMenuOpen(false); }} className="text-3xl font-bold  hover:text-teal-500 transition-colors">CONTACT US</button>
-            <button onClick={() => { window.dispatchEvent(new Event('open-hire-expert')); setMobileMenuOpen(false); }} className="text-3xl font-bold hover:text-teal-500 text-teal-600 transition-colors flex items-center gap-2"><Code2 className="w-6 h-6" /> HIRE EXPERT</button>
+            <button onClick={() => { window.dispatchEvent(new Event('open-hire-expert')); setMobileMenuOpen(false); }} className="text-3xl font-bold hover:text-teal-500 text-teal-600 transition-colors flex items-center gap-2"><Code2 className="w-6 h-6" /> Hire a Designer</button>
             {!isAuthenticated && (
               <div className="flex flex-col gap-6 mt-8">
                 <button onClick={() => navigate('/auth/login')} className="text-lg font-semibold text-muted-foreground hover:text-foreground">Sign In</button>
