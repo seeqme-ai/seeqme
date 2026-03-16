@@ -114,7 +114,7 @@ const ChatBot: React.FC = () => {
                 unreadCount: 0,
             });
 
-            const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+            const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
             if (slackWebhookUrl) {
                 const slackPayload = {
                     text: `*New Support Message from ${user.fullName}*`,
