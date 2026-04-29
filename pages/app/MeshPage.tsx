@@ -478,6 +478,76 @@ const MeshPage: React.FC = () => {
            </div>
         </div>
       </div>
+
+      {/* ── Pending Connections Drawer ── */}
+      <AnimatePresence>
+        {showPending && (
+          <div className="fixed inset-0 z-[100] flex justify-end">
+            <MotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPending(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <MotionDiv
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-sm bg-[#0c1628] border-l border-white/10 h-full flex flex-col shadow-2xl"
+            >
+              <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-white">Network Requests</h3>
+                  <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1">Manage your connections</p>
+                </div>
+                <button onClick={() => setShowPending(false)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {pendingConns.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <div className="w-16 h-16 rounded-3xl bg-white/[0.03] flex items-center justify-center mb-4">
+                      <Clock className="w-8 h-8 text-slate-700" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-400">No pending requests</p>
+                    <p className="text-xs text-slate-600 mt-1">Connect with nodes in the mesh to grow your network.</p>
+                  </div>
+                ) : (
+                  pendingConns.map((conn) => (
+                    <div key={conn.connectionId} className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors group">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 font-bold">
+                          {conn.name?.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{conn.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{conn.role} · {conn.location}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAccept(conn.connectionId, conn.id)}
+                          className="flex-1 py-2 rounded-[50px] bg-teal-500 hover:bg-teal-400 text-slate-900 text-[11px] font-black transition-colors"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await socialService.rejectConnect(conn.connectionId);
+                              setPendingConns(prev => prev.filter(c => c.connectionId !== conn.connectionId));
+                              toast.success('Request declined');
+                            } catch { toast.error('Could not decline.'); }
+                          }}
+                          className="px-4 py-2 rounded-[50px] border border-white/10 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 text-[11px] font-bold transition-all"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </MotionDiv>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
