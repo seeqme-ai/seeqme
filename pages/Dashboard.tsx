@@ -66,7 +66,7 @@ const PortfolioCard: React.FC<{
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ delay: idx * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative flex flex-col bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-900/6 hover:border-slate-200 transition-all duration-400"
+      className="group relative flex flex-col bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-slate-300 hover:shadow-sm transition-all duration-300"
     >
       {/* Preview area */}
       <div className="relative h-40 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-100 overflow-hidden">
@@ -77,7 +77,7 @@ const PortfolioCard: React.FC<{
 
         {/* Center icon */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+          <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
             <Globe className={`w-7 h-7 ${p.status === 'completed' ? 'text-teal-500' : 'text-slate-300'}`} />
           </div>
         </div>
@@ -96,7 +96,7 @@ const PortfolioCard: React.FC<{
                 <MoreVertical className="w-4 h-4 text-slate-500" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52 p-1.5 rounded-2xl bg-white border border-slate-100 shadow-2xl shadow-slate-900/10">
+            <DropdownMenuContent align="end" className="w-52 p-1 rounded-lg bg-white border border-slate-200" style={{boxShadow:'0 4px 16px rgba(0,0,0,0.08)'}}>
               <DropdownMenuItem onClick={onEdit} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
                 <Edit3 className="w-4 h-4 text-teal-600 shrink-0" /> Edit portfolio
               </DropdownMenuItem>
@@ -178,7 +178,7 @@ const PortfolioCard: React.FC<{
         <div className="flex gap-2.5">
           <button
             onClick={onEdit}
-            className="flex-1 h-10 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all active:scale-95"
+            className="flex-1 h-9 bg-teal-600 hover:bg-teal-700 text-white rounded-[50px] text-xs font-medium tracking-wide transition-colors active:scale-95"
           >
             Edit
           </button>
@@ -187,14 +187,14 @@ const PortfolioCard: React.FC<{
               href={liveUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-1.5 h-10 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 uppercase tracking-wide transition-all"
+              className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-[50px] text-xs font-medium text-slate-700 transition-colors"
             >
               View Live <ExternalLink className="w-3 h-3" />
             </a>
           ) : (
             <button
               onClick={onEdit}
-              className="flex-1 h-10 border border-slate-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wide transition-all"
+              className="flex-1 h-9 border border-slate-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 rounded-[50px] text-xs font-medium text-slate-500 transition-colors"
             >
               Publish
             </button>
@@ -343,9 +343,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              Your Portfolios
-            </h1>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Your Portfolios</h1>
             <p className="text-sm text-slate-400 font-medium mt-1">
               {portfolios.length === 0
                 ? 'No projects yet — create your first one below.'
@@ -355,14 +353,14 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             {/* Plan badge */}
-            <div className="flex items-center gap-3 px-5 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm">
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-lg">
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Current plan</p>
                 <p className="text-sm font-black text-slate-800 uppercase tracking-tight">{subscription?.planId || 'Free'}</p>
               </div>
               <button
                 onClick={() => navigate('/plans')}
-                className="flex items-center gap-1.5 ml-2 px-3.5 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors"
+                className="flex items-center gap-1.5 ml-2 px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-[50px] text-xs font-medium transition-colors"
               >
                 <Zap className="w-3 h-3" /> Upgrade
               </button>
@@ -371,7 +369,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
             {/* Create new */}
             <button
               onClick={onNew}
-              className="flex items-center justify-center gap-2 h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl text-sm font-bold shadow-lg shadow-teal-600/15 active:scale-95 transition-all w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 h-12 px-6 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors w-full sm:w-auto"
             >
               <Plus className="w-5 h-5" />
               New Portfolio
@@ -400,20 +398,17 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
 
           {/* Empty state */}
           {portfolios.length === 0 && (
-            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50/50">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-white rounded-3xl shadow-xl border border-slate-100 flex items-center justify-center">
-                  <Layers className="w-9 h-9 text-teal-400" />
-                </div>
-                <div className="absolute inset-0 bg-teal-400/15 rounded-full blur-2xl" />
+            <div className="col-span-full py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
+              <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
+                  <Layers className="w-8 h-8 text-teal-400" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 mb-2">Start your professional presence</h2>
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">Start your professional presence</h2>
               <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
                 Upload your CV or describe what you do — AI builds your portfolio in under a minute.
               </p>
               <button
                 onClick={onNew}
-                className="flex items-center gap-2 px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl text-sm font-bold shadow-xl shadow-teal-600/15 active:scale-95 transition-all"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Create My Portfolio
@@ -432,12 +427,12 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.97 }}
               transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-              className="bg-white rounded-3xl border border-slate-100 max-w-sm w-full p-8 shadow-2xl shadow-slate-900/20"
+              className="bg-white rounded-lg border border-slate-200 max-w-sm w-full p-7" style={{boxShadow:'0 4px 24px rgba(0,0,0,0.10)'}}
             >
-              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-5">
+              <div className="w-10 h-10 bg-red-50 rounded-lg border border-red-100 flex items-center justify-center mb-4">
                 <Trash2 className="w-6 h-6 text-red-500" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 mb-2">Delete this project?</h4>
+              <h4 className="text-base font-semibold text-slate-900 mb-2">Delete this project?</h4>
               <p className="text-sm text-slate-500 font-medium mb-7 leading-relaxed">
                 This will permanently remove the portfolio, its files, and your public URL. <span className="text-slate-800 font-bold">This cannot be undone.</span>
               </p>
@@ -445,14 +440,14 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                 <button
                   onClick={() => setDeleteConfirm(null)}
                   disabled={isDeleting}
-                  className="flex-1 h-12 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors disabled:opacity-50"
+                  className="flex-1 h-11 rounded-[50px] border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
                   Keep it
                 </button>
                 <button
                   onClick={() => handleDelete(deleteConfirm)}
                   disabled={isDeleting}
-                  className="flex-1 h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 h-11 rounded-[50px] bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition-colors active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isDeleting ? <><Loader className="w-4 h-4 animate-spin" /> Deleting…</> : 'Yes, delete'}
                 </button>

@@ -245,6 +245,7 @@ type Deployment struct {
 
 type SocialNode struct {
 	ID         string   `bson:"_id" json:"id"`
+	UserID     string   `bson:"userId" json:"userId"`
 	Name       string   `bson:"name" json:"name"`
 	Role       string   `bson:"role" json:"role"`
 	Similarity int      `bson:"similarity" json:"similarity"`

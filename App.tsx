@@ -29,6 +29,7 @@ import MeshPage from './pages/app/MeshPage';
 import FeedPage from './pages/app/FeedPage';
 import NetworkPage from './pages/app/NetworkPage';
 import PostPage from './pages/app/PostPage';
+import UserSocialDashboard from './pages/app/UserSocialDashboard';
 import { HelmetProvider } from 'react-helmet-async';
 import { socketService } from './services/socketService';
 import { notificationService } from './services/notificationService';
@@ -195,8 +196,16 @@ const App: React.FC = () => {
         <Route path="/plans" element={<Plans />} />
         <Route path="/app/mesh" element={<MeshPage />} />
         <Route path="/app/feed" element={<FeedPage />} />
-        <Route path="/app/network" element={<NetworkPage />} />
+        <Route path="/app/network" element={<Navigate to="/app/mesh" replace />} />
         <Route path="/app/feed/post/:slug" element={<PostPage />} />
+        <Route
+          path="/app/social"
+          element={
+            <ProtectedRoute>
+              <UserSocialDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<h1>404</h1>} />
       </Routes>
     </ThemeProvider>

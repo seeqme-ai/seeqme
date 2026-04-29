@@ -6,8 +6,8 @@ import { socialService } from '@/services/apiService';
 import { toast } from 'sonner';
 import {
   Network, Search, X, ArrowLeft,
-  MapPin, ExternalLink, UserPlus,
-  Users, Filter, Check, Clock, ChevronRight
+  MapPin, ExternalLink, UserPlus, UserMinus,
+  Users, Filter, Check, Clock, ChevronRight, AlertTriangle
 } from 'lucide-react';
 
 const MotionDiv = motion.div as any;
@@ -16,7 +16,7 @@ const MotionLine = motion.line as any;
 
 /* ── Types ── */
 interface MeshNode {
-  id: string; x: number; y: number; r: number;
+  id: string; userId?: string; x: number; y: number; r: number;
   color: string; label?: string; role?: string;
   location?: string; skills?: string[];
   similarity?: number; connections?: number;
@@ -95,9 +95,14 @@ const MeshPage: React.FC = () => {
   const [hasEntered, setHasEntered]     = useState(false);
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const [connectionStates, setConnectionStates] = useState<Record<string, string>>({});
+  const [connectionIds, setConnectionIds] = useState<Record<string, string>>({}); // nodeId -> connectionId
+  const [disconnectTarget, setDisconnectTarget] = useState<MeshNode | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   const [allNodes, setAllNodes] = useState<MeshNode[]>([...NODES, ...BACKGROUND_NODES]);
   const [allEdges, setAllEdges] = useState<MeshEdge[]>(EDGES);
+  const [pendingConns, setPendingConns] = useState<any[]>([]);
+  const [showPending, setShowPending] = useState(false);
 
   const posRef = useRef<Record<string, {x:number;y:number}>>({});
   const [, setTick] = useState(0);
@@ -125,16 +130,19 @@ const MeshPage: React.FC = () => {
       }
     }).catch(() => {});
 
-    if (isAuthenticated) {
-      socialService.getConnections().then((res: any) => {
-        if (dead) return;
-        const states: Record<string, string> = {};
-        res?.accepted?.forEach((c: any) => states[c.id] = 'accepted');
-        res?.received?.forEach((c: any) => states[c.id] = 'pending');
-        res?.sent?.forEach((c: any) => states[c.id] = 'pending');
-        setConnectionStates(states);
-      }).catch(() => {});
-    }
+      if (isAuthenticated) {
+        socialService.getConnections().then((res: any) => {
+          if (dead) return;
+          const states: Record<string, string> = {};
+          const ids: Record<string, string> = {};
+          res?.accepted?.forEach((c: any) => { states[c.id] = 'accepted'; ids[c.id] = c.connectionId; });
+          res?.received?.forEach((c: any) => { states[c.id] = 'pending'; ids[c.id] = c.connectionId; });
+          res?.sent?.forEach((c: any) => { states[c.id] = 'pending'; ids[c.id] = c.connectionId; });
+          setConnectionStates(states);
+          setConnectionIds(ids);
+          setPendingConns(res?.received || []);
+        }).catch(() => {});
+      }
     return () => { dead = true; };
   }, [isAuthenticated]);
 
@@ -194,8 +202,74 @@ const MeshPage: React.FC = () => {
     }
   };
 
+  const handleDisconnect = async () => {
+    if (!disconnectTarget) return;
+    const connId = connectionIds[disconnectTarget.id];
+    setDisconnecting(true);
+    try {
+      await socialService.rejectConnect(connId);
+      setConnectionStates(prev => { const n = { ...prev }; delete n[disconnectTarget.id]; return n; });
+      setConnectionIds(prev => { const n = { ...prev }; delete n[disconnectTarget.id]; return n; });
+      toast.success('Connection removed.');
+      setDisconnectTarget(null);
+    } catch {
+      toast.error('Could not remove connection.');
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
+  const handleAccept = async (connId: string, nodeId: string) => {
+    try {
+      await socialService.acceptConnect(connId);
+      setConnectionStates(prev => ({ ...prev, [nodeId]: 'accepted' }));
+      setPendingConns(prev => prev.filter(c => c.connectionId !== connId));
+      toast.success('Connection accepted!');
+    } catch {
+      toast.error('Could not accept connection.');
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-[#060d18] overflow-hidden">
+
+      {/* ── Disconnect Confirmation Modal ── */}
+      <AnimatePresence>
+        {disconnectTarget && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <MotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDisconnectTarget(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <MotionDiv
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              className="relative bg-[#0c1628] border border-white/10 rounded-lg p-6 w-full max-w-sm"
+              style={{ boxShadow: '0 24px 48px rgba(0,0,0,0.6)' }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Remove connection?</p>
+                  <p className="text-[11px] text-slate-500">This will unlink you from {disconnectTarget.label}</p>
+                </div>
+              </div>
+              <p className="text-[12px] text-slate-400 mb-5 leading-relaxed">
+                Removing this node from your cluster will stop you both from appearing in each other's mesh. You can send a new request anytime.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setDisconnectTarget(null)} disabled={disconnecting} className="flex-1 py-2.5 rounded-[50px] border border-white/10 text-slate-400 hover:text-white hover:border-white/20 text-xs font-medium transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleDisconnect} disabled={disconnecting} className="flex-1 py-2.5 rounded-[50px] bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
+                  {disconnecting ? 'Removing…' : <><UserMinus className="w-3.5 h-3.5" /> Remove</>}
+                </button>
+              </div>
+            </MotionDiv>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ── Top bar ── */}
       <div className="shrink-0 flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06] bg-[#07101f]/80 backdrop-blur-sm z-20">
         <div className="flex items-center gap-4">
@@ -205,7 +279,7 @@ const MeshPage: React.FC = () => {
           <div className="w-px h-4 bg-white/[0.08]" />
           <div className="flex items-center gap-2">
             <Network className="w-4 h-4 text-teal-400" />
-            <span className="text-sm font-bold text-white tracking-tight">Professional Mesh</span>
+            <span className="text-sm font-bold text-white tracking-tight">Mesh</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -215,6 +289,15 @@ const MeshPage: React.FC = () => {
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${showFilters ? 'bg-teal-500/10 border-teal-500/30 text-teal-400' : 'bg-white/[0.04] border-white/[0.08] text-slate-400'}`}>
             <Filter className="w-3.5 h-3.5" /> Filters
+          </button>
+          <button onClick={() => setShowPending(true)} className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-900 text-xs font-bold transition-all shadow-lg shadow-teal-500/20">
+            <Users className="w-3.5 h-3.5" /> 
+            Connections
+            {pendingConns.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center border-2 border-[#07101f]">
+                {pendingConns.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -303,15 +386,23 @@ const MeshPage: React.FC = () => {
                   <div className="flex items-center gap-3 text-slate-400">
                     <Users className="w-4 h-4" /> <span className="text-xs font-medium">{selectedNode.connections || 0} Connections</span>
                   </div>
-                  <button 
-                    onClick={() => navigate(`/app/portfolio/${selectedNode.id}`)}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-all group mt-4"
+                  <button
+                    onClick={() => {
+                      // Navigate to the user's public portfolio
+                      if (selectedNode.isYou) { navigate('/app/social'); return; }
+                      if (selectedNode.userId) {
+                        navigate(`/portfolio/${selectedNode.userId}`);
+                      } else {
+                        toast.info('This mock node has no portfolio.');
+                      }
+                    }}
+                    className="w-full flex items-center justify-between p-3.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors group mt-4"
                   >
                     <div className="flex items-center gap-3">
-                      <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-teal-400" />
-                      <span className="text-xs font-bold text-slate-300">View Portfolio</span>
+                      <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-teal-400 transition-colors" />
+                      <span className="text-xs font-medium text-slate-300">View Profile</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-teal-400 transform group-hover:translate-x-1 transition-all" />
+                    <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all" />
                   </button>
                 </div>
 
@@ -329,14 +420,29 @@ const MeshPage: React.FC = () => {
                 )}
 
                 {/* Actions */}
-                <div className="mt-auto pt-6 border-t border-white/[0.05]">
-                  {connectionStates[selectedNode.id] === 'accepted' ? (
-                    <div className="w-full py-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 text-center text-xs font-bold">Connected</div>
+                <div className="mt-auto pt-5 border-t border-white/[0.05] space-y-2">
+                  {selectedNode.isYou ? (
+                    <button onClick={() => navigate('/app/social')} className="w-full py-2.5 rounded-[50px] bg-white/[0.06] border border-white/[0.08] text-slate-300 text-xs font-medium transition-colors hover:bg-white/[0.10]">
+                      My Social Activity
+                    </button>
+                  ) : connectionStates[selectedNode.id] === 'accepted' ? (
+                    <button
+                      onClick={() => setDisconnectTarget(selectedNode)}
+                      className="w-full py-2.5 rounded-[50px] bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-xs font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <UserMinus className="w-3.5 h-3.5" /> Disconnect
+                    </button>
                   ) : connectionStates[selectedNode.id] === 'pending' ? (
-                    <div className="w-full py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-center text-xs font-bold">Request Pending</div>
+                    <div className="w-full py-2.5 rounded-[50px] bg-amber-500/10 border border-amber-500/20 text-amber-400 text-center text-xs font-medium">Request Pending</div>
                   ) : (
-                    <button onClick={() => handleConnect(selectedNode.id)} disabled={connectingId === selectedNode.id} className="w-full py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-white text-xs font-bold shadow-lg shadow-teal-500/20 transition-all active:scale-95">
-                      {connectingId === selectedNode.id ? 'Connecting...' : 'Connect to Node'}
+                    <button
+                      onClick={() => handleConnect(selectedNode.id)}
+                      disabled={connectingId === selectedNode.id}
+                      className="w-full py-2.5 rounded-[50px] bg-teal-500 hover:bg-teal-400 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {connectingId === selectedNode.id
+                        ? 'Sending…'
+                        : <><UserPlus className="w-3.5 h-3.5" /> Connect</>}
                     </button>
                   )}
                 </div>
@@ -353,13 +459,13 @@ const MeshPage: React.FC = () => {
           </div>
           <div className="w-px h-3 bg-white/10" />
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-400">Nodes:</span>
-            <span className="text-[10px] font-black text-teal-400">1,204</span>
+            <span className="text-[10px] font-bold text-slate-400">Active Nodes:</span>
+            <span className="text-[10px] font-black text-teal-400">{allNodes.filter(n => !n.isBackground).length.toLocaleString()}</span>
           </div>
           <div className="w-px h-3 bg-white/10" />
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold text-slate-400">Your Cluster:</span>
-            <span className="text-[10px] font-black text-teal-400">8 Nodes</span>
+            <span className="text-[10px] font-black text-teal-400">{allNodes.filter(n => n.similarity && n.similarity > 0.8).length} Nodes</span>
           </div>
         </div>
 

@@ -51,7 +51,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const platformItems = [
     { name: 'Feed',    icon: TrendingUp, path: '/app/feed'    },
     { name: 'Mesh',    icon: Network,    path: '/app/mesh'    },
-    { name: 'Network', icon: Users,      path: '/app/network' },
   ];
   const isAdmin = Boolean(user?.roles?.includes('admin'));
   if (isAdmin) {

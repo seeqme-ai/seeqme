@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { label: 'Templates', href: '/templates',   icon: null        },
   { label: 'Feed',      href: '/app/feed',    icon: TrendingUp  },
   { label: 'Mesh',      href: '/app/mesh',    icon: Network     },
-  { label: 'Network',   href: '/app/network', icon: Users       },
+  { label: 'Network',   href: '/app/mesh',    icon: Users       },
   { label: 'Plans',     href: '/plans',       icon: null        },
 ];
 

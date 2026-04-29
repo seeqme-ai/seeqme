@@ -188,6 +188,8 @@ const CARD_COMPONENTS: Record<CardTemplate, React.FC<CardProps>> = {
 };
 
 const BusinessCardModal: React.FC<BusinessCardModalProps> = ({ isOpen, onClose, portfolio }) => {
+  if (!portfolio) return null;
+
   const liveUrl = portfolio.customDomain
     ? `https://${portfolio.customDomain}`
     : portfolio.subdomain

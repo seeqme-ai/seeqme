@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cloudinaryService } from '@/services/cloudinaryService';
 import { socketService } from '@/services/socketService';
+import { PostSkeleton, ImageSkeleton } from '@/components/Skeletons';
 
 const MotionDiv = motion.div as any;
 
@@ -57,21 +58,6 @@ interface Post {
   repostedBy?: string; // Virtual for UI
 }
 
-const POSTS: Post[] = [
-  {
-    id: '1', authorId: 'ada', author: 'Ada Okonkwo', role: 'Senior Designer', location: 'Lagos',
-    avatar: '#8b5cf6', similarity: 89,
-    content: "Just published a case study on redesigning a fintech onboarding flow. Reduced drop-off by 34% using progressive disclosure. TL;DR: stop asking for everything upfront.\n\nFull breakdown in my portfolio 👇",
-    tag: 'Case Study', likes: 47, comments: [], reposts: 8, time: '2h', slug: 'case-study-redesign'
-  },
-  {
-    id: '2', authorId: 'tunde', author: 'Tunde Kayode', role: 'Product Manager', location: 'Abuja',
-    avatar: '#0ea5e9', similarity: 74,
-    content: "Hot take: most PMs are too obsessed with velocity metrics. Throughput doesn't mean you're building the right things. I've shipped 40+ features in a quarter and killed 30 of them 6 months later.\n\nBetter metric: feature adoption at 90 days.",
-    tag: 'Opinion', likes: 132, comments: [], reposts: 18, time: '4h', slug: 'pm-velocity-trap'
-  }
-];
-
 const CATEGORIES = ['Opinion', 'Case Study', 'Engineering', 'Startup', 'Design', 'Product', 'News'];
 
 /* ── Components ── */
@@ -81,12 +67,12 @@ const DeleteModal: React.FC<{ isOpen: boolean; onConfirm: () => void; onClose: (
     {isOpen && (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <MotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
-        <MotionDiv initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Delete post?</h3>
-          <p className="text-sm text-slate-500 mb-6">This action cannot be undone. It will be removed from your cluster's mesh immediately.</p>
+        <MotionDiv initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white rounded-lg p-6 w-full max-w-sm border border-slate-200" style={{boxShadow:'0 4px 16px rgba(0,0,0,0.08)'}}>
+          <h3 className="text-base font-bold text-slate-900 mb-2">Delete post?</h3>
+          <p className="text-sm text-slate-500 mb-6">This action cannot be undone.</p>
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold transition-colors">Cancel</button>
-            <button onClick={onConfirm} className="flex-1 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors shadow-lg shadow-rose-200">Delete</button>
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-[50px] bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors">Cancel</button>
+            <button onClick={onConfirm} className="flex-1 py-2.5 rounded-[50px] bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium transition-colors">Delete</button>
           </div>
         </MotionDiv>
       </div>
@@ -112,6 +98,21 @@ const LinkPreviewCard: React.FC<{ preview: Post['linkPreview'] }> = ({ preview }
   );
 };
 
+const ImageWithSkeleton: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative w-full overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+      {!loaded && <ImageSkeleton />}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={`w-full h-auto max-h-[450px] object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0 absolute top-0 left-0'}`}
+      />
+    </div>
+  );
+};
+
 const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void }> = ({ post, i, onDelete }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -125,6 +126,12 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
   const [comments, setComments] = useState<Comment[]>(post.comments || []);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
+
+  // Sync local state with prop updates for real-time reactivity
+  useEffect(() => {
+    setLikeCount(post.likes);
+    setComments(post.comments || []);
+  }, [post.likes, post.comments]);
 
   const isOwner = user?.id === post.authorId;
 
@@ -219,15 +226,15 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
 
   return (
     <MotionDiv
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: i * 0.06, duration: 0.4 }}
-      className="bg-white border border-slate-100 rounded-3xl p-5 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300"
+      transition={{ delay: i * 0.04, duration: 0.3 }}
+      className="bg-white border border-slate-200 rounded-lg p-5 hover:border-slate-300 transition-colors duration-200"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-black shrink-0 shadow-inner"
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
             style={{ background: post.avatar }}
           >
             {post.author.charAt(0)}
@@ -254,7 +261,7 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowMenu(false)} />
-                <MotionDiv initial={{ opacity: 0, scale: 0.9, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -10 }} className="absolute right-0 top-10 w-48 bg-white border border-slate-100 rounded-2xl shadow-xl shadow-slate-200/50 z-40 p-1 overflow-hidden">
+                <MotionDiv initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-10 w-44 bg-white border border-slate-200 rounded-lg z-40 p-1 overflow-hidden" style={{boxShadow:'0 4px 16px rgba(0,0,0,0.08)'}}>
                   <button onClick={copyLink} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-all">
                     <Copy className="w-4 h-4" /> Copy link
                   </button>
@@ -305,8 +312,8 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
       )}
 
       {post.media && (
-        <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100">
-          <img src={post.media} alt="Post content" className="w-full h-auto max-h-[400px] object-cover" />
+        <div className="mb-4">
+          <ImageWithSkeleton src={post.media} alt="Post content" />
         </div>
       )}
 
@@ -436,7 +443,7 @@ const FeedPage: React.FC = () => {
   const [mediaUrl, setMediaUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-  const [allPosts, setAllPosts] = useState<Post[]>(POSTS);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [trending, setTrending] = useState<{ tag: string, posts: number }[]>([]);
   const [suggested, setSuggested] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('For You');
@@ -445,11 +452,13 @@ const FeedPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showAttach, setShowAttach] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const [feedRes, trendRes, suggestRes, notifRes] = await Promise.all([
           activeTab === 'Following' ? socialService.getFollowingFeed() :
@@ -460,13 +469,15 @@ const FeedPage: React.FC = () => {
         ]);
 
         const sp: Post[] = feedRes?.posts || [];
-        setAllPosts(sp.length ? [...sp.filter(p => !POSTS.find(m => m.id === p.id)), ...POSTS] : POSTS);
+        setAllPosts(sp);
         if (trendRes?.trending) setTrending(trendRes.trending);
         if (suggestRes?.suggested) setSuggested(suggestRes.suggested);
         if (notifRes?.notifications) setNotifications(notifRes.notifications);
       } catch (e) {
         console.error(e);
-        setAllPosts(POSTS);
+        setAllPosts([]);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -591,30 +602,30 @@ const FeedPage: React.FC = () => {
       <DeleteModal isOpen={!!deleteId} onConfirm={confirmDelete} onClose={() => setDeleteId(null)} />
 
       {/* Top bar */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/')} className="p-2 hover:bg-slate-100 rounded-xl transition-all">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/')} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
               <ArrowLeft className="w-4 h-4 text-slate-500" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-teal-500 flex items-center justify-center text-white font-black shadow-lg shadow-teal-200">S</div>
-              <span className="text-sm font-bold text-slate-900 tracking-tight">Social Mesh</span>
+             
+              <span className="text-sm font-medium text-slate-900">Feed</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="relative">
-              <button onClick={() => setShowNotifications(!showNotifications)} className="p-2.5 rounded-xl hover:bg-slate-50 text-slate-400 transition-all relative">
-                <Bell className="w-5 h-5" />
+              <button onClick={() => setShowNotifications(!showNotifications)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors relative">
+                <Bell className="w-4 h-4" />
                 {notifications.filter(n => !n.isRead).length > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-bounce" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full" />
                 )}
               </button>
               <AnimatePresence>
                 {showNotifications && (
                   <>
                     <div className="fixed inset-0" onClick={() => setShowNotifications(false)} />
-                    <MotionDiv initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute right-0 mt-2 w-72 bg-white border border-slate-100 rounded-[28px] shadow-2xl z-50 overflow-hidden">
+                    <MotionDiv initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-lg z-50 overflow-hidden" style={{boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
                       <div className="p-4 border-b border-slate-50 flex items-center justify-between">
                         <p className="text-xs font-black uppercase tracking-widest text-slate-300">Cluster Pulse</p>
                         <button onClick={async () => { await socialService.markNotificationsRead(); setNotifications(prev => prev.map(n => ({ ...n, isRead: true }))) }} className="text-[10px] font-bold text-teal-500 hover:text-teal-600 transition-colors">Clear all</button>
@@ -644,24 +655,24 @@ const FeedPage: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
-            <div className="hidden md:flex items-center gap-2 bg-teal-50 px-3 py-1.5 rounded-full border border-teal-100">
-              <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-teal-700">Cluster: Active</span>
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-[50px] border border-slate-200 text-slate-500">
+              <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              <span className="text-[11px] font-medium">Active</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* ── Main Feed ── */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
 
-            {/* Premium Composer */}
-            <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-xl shadow-slate-200/40">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-lg font-black shadow-lg shadow-teal-100 flex-shrink-0">
+            {/* Composer */}
+            <div className="bg-white border border-slate-200 rounded-lg p-5">
+              <div className="flex gap-3">
+                <div className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                   {user?.fullName?.charAt(0) || 'Y'}
                 </div>
                 <div className="flex-1">
@@ -691,9 +702,9 @@ const FeedPage: React.FC = () => {
                     </MotionDiv>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <div className="flex flex-wrap items-center gap-1.5 mt-4">
                     {CATEGORIES.map(tag => (
-                      <button key={tag} onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)} className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all border ${selectedTag === tag ? 'bg-teal-500 border-teal-500 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:border-teal-300'}`}>
+                      <button key={tag} onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)} className={`px-3 py-1 rounded-[50px] text-[11px] font-medium transition-colors border ${selectedTag === tag ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'}`}>
                         {tag}
                       </button>
                     ))}
@@ -712,9 +723,9 @@ const FeedPage: React.FC = () => {
                     <button
                       onClick={handlePost}
                       disabled={!draft.trim() || isPosting}
-                      className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-2xl text-sm font-bold disabled:opacity-30 shadow-lg shadow-slate-200 transition-all active:scale-95"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium disabled:opacity-30 transition-colors"
                     >
-                      {isPosting ? 'Broadcasting…' : <><Send className="w-4 h-4" /> Broadcast</>}
+                      {isPosting ? 'Broadcasting…' : <><Send className="w-3.5 h-3.5" /> Broadcast</>}
                     </button>
                   </div>
                 </div>
@@ -722,12 +733,12 @@ const FeedPage: React.FC = () => {
             </div>
 
             {/* Tab selector */}
-            <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-2xl p-1.5 shadow-sm">
+            <div className="flex items-center gap-0.5 border-b border-slate-200">
               {['For You', 'Following', 'Trending'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${activeTab === tab ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700'}`}
+                  className={`flex-1 py-2.5 text-xs font-medium transition-colors ${activeTab === tab ? 'text-slate-900 border-b-2 border-slate-900 -mb-px' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   {tab}
                 </button>
@@ -735,54 +746,60 @@ const FeedPage: React.FC = () => {
             </div>
 
             {/* Feed Posts */}
-            <div className="space-y-6">
-              {allPosts.map((post, i) => <PostCard key={post.id} post={post} i={i} onDelete={setDeleteId} />)}
+            <div className="space-y-4">
+              {isLoading ? (
+                <>
+                  <PostSkeleton />
+                  <PostSkeleton />
+                  <PostSkeleton />
+                </>
+              ) : (
+                allPosts.map((post, i) => <PostCard key={post.id} post={post} i={i} onDelete={setDeleteId} />)
+              )}
             </div>
 
-            <div className="flex justify-center py-8">
-              <button className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-white border border-slate-200 text-sm font-bold text-slate-500 hover:border-teal-300 hover:text-teal-600 transition-all shadow-sm">
+            <div className="flex justify-center py-6">
+              <button className="flex items-center gap-2 px-6 py-2.5 rounded-[50px] bg-white border border-slate-200 text-sm font-medium text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-colors">
                 Explore deeper mesh <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* ── Enhanced Sidebar ── */}
-          <div className="space-y-6">
+          {/* ── Sidebar ── */}
+          <div className="space-y-4">
 
             {/* Personal Cluster Stats */}
-            <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-xl shadow-slate-200/40">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-6">Network Position</p>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-[20px] bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-teal-100">
+            <div className="bg-white border border-slate-200 rounded-lg p-5">
+              <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-slate-400 mb-4" style={{fontFamily:'monospace'}}>Network Position</p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                   {user?.fullName?.charAt(0) || 'Y'}
                 </div>
                 <div>
-                  <p className="text-base font-bold text-slate-900">{user?.fullName || 'Mesh Member'}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="px-2 py-0.5 rounded-full bg-teal-50 text-[10px] font-bold text-teal-600 border border-teal-100">Highly Compatible</div>
-                  </div>
+                  <p className="text-sm font-semibold text-slate-900">{user?.fullName || 'Mesh Member'}</p>
+                  <p className="text-[11px] text-teal-600 mt-0.5">Highly Compatible</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                  <p className="text-lg font-black text-slate-900">12</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Nodes</p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
+                  <p className="text-base font-semibold text-slate-900">12</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Nodes</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                  <p className="text-lg font-black text-slate-900">92%</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Avg Match</p>
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
+                  <p className="text-base font-semibold text-slate-900">92%</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Avg Match</p>
                 </div>
               </div>
-              <button onClick={() => navigate('/app/mesh')} className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold transition-all shadow-lg shadow-teal-100">
+              <button onClick={() => navigate('/app/mesh')} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[50px] bg-slate-900 hover:bg-black text-white text-sm font-medium transition-colors">
                 <Network className="w-4 h-4" />
                 Visualize My Cluster
               </button>
             </div>
 
             {/* Trending Clusters */}
-            <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-xl shadow-slate-200/40">
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">Trending Topics</p>
+            <div className="bg-white border border-slate-200 rounded-lg p-5">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-slate-400" style={{fontFamily:'monospace'}}>Trending Topics</p>
                 <TrendingUp className="w-4 h-4 text-teal-500" />
               </div>
               <div className="space-y-5">
@@ -804,27 +821,27 @@ const FeedPage: React.FC = () => {
             </div>
 
             {/* Suggested Nodes */}
-            <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-xl shadow-slate-200/40">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-6">Suggested Connections</p>
-              <div className="space-y-4">
+            <div className="bg-white border border-slate-200 rounded-lg p-5">
+              <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-slate-400 mb-4" style={{fontFamily:'monospace'}}>Suggested Connections</p>
+              <div className="space-y-3">
                 {suggested.slice(0, 3).map((s) => (
                   <div key={s.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shrink-0 shadow-sm" style={{ background: s.avatar || '#0ea5e9' }}>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0" style={{ background: s.avatar || '#0ea5e9' }}>
                         {s.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-800 truncate">{s.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold truncate">{s.role} · {s.similarity}%</p>
+                        <p className="text-sm font-medium text-slate-800 truncate">{s.name}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{s.role} · {s.similarity}%</p>
                       </div>
                     </div>
-                    <button className="p-2 rounded-xl bg-slate-50 hover:bg-teal-50 text-slate-400 hover:text-teal-600 transition-all border border-slate-100 hover:border-teal-100">
-                      <Check className="w-4 h-4" />
+                    <button className="p-1.5 rounded-lg bg-slate-50 hover:bg-teal-50 text-slate-400 hover:text-teal-600 transition-colors border border-slate-200">
+                      <Check className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
-              <button onClick={() => navigate('/app/network')} className="w-full mt-6 py-2 text-[11px] font-bold text-slate-400 hover:text-teal-600 transition-colors flex items-center justify-center gap-2">
+              <button onClick={() => navigate('/app/mesh')} className="w-full mt-4 py-2 text-[11px] text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center gap-1.5">
                 Grow your network <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>

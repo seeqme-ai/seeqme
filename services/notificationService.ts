@@ -7,23 +7,19 @@ import { toast } from 'sonner';
 export const notificationService = {
   async requestPermissionAndGetToken() {
     try {
+      const vapidKey = 'BGr1M2pbA5olLwFGdApbPnXtjJWhkLLO2D0WWtNgqQZLrFrKKAhzaKritfwDklvJo2sB-Zd4XRMrDDvvl_MeVks';
+
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        const token = await getToken(messaging, {
-          vapidKey: 'BM3Fk9T8E3Z5M9W4I9O6U9T8Y7R6E5W4Q3A2S1D0F9G8H7J6K5L4M3N2B1V0C9X8Z7' // Replace with your actual VAPID key from Firebase Console
-        });
+        const token = await getToken(messaging, { vapidKey });
         
         if (token) {
           console.log('🔔 FCM Token:', token);
           await this.saveTokenToBackend(token);
-        } else {
-          console.warn('⚠️ No registration token available. Request permission to generate one.');
         }
-      } else {
-        console.warn('🚫 Notification permission denied.');
       }
     } catch (error) {
-      console.error('❌ Error getting FCM token:', error);
+      console.error('❌ [NotificationService] Error getting FCM token. This usually means the VAPID key is invalid or mismatched:', error);
     }
   },
 

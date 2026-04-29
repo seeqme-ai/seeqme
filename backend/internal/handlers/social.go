@@ -234,8 +234,11 @@ func (h *Handler) GetMeshNodes(c *gin.Context) {
 
 // SendConnectionRequest initiates a connection between users
 func (h *Handler) SendConnectionRequest(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	fromID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var req struct {
@@ -290,8 +293,11 @@ func (h *Handler) SendConnectionRequest(c *gin.Context) {
 // AcceptConnectionRequest updates status to accepted
 func (h *Handler) AcceptConnectionRequest(c *gin.Context) {
 	connID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	myID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var conn models.Connection
@@ -333,8 +339,11 @@ func (h *Handler) RejectConnectionRequest(c *gin.Context) {
 
 // GetConnections returns the user's connection list categorized by status
 func (h *Handler) GetConnections(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	userID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var allConns []models.Connection
@@ -348,9 +357,9 @@ func (h *Handler) GetConnections(c *gin.Context) {
 		cursor.All(context.Background(), &allConns)
 	}
 
-	var accepted []bson.M
-	var received []bson.M
-	var sent []bson.M
+	accepted := []bson.M{}
+	received := []bson.M{}
+	sent     := []bson.M{}
 
 	for _, conn := range allConns {
 		isFromMe := conn.FromUserID == userID
@@ -392,8 +401,11 @@ func (h *Handler) GetConnections(c *gin.Context) {
 
 // GetFollowingFeed returns posts from users being followed
 func (h *Handler) GetFollowingFeed(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	userID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	// 1. Get accepted connections
@@ -462,8 +474,11 @@ func (h *Handler) GetPostBySlug(c *gin.Context) {
 // DeletePost removes a post (owner only)
 func (h *Handler) DeletePost(c *gin.Context) {
 	postID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	userID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	// Check ownership
@@ -490,8 +505,11 @@ func (h *Handler) DeletePost(c *gin.Context) {
 
 // CreatePost publishes a new post to the feed
 func (h *Handler) CreatePost(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	authorID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var req struct {
@@ -548,8 +566,11 @@ func (h *Handler) CreatePost(c *gin.Context) {
 // CommentOnPost adds a comment to a post
 func (h *Handler) CommentOnPost(c *gin.Context) {
 	postID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	authorID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var req struct {
@@ -603,8 +624,11 @@ func (h *Handler) CommentOnPost(c *gin.Context) {
 
 // UpdatePost edits an existing post
 func (h *Handler) UpdatePost(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	authorID, _ := primitive.ObjectIDFromHex(authUser.ID)
 	postID, _ := primitive.ObjectIDFromHex(c.Param("id"))
 
@@ -633,8 +657,11 @@ func (h *Handler) UpdatePost(c *gin.Context) {
 // LikePost increments like count
 func (h *Handler) LikePost(c *gin.Context) {
 	postID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	myID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var post models.Post
@@ -683,8 +710,11 @@ func (h *Handler) UnlikePost(c *gin.Context) {
 // RepostPost creates a new post referencing the original
 func (h *Handler) RepostPost(c *gin.Context) {
 	postID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	authorID, _ := primitive.ObjectIDFromHex(authUser.ID)
 	
 	var originalPost models.Post
@@ -740,8 +770,11 @@ func (h *Handler) RepostPost(c *gin.Context) {
 // SavePost adds a post to user's saved list
 func (h *Handler) SavePost(c *gin.Context) {
 	postID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	filter := bson.M{"_id": postID}
 	update := bson.M{"$addToSet": bson.M{"savedBy": authUser.ID}}
@@ -756,8 +789,11 @@ func (h *Handler) SavePost(c *gin.Context) {
 
 // GetNotifications returns notifications for the user
 func (h *Handler) GetNotifications(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	userID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	var notifs []models.Notification
@@ -772,8 +808,11 @@ func (h *Handler) GetNotifications(c *gin.Context) {
 
 // MarkNotificationsRead marks all user notifications as read
 func (h *Handler) MarkNotificationsRead(c *gin.Context) {
-	userVal, _ := c.Get(string(models.UserContextKey))
-	authUser := userVal.(models.AuthenticatedUser)
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	userID, _ := primitive.ObjectIDFromHex(authUser.ID)
 
 	_, err := database.Client.Database(database.DBName).Collection("notifications").UpdateMany(

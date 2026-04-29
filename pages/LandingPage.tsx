@@ -535,7 +535,7 @@ const Footer: React.FC = () => (
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-slate-600 mb-5">Platform</p>
             <ul className="space-y-3.5">
-              {[['Feed', '/app/feed'], ['Network', '/app/network'], ['Dashboard', '/dashboard'], ['Analytics', '/dashboard']].map(([l, h]) => (
+              {[['Feed', '/app/feed'], ['Mesh', '/app/mesh'], ['Dashboard', '/dashboard'], ['Analytics', '/dashboard']].map(([l, h]) => (
                 <li key={l}><Link to={h} className="text-[13px] text-slate-500 hover:text-slate-200 font-medium transition-colors duration-150">{l}</Link></li>
               ))}
             </ul>
