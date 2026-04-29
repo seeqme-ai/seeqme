@@ -60,9 +60,9 @@ func SeedSocialData() {
 
 		// 2. Seed Social Nodes (Mesh) linked to mock users
 		nodes := []interface{}{
-			models.SocialNode{ID: m1.Hex(), Name: "Ada Okonkwo", Role: "Senior Designer", Similarity: 89, Avatar: "#8b5cf6", Group: 1, Skills: []string{"Figma", "React", "UI/UX"}},
-			models.SocialNode{ID: m2.Hex(), Name: "Tunde Kayode", Role: "Product Manager", Similarity: 74, Avatar: "#0ea5e9", Group: 2, Skills: []string{"Product", "SQL", "Strategy"}},
-			models.SocialNode{ID: m3.Hex(), Name: "Chioma Ike", Role: "Frontend Dev", Similarity: 71, Avatar: "#14b8a6", Group: 1, Skills: []string{"Vue", "Tailwind", "D3.js"}},
+			models.SocialNode{ID: m1.Hex(), UserID: m1.Hex(), Name: "Ada Okonkwo", Role: "Senior Designer", Similarity: 89, Avatar: "#8b5cf6", Group: 1, Skills: []string{"Figma", "React", "UI/UX"}},
+			models.SocialNode{ID: m2.Hex(), UserID: m2.Hex(), Name: "Tunde Kayode", Role: "Product Manager", Similarity: 74, Avatar: "#0ea5e9", Group: 2, Skills: []string{"Product", "SQL", "Strategy"}},
+			models.SocialNode{ID: m3.Hex(), UserID: m3.Hex(), Name: "Chioma Ike", Role: "Frontend Dev", Similarity: 71, Avatar: "#14b8a6", Group: 1, Skills: []string{"Vue", "Tailwind", "D3.js"}},
 		}
 		db.Collection("social_nodes").InsertMany(context.Background(), nodes)
 		log.Println("[Seed] Social nodes seeded")
@@ -82,7 +82,7 @@ func SeedSocialData() {
 					URL:         "https://seeqme.ai/blog/mesh-design",
 					Title:       "The Art of the Social Mesh",
 					Description: "How we engineered a professional network that mimics biological systems.",
-					Image:       "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070",
+					Image:       "",
 					SiteName:    "SeeqMe Engineering",
 				},
 				Likes:     142,

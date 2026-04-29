@@ -256,8 +256,8 @@ const UserSocialDashboard: React.FC = () => {
         <div className="flex border-b border-slate-200 mb-6">
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-                activeTab === tab.id ? 'text-slate-900 border-slate-900' : 'text-slate-400 border-transparent hover:text-slate-600'
+              className={`flex items-center gap-1.5 px-5 py-3 text-xs font-semibold transition-all border-b-2 -mb-px ${
+                activeTab === tab.id ? 'text-teal-600 border-teal-500 bg-teal-50/50' : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-slate-50/30'
               }`}>
               {tab.icon}{tab.label}
               {tab.count > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-[50px] bg-slate-100 text-slate-500 text-[10px]">{tab.count}</span>}

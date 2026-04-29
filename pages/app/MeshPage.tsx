@@ -29,14 +29,14 @@ interface MeshEdge {
 
 /* ── Initial high-fidelity data ── */
 const NODES: MeshNode[] = [
-  { id: 'you', x: 800, y: 500, r: 16, color: '#14b8a6', label: 'You', role: 'Full-Stack Engineer', location: 'San Francisco', skills: ['React', 'TypeScript', 'Node.js'], isYou: true },
-  { id: 'ada', x: 540, y: 310, r: 10, color: '#8b5cf6', label: 'Ada O.', role: 'Senior Designer', location: 'Lagos', skills: ['Figma', 'React', 'CSS'], similarity: 0.89, connections: 34 },
-  { id: 'tunde', x: 1040, y: 295, r: 10, color: '#0ea5e9', label: 'Tunde K.', role: 'Product Manager', location: 'Abuja', skills: ['Roadmapping', 'SQL', 'OKRs'], similarity: 0.74, connections: 61 },
-  { id: 'chioma', x: 480, y: 650, r: 9, color: '#14b8a6', label: 'Chioma I.', role: 'Frontend Developer', location: 'Accra', skills: ['Vue', 'TypeScript', 'TailWind'], similarity: 0.71, connections: 28 },
-  { id: 'yemi', x: 1090, y: 660, r: 11, color: '#8b5cf6', label: 'Yemi A.', role: 'Startup Founder', location: 'London', skills: ['Strategy', 'Fundraising'], similarity: 0.63, connections: 102 },
-  { id: 'kemi', x: 670, y: 210, r: 8, color: '#0ea5e9', label: 'Kemi L.', role: 'Data Scientist', location: 'Berlin', skills: ['Python', 'ML', 'SQL'], similarity: 0.68, connections: 47 },
-  { id: 'emeka', x: 820, y: 710, r: 9, color: '#14b8a6', label: 'Emeka O.', role: 'UX Designer', location: 'New York', skills: ['Figma', 'Framer', 'Research'], similarity: 0.59, connections: 39 },
-  { id: 'aisha', x: 630, y: 710, r: 8, color: '#8b5cf6', label: 'Aisha M.', role: 'Backend Engineer', location: 'Nairobi', skills: ['Go', 'Postgres', 'Redis'], similarity: 0.66, connections: 22 },
+  { id: 'you', userId: 'you', x: 800, y: 500, r: 16, color: '#14b8a6', label: 'You', role: 'Full-Stack Engineer', location: 'San Francisco', skills: ['React', 'TypeScript', 'Node.js'], isYou: true },
+  { id: 'ada', userId: 'ada', x: 540, y: 310, r: 10, color: '#8b5cf6', label: 'Ada O.', role: 'Senior Designer', location: 'Lagos', skills: ['Figma', 'React', 'CSS'], similarity: 0.89, connections: 34 },
+  { id: 'tunde', userId: 'tunde', x: 1040, y: 295, r: 10, color: '#0ea5e9', label: 'Tunde K.', role: 'Product Manager', location: 'Abuja', skills: ['Roadmapping', 'SQL', 'OKRs'], similarity: 0.74, connections: 61 },
+  { id: 'chioma', userId: 'chioma', x: 480, y: 650, r: 9, color: '#14b8a6', label: 'Chioma I.', role: 'Frontend Developer', location: 'Accra', skills: ['Vue', 'TypeScript', 'TailWind'], similarity: 0.71, connections: 28 },
+  { id: 'yemi', userId: 'yemi', x: 1090, y: 660, r: 11, color: '#8b5cf6', label: 'Yemi A.', role: 'Startup Founder', location: 'London', skills: ['Strategy', 'Fundraising'], similarity: 0.63, connections: 102 },
+  { id: 'kemi', userId: 'kemi', x: 670, y: 210, r: 8, color: '#0ea5e9', label: 'Kemi L.', role: 'Data Scientist', location: 'Berlin', skills: ['Python', 'ML', 'SQL'], similarity: 0.68, connections: 47 },
+  { id: 'emeka', userId: 'emeka', x: 820, y: 710, r: 9, color: '#14b8a6', label: 'Emeka O.', role: 'UX Designer', location: 'New York', skills: ['Figma', 'Framer', 'Research'], similarity: 0.59, connections: 39 },
+  { id: 'aisha', userId: 'aisha', x: 630, y: 710, r: 8, color: '#8b5cf6', label: 'Aisha M.', role: 'Backend Engineer', location: 'Nairobi', skills: ['Go', 'Postgres', 'Redis'], similarity: 0.66, connections: 22 },
 ];
 
 const EDGES: MeshEdge[] = [
