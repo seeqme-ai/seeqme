@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { ICONS } from '@/constants';
 import { usePublicTemplates } from '@/hooks/usePublicTemplates';
 import { useTemplate } from '@/context/template-context';
@@ -97,11 +98,15 @@ const Templates: React.FC = () => {
 
     return (
         <MainLayout>
-            {/* Meta Tags for SEO (usually handled by React Helmet, but here we can add them to the page component for visibility) */}
-            <head>
-                <title>Explore Portfolio Templates - Seeqme AI</title>
-                <meta name="description" content="Discover professional AI-powered portfolio templates for engineers, designers, and business professionals. Filter and find the perfect layout for your digital legacy." />
-            </head>
+            <Helmet>
+                <title>Portfolio Templates — SeeqMe AI</title>
+                <meta name="description" content="Browse professional portfolio templates for engineers, designers, product managers, and more. Pick a starting point and let AI personalise it for you." />
+                <link rel="canonical" href="https://seeqme.com/templates" />
+                <meta property="og:title" content="Portfolio Templates — SeeqMe AI" />
+                <meta property="og:description" content="Browse professional portfolio templates for engineers, designers, product managers, and more." />
+                <meta property="og:url" content="https://seeqme.com/templates" />
+                <meta property="og:type" content="website" />
+            </Helmet>
 
             {/* Background Decorations */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">

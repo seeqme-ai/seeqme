@@ -400,6 +400,7 @@ func (h *Handler) AdminGetStats(c *gin.Context) {
 
 	// Basic Stats
 	totalUsers, _ := db.Collection("users").CountDocuments(ctx, bson.M{})
+	realUsers, _ := db.Collection("users").CountDocuments(ctx, bson.M{"isMock": bson.M{"$ne": true}})
 	totalPortfolios, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{})
 	liveSites, _ := db.Collection("portfolios").CountDocuments(ctx, bson.M{
 		"$or": []bson.M{
@@ -408,27 +409,57 @@ func (h *Handler) AdminGetStats(c *gin.Context) {
 		},
 	})
 
-	//  Revenue calculation
-	pipeline := bson.A{
-		bson.M{"$group": bson.M{"_id": nil, "total": bson.M{"$sum": "$amount"}}},
+	// Social Stats
+	totalPosts, _ := db.Collection("posts").CountDocuments(ctx, bson.M{})
+	realPosts, _ := db.Collection("posts").CountDocuments(ctx, bson.M{"isMock": bson.M{"$ne": true}})
+	totalConnections, _ := db.Collection("connections").CountDocuments(ctx, bson.M{"status": "accepted"})
+	
+	// Aggregate total comments
+	commentPipeline := bson.A{
+		bson.M{"$project": bson.M{"count": bson.M{"$size": "$comments"}}},
+		bson.M{"$group": bson.M{"_id": nil, "total": bson.M{"$sum": "$count"}}},
 	}
-	cursor, err := db.Collection("subscriptions").Aggregate(ctx, pipeline)
+	commentCursor, _ := db.Collection("posts").Aggregate(ctx, commentPipeline)
+	var totalComments int32
+	if commentCursor.Next(ctx) {
+		var res struct { Total int32 `bson:"total"` }
+		commentCursor.Decode(&res)
+		totalComments = res.Total
+	}
+
+	// 1. Revenue calculation (Privileged)
 	var totalRevenue float64
-	if err == nil && cursor.Next(ctx) {
-		var result struct {
-			Total float64 `bson:"total"`
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	var revenueGrowth []bson.M
+
+	if canViewRevenue {
+		pipeline := bson.A{
+			bson.M{"$group": bson.M{"_id": nil, "total": bson.M{"$sum": "$amount"}}},
 		}
-		if err := cursor.Decode(&result); err == nil {
-			totalRevenue = result.Total
+		cursor, err := db.Collection("subscriptions").Aggregate(ctx, pipeline)
+		if err == nil && cursor.Next(ctx) {
+			var result struct{ Total float64 `bson:"total"` }
+			if err := cursor.Decode(&result); err == nil {
+				totalRevenue = result.Total
+			}
 		}
+
+		// Revenue Growth Pipeline (Last 30 days)
+		revGrowthPipeline := bson.A{
+			bson.M{"$match": bson.M{"createdAt": bson.M{"$gte": thirtyDaysAgo}}},
+			bson.M{"$group": bson.M{
+				"_id":   bson.M{"$dateToString": bson.M{"format": "%Y-%m-%d", "date": "$createdAt"}},
+				"total": bson.M{"$sum": "$amount"},
+			}},
+			bson.M{"$sort": bson.M{"_id": 1}},
+		}
+		rCursor, _ := db.Collection("subscriptions").Aggregate(ctx, revGrowthPipeline)
+		rCursor.All(ctx, &revenueGrowth)
 	}
 
-	//  User & Revenue Growth (Last 30 days)
-	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-
-	// User Growth Pipeline
+	// 2. User Growth Pipeline (Last 30 days)
 	userGrowthPipeline := bson.A{
-		bson.M{"$match": bson.M{"createdAt": bson.M{"$gte": thirtyDaysAgo}}},
+		bson.M{"$match": bson.M{"createdAt": bson.M{"$gte": thirtyDaysAgo}, "isMock": bson.M{"$ne": true}}},
 		bson.M{"$group": bson.M{
 			"_id":   bson.M{"$dateToString": bson.M{"format": "%Y-%m-%d", "date": "$createdAt"}},
 			"count": bson.M{"$sum": 1},
@@ -439,31 +470,30 @@ func (h *Handler) AdminGetStats(c *gin.Context) {
 	var userGrowth []bson.M
 	uCursor.All(ctx, &userGrowth)
 
-	// Revenue Growth Pipeline
-	revGrowthPipeline := bson.A{
-		bson.M{"$match": bson.M{"createdAt": bson.M{"$gte": thirtyDaysAgo}}},
-		bson.M{"$group": bson.M{
-			"_id":   bson.M{"$dateToString": bson.M{"format": "%Y-%m-%d", "date": "$createdAt"}},
-			"total": bson.M{"$sum": "$amount"},
-		}},
-		bson.M{"$sort": bson.M{"_id": 1}},
-	}
-	rCursor, _ := db.Collection("subscriptions").Aggregate(ctx, revGrowthPipeline)
-	var revenueGrowth []bson.M
-	rCursor.All(ctx, &revenueGrowth)
+	// 3. Growth Velocity (Last 24h)
+	oneDayAgo := time.Now().AddDate(0, 0, -1)
+	newConnections, _ := db.Collection("connections").CountDocuments(ctx, bson.M{"createdAt": bson.M{"$gte": oneDayAgo}, "status": "accepted"})
+	newPosts, _ := db.Collection("posts").CountDocuments(ctx, bson.M{"createdAt": bson.M{"$gte": oneDayAgo}})
 
 	response := gin.H{
-		"totalUsers":      totalUsers,
-		"totalPortfolios": totalPortfolios,
-		"liveSites":       liveSites,
-		"userGrowth":      userGrowth,
+		"totalUsers":       totalUsers,
+		"realUsers":        realUsers,
+		"totalPortfolios":  totalPortfolios,
+		"liveSites":        liveSites,
+		"totalPosts":       totalPosts,
+		"realPosts":        realPosts,
+		"totalConnections": totalConnections,
+		"totalComments":    totalComments,
+		"userGrowth":       userGrowth,
+		"growthVelocity": gin.H{
+			"newConnections": newConnections,
+			"newPosts":       newPosts,
+		},
 	}
+
 	if canViewRevenue {
-		response["totalRevenue"] = totalRevenue
+		response["totalRevenue"]   = totalRevenue
 		response["revenueGrowth"] = revenueGrowth
-	} else {
-		response["totalRevenue"] = 0
-		response["revenueGrowth"] = []bson.M{}
 	}
 
 	c.JSON(http.StatusOK, response)

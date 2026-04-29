@@ -101,6 +101,9 @@ export const RegistryMetadata: Record<string, ComponentMetadata> = {
     EXP_HORIZONTAL_SCROLL: { id: 'EXP_HORIZONTAL_SCROLL', name: 'Career Horizon', category: 'experience', niche: ['Modern', 'Creative'], description: 'Horizontal scrolling history.' },
     EXP_TABS_SWITCH: { id: 'EXP_TABS_SWITCH', name: 'Tabbed Careers', category: 'experience', niche: ['Corporate', 'Compact'], description: 'Switch between roles via tabs.' },
     EXP_SIDEBAR_LIST: { id: 'EXP_SIDEBAR_LIST', name: 'Legacy Sidebar', category: 'experience', niche: ['Corporate', 'Detailed'], description: 'Navigable list with side details.' },
+    EXP_GLASSMORPHIC: { id: 'EXP_GLASSMORPHIC', name: 'Glass Cards', category: 'experience', niche: ['Modern', 'Creative'], description: 'Glassmorphic frosted role cards.' },
+    EXP_MAGAZINE: { id: 'EXP_MAGAZINE', name: 'Editorial', category: 'experience', niche: ['Creative', 'Agency'], description: 'Magazine-style featured role layout.' },
+    EXP_NUMBERED_LIST: { id: 'EXP_NUMBERED_LIST', name: 'Numbered Roles', category: 'experience', niche: ['Minimal', 'General'], description: 'Clean numbered list of positions.' },
 
     // ABOUT
     ABOUT_NARRATIVE: { id: 'ABOUT_NARRATIVE', name: 'Philosophy', category: 'about', niche: ['General'], description: 'Story-focused centered text.' },

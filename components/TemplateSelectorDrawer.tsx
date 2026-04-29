@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePublicTemplates } from '@/hooks/usePublicTemplates';
-import { Layout, X, Plus, Layers, Search, Sparkles } from 'lucide-react';
+import { Layout, X, Plus, Layers, Search, Wand2 } from 'lucide-react';
 import { RegistryMetadata } from '@/registry/metadata';
 
 interface TemplateSelectorProps {
@@ -150,7 +150,7 @@ const TemplateSelectorDrawer: React.FC<TemplateSelectorProps> = ({ isOpen, onClo
                                                 )}
                                                 {currentTemplateId === template.id && (
                                                     <div className="absolute top-3 right-3 bg-teal-500 text-white p-1.5 rounded-full shadow-lg">
-                                                        <Sparkles className="w-3 h-3" />
+                                                        <Wand2 className="w-3 h-3" />
                                                     </div>
                                                 )}
                                             </div>

@@ -87,6 +87,9 @@ export const Registry: Record<string, RegistryComponent> = {
     EXP_HORIZONTAL_SCROLL: ExperienceRegistry.EXP_HORIZONTAL_SCROLL,
     EXP_TABS_SWITCH: ExperienceRegistry.EXP_TABS_SWITCH,
     EXP_SIDEBAR_LIST: ExperienceRegistry.EXP_SIDEBAR_LIST,
+    EXP_GLASSMORPHIC: ExperienceRegistry.EXP_GLASSMORPHIC,
+    EXP_MAGAZINE: ExperienceRegistry.EXP_MAGAZINE,
+    EXP_NUMBERED_LIST: ExperienceRegistry.EXP_NUMBERED_LIST,
 
     SKILLS_MARQUEE: SkillsRegistry.SKILLS_MARQUEE,
     SKILLS_GRID_ICONS: SkillsRegistry.SKILLS_GRID_ICONS,
@@ -135,7 +138,12 @@ export const Registry: Record<string, RegistryComponent> = {
     CONTACT_SOCIAL_ONLY: ContactRegistry.CONTACT_SOCIAL_ONLY,
     CONTACT_CARD_SIMPLE: ContactRegistry.CONTACT_CARD_SIMPLE,
     CONTACT_FORM_FULL: ContactRegistry.CONTACT_FORM_FULL,
-    CONTACT_FORM_DARK: ContactRegistry.CONTACT_NEON_MODERN,
+    CONTACT_FORM_DARK: ContactRegistry.CONTACT_DARK_SASS,
+    CONTACT_DARK_SASS: ContactRegistry.CONTACT_DARK_SASS,
+    CONTACT_MINIMAL_SIMPLE: ContactRegistry.CONTACT_MINIMAL_SIMPLE,
+    FORM_MINIMALIST: ContactRegistry.FORM_MINIMALIST,
+    FORM_ELEGANT_SPLIT: ContactRegistry.FORM_ELEGANT_SPLIT,
+    FORM_TECH_AUDIT: ContactRegistry.FORM_TECH_AUDIT,
 
     STATS_COUNTER_GRID: StatsRegistry.STATS_COUNTER_GRID,
     STATS_TIMELINE: StatsRegistry.STATS_TIMELINE,
@@ -163,6 +171,9 @@ export const Registry: Record<string, RegistryComponent> = {
     FOOTER_DARK_DETAILED: FooterRegistry.FOOTER_DARK_DETAILED,
     FOOTER_SINGLE_LINE: FooterRegistry.FOOTER_SINGLE_LINE,
     FOOTER_BRAND_FOCUS: FooterRegistry.FOOTER_BRAND_FOCUS,
+    FOOTER_DARK_SASS: FooterRegistry.FOOTER_DARK_SASS,
+    FOOTER_AGENCY_BOLD: FooterRegistry.FOOTER_AGENCY_BOLD,
+    FOOTER_MINIMAL_SIMPLE: FooterRegistry.FOOTER_MINIMAL_SIMPLE,
 };
 
 

@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
+import { Loader, CheckCircle2, ArrowRight, Zap } from "lucide-react";
 import { GoogleLogin } from '@react-oauth/google';
 import apiClient from "@/services/apiService";
 
@@ -16,6 +13,12 @@ const signupUser = async ({ email, password, fullName }: any) => {
   const { data } = await apiClient.post(`/auth/register`, { email, password, fullName });
   return data;
 };
+
+const PERKS = [
+  'Portfolio live on the web in under 60 seconds',
+  'AI writes your bio, projects, and skills',
+  'Custom domain + SSL on every plan',
+];
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -46,10 +49,10 @@ export default function SignupPage() {
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
       window.location.href = searchParams.get("redirect") || "/dashboard";
-      toast.success("Successfully Authenticated!");
+      toast.success("Successfully authenticated!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Google Signup verification failed.");
+      toast.error(error.response?.data?.error || "Google signup failed.");
     },
   });
 
@@ -58,124 +61,181 @@ export default function SignupPage() {
     signupMutation.mutate({ email, password, fullName });
   };
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: -50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   return (
     <div className="flex min-h-screen">
-      {/* Left side: Auth Form */}
-      <div className="flex-1 relative flex items-center justify-center z-10">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-          className="w-full max-w-md"
-        >
-          <Card className="border-none shadow-none overflow-hidden">
 
-            <CardHeader className="space-y-1 p-6">
-              <CardTitle className="text-2xl font-bold text-center bg-clip-text ">Create a SeeqMe Account</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <GoogleLogin
-                onSuccess={(credentialResponse) => {
-                  if (credentialResponse.credential) {
-                    verifyGoogleTokenMutation.mutate(credentialResponse.credential);
-                  }
-                }}
-                onError={() => {
-                  toast.error("Google login failed. Please try again.");
-                }}
-              />
+      {/* ── LEFT — Brand panel ── */}
+      <div
+        className="hidden lg:flex relative w-[44%] flex-col overflow-hidden"
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 70% 40%, rgba(20,184,166,0.12) 0%, transparent 65%), #020817' }}
+      >
+        {/* Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        {/* Extra glow */}
+        <div className="absolute bottom-1/3 -left-20 w-64 h-64 bg-violet-500/[0.07] rounded-full blur-[100px]" />
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-700" />
-                </div>
-                <div className=" relative flex justify-center text-xs uppercase">
-                  <span className="bg-black px-2 text-white">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
+        <div className="relative flex flex-col justify-between h-full p-12 z-10">
 
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-gray-600">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                    autoFocus
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="border-gray-700 h-12 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-600">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@example.com"
-                    required
-                     autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className=" border-gray-700 h-12 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-600">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                     autoFocus
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="border-gray-700 h-12 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-                <Button type="submit" className="w-full text-white px-16 py-6 bg-teal-500 text-white hover:bg-teal-600 rounded-[30px] text-xs transition-all shadow-2xl" disabled={signupMutation.isPending}>
-                  {signupMutation.isPending ? <Loader className="animate-spin" /> : "Sign Up"}
-                </Button>
-              </form>
+          {/* Logo */}
+          <div className='text-white font-bold flex items-center gap-2'>
+            <img src="/seeqme-logo-white.png" alt="SeeqMe" className="h-7 w-auto" />
+            SeeqMe
+          </div>
 
-              <div className="text-center text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link to={`/auth/login${searchParams.get("redirect") ? `?redirect=${searchParams.get("redirect")}` : ''}`} className="text-teal-600 hover:underline">
-                  Login
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+
+          {/* Center */}
+          <div>
+            <div className="w-14 h-14 rounded-2xl bg-teal-500/10 border border-teal-500/15 flex items-center justify-center mb-8 shadow-[0_0_32px_rgba(20,184,166,0.12)]">
+              <Zap className="w-6 h-6 text-teal-400" />
+            </div>
+            <h2 className="text-4xl font-black text-white leading-[1.05] tracking-tight mb-5">
+              Get seen.
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-br from-teal-400 to-teal-600">
+                Get hired.
+              </span>
+            </h2>
+            <p className="text-slate-400 text-base font-medium mb-10 leading-relaxed max-w-xs">
+              Build a stunning AI-powered portfolio that recruiters find on Google — completely free to start.
+            </p>
+
+            <div className="flex flex-col gap-3.5">
+              {PERKS.map((txt, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm text-slate-400">
+                  <div className="w-5 h-5 rounded-full bg-teal-500/15 border border-teal-500/20 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-teal-400" />
+                  </div>
+                  {txt}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <p className="text-xs text-slate-700 font-medium">
+            © 2026 SeeqMe AI. All rights reserved.
+          </p>
+        </div>
       </div>
 
-      {/* Right side: Image */}
-      <motion.div
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0, transition: { duration: 0.5, delay: 0.2 } }}
-        className="hidden lg:flex relative flex-1 items-center justify-center p-8 bg-black"
-      >
-        <img
-          src="/sideImg.jpg"
-          alt="Login Illustration"
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
-        />
+      {/* ── RIGHT — Form panel ── */}
+      <div className="flex-1 flex items-center justify-center bg-white px-6 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-[400px]"
+        >
+     {/* Mobile logo */}
+          <div className="font-bold item-center text-2xl lg:hidden mb-8 flex justify-center">
+            <img src="/seeqme-logo-black.png" alt="SeeqMe" className="h-7 w-auto" />
+            seeqMe
+          </div>
 
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent z-10"></div> {/* Black overlay at bottom */}
 
-        <div className="relative z-20 text-white text-center flex flex-col items-center justify-center p-8">
-          <img src='/seeqme-logo-white.png' className="w-20" alt='SEEQME LOGO' />
-          <h2 className="text-3xl font-bold mb-4">GET SEEN, GET HIRED</h2>
+          <div className="mb-8">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Create your account</h1>
+            <p className="text-sm text-slate-500 font-medium mt-1.5">
+              Free to start — no credit card required
+            </p>
+          </div>
 
-        </div>
-      </motion.div>
+          {/* Google */}
+          <div className="mb-5">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse.credential) {
+                  verifyGoogleTokenMutation.mutate(credentialResponse.credential);
+                }
+              }}
+              onError={() => toast.error("Google login failed. Please try again.")}
+              width="368"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="relative mb-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-100" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                or continue with email
+              </span>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full name</label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Jane Doe"
+                required
+                autoFocus
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+              <PasswordInput
+                id="password"
+                required
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:bg-white transition-all"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={signupMutation.isPending}
+              className="w-full h-12 mt-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/8 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {signupMutation.isPending ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <>Create account <ArrowRight className="w-4 h-4" /></>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-[11px] text-slate-400 font-medium mt-5 leading-relaxed">
+            By creating an account you agree to our{' '}
+            <Link to="/terms-of-service" className="text-slate-600 hover:text-slate-800 underline underline-offset-2 transition-colors">Terms</Link>
+            {' '}and{' '}
+            <Link to="/privacy-policy" className="text-slate-600 hover:text-slate-800 underline underline-offset-2 transition-colors">Privacy Policy</Link>.
+          </p>
+
+          <p className="text-center text-sm text-slate-500 font-medium mt-5">
+            Already have an account?{' '}
+            <Link
+              to={`/auth/login${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}
+              className="text-teal-600 hover:text-teal-700 font-bold transition-colors"
+            >
+              Sign in
+            </Link>
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }

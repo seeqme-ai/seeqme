@@ -335,6 +335,105 @@ export const templateService = {
   },
 };
 
+// Social / Mesh / Network / Feed Services
+export const socialService = {
+  // ── Mesh ──
+  getNodes: async () => {
+    const response = await apiClient.get('/social/mesh/nodes');
+    return response.data;
+  },
+
+  // ── Connections ──
+  getConnections: async () => {
+    const response = await apiClient.get('/social/connections');
+    return response.data;
+  },
+  sendConnectRequest: async (userId: string) => {
+    const response = await apiClient.post('/social/connections/request', { userId });
+    return response.data;
+  },
+  acceptConnect: async (requestId: string) => {
+    const response = await apiClient.post(`/social/connections/${requestId}/accept`);
+    return response.data;
+  },
+  rejectConnect: async (requestId: string) => {
+    const response = await apiClient.post(`/social/connections/${requestId}/reject`);
+    return response.data;
+  },
+
+  // ── Notifications ──
+  getNotifications: async () => {
+    const response = await apiClient.get('/social/notifications');
+    return response.data;
+  },
+  markNotificationsRead: async () => {
+    const response = await apiClient.post('/social/notifications/read');
+    return response.data;
+  },
+
+  // ── Feed ──
+  getFeed: async (cursor?: string) => {
+    const response = await apiClient.get('/social/feed', { params: { cursor } });
+    return response.data;
+  },
+  getPostBySlug: async (slug: string) => {
+    const response = await apiClient.get(`/social/feed/post/${slug}`);
+    return response.data;
+  },
+  getFollowingFeed: async () => {
+    const response = await apiClient.get('/social/feed/following');
+    return response.data;
+  },
+  getForYouFeed: async () => {
+    const response = await apiClient.get('/social/feed/foryou');
+    return response.data;
+  },
+  createPost: async (content: string, media?: string, tag?: string, link?: string) => {
+    const response = await apiClient.post('/social/feed', { content, media, tag, link });
+    return response.data;
+  },
+  updatePost: async (postId: string, content: string) => {
+    const response = await apiClient.put(`/social/feed/${postId}`, { content });
+    return response.data;
+  },
+  deletePost: async (postId: string) => {
+    const response = await apiClient.delete(`/social/feed/${postId}`);
+    return response.data;
+  },
+  likePost: async (postId: string) => {
+    const response = await apiClient.post(`/social/feed/${postId}/like`);
+    return response.data;
+  },
+  unlikePost: async (postId: string) => {
+    const response = await apiClient.delete(`/social/feed/${postId}/like`);
+    return response.data;
+  },
+  commentOnPost: async (postId: string, content: string, parentId?: string) => {
+    const response = await apiClient.post(`/social/feed/${postId}/comment`, { content, parentId });
+    return response.data;
+  },
+  repostPost: async (postId: string) => {
+    const response = await apiClient.post(`/social/feed/${postId}/repost`);
+    return response.data;
+  },
+  savePost: async (postId: string) => {
+    const response = await apiClient.post(`/social/feed/${postId}/save`);
+    return response.data;
+  },
+
+  // ── Trending ──
+  getTrending: async () => {
+    const response = await apiClient.get('/social/trending');
+    return response.data;
+  },
+
+  // ── Suggested ──
+  getSuggested: async () => {
+    const response = await apiClient.get('/social/suggested');
+    return response.data;
+  },
+};
+
 // Session Management Services
 export const sessionService = {
   getActiveSession: async () => {

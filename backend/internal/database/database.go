@@ -37,6 +37,7 @@ func InitDB(mongoURI, databaseName string) {
 	}
 
 	fmt.Println("Successfully connected to MongoDB!")
+	SeedSocialData()
 }
 
 func CloseDB() {

@@ -25,6 +25,13 @@ import Templates from './pages/Templates';
 import MainLayout from './components/MainLayout';
 import SessionExpiredModal from './components/SessionExpiredModal';
 import TemplatePreview from './pages/TemplatePreview';
+import MeshPage from './pages/app/MeshPage';
+import FeedPage from './pages/app/FeedPage';
+import NetworkPage from './pages/app/NetworkPage';
+import PostPage from './pages/app/PostPage';
+import { HelmetProvider } from 'react-helmet-async';
+import { socketService } from './services/socketService';
+import { notificationService } from './services/notificationService';
 
 const AdminRoute = ({ children }: { children: React.ReactElement }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
@@ -83,11 +90,25 @@ const App: React.FC = () => {
     return () => window.removeEventListener('session-expired', handleSessionExpired);
   }, []);
 
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      const token = localStorage.getItem('token');
+      socketService.connect(token || undefined);
+      
+      // Initialize Push Notifications
+      notificationService.requestPermissionAndGetToken();
+      notificationService.listenForMessages();
+    } else {
+      socketService.disconnect();
+    }
+  }, [isAuthenticated]);
+
   const handleGetStarted = (initialData?: { type: string; value: string; templateId?: string }) => {
     navigate("/builder", { state: { initialData } });
   };
 
   return (
+    <HelmetProvider>
     <ThemeProvider>
       <SessionExpiredModal
         isOpen={isSessionExpired}
@@ -95,7 +116,7 @@ const App: React.FC = () => {
       />
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<MainLayout><LandingPage onGetStarted={handleGetStarted} /></MainLayout>} />
+        <Route path="/" element={<MainLayout hideFooter><LandingPage onGetStarted={handleGetStarted} /></MainLayout>} />
         <Route path="/templates" element={<Templates />} />
         <Route path="/contact" element={<MainLayout><ContactUs /></MainLayout>} />
         <Route path="/privacy-policy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
@@ -172,9 +193,14 @@ const App: React.FC = () => {
           }
         />
         <Route path="/plans" element={<Plans />} />
+        <Route path="/app/mesh" element={<MeshPage />} />
+        <Route path="/app/feed" element={<FeedPage />} />
+        <Route path="/app/network" element={<NetworkPage />} />
+        <Route path="/app/feed/post/:slug" element={<PostPage />} />
         <Route path="*" element={<h1>404</h1>} />
       </Routes>
     </ThemeProvider>
+    </HelmetProvider>
   );
 };
 

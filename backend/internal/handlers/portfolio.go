@@ -377,10 +377,7 @@ func (h *Handler) syncPublishedPortfolio(user models.User, portfolio models.Port
 	defer os.RemoveAll(tempDir)
 
 	htmlContent := generatedCode.HTML
-	analyticsScript := fmt.Sprintf(`<script>window._sm_portfolio_id = "%s";</script><script src="/analytics.js" defer></script></head>`, portfolio.ID.Hex())
-	modifiedHTML := strings.Replace(htmlContent, "</head>", analyticsScript, 1)
-
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "index.html"), []byte(modifiedHTML), 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(tempDir, "index.html"), []byte(htmlContent), 0644); err != nil {
 		log.Errorf("Sync failed for %s: failed to write index.html: %v", portfolio.ID.Hex(), err)
 		return
 	}
@@ -784,15 +781,8 @@ func (h *Handler) PublishPortfolio(c *gin.Context) {
 	}
 	defer os.RemoveAll(tempDir) // Clean up the temporary directory
 
-	// Inject analytics script into HTML
 	htmlContent := generatedCode.HTML
-	analyticsScript := fmt.Sprintf(`
-    <script>window._sm_portfolio_id = "%s";</script>
-    <script src="/analytics.js" defer></script>
-</head>`, portfolio.ID.Hex())
-	modifiedHTML := strings.Replace(htmlContent, "</head>", analyticsScript, 1)
-
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "index.html"), []byte(modifiedHTML), 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(tempDir, "index.html"), []byte(htmlContent), 0644); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write index.html"})
 		return
 	}
@@ -1266,17 +1256,19 @@ func (h *Handler) GetPortfolioAnalytics(c *gin.Context) {
 
 	// Identify Subject for dual ownership check
 	subID, _ := c.Get("subjectId")
+	subIDStr, _ := subID.(string)
 
 	// Verify portfolio ownership
 	portfolioCollection := database.Client.Database(database.DBName).Collection("portfolios")
 	var portfolio bson.M
-	err = portfolioCollection.FindOne(context.Background(), bson.M{
-		"_id": portfolioObjectID,
-		"$or": []bson.M{
-			{"userId": uOID},
-			{"anonymousId": subID.(string)},
-		},
-	}).Decode(&portfolio)
+	ownerFilter := bson.M{"_id": portfolioObjectID, "userId": uOID}
+	if subIDStr != "" {
+		ownerFilter = bson.M{
+			"_id": portfolioObjectID,
+			"$or": []bson.M{{"userId": uOID}, {"anonymousId": subIDStr}},
+		}
+	}
+	err = portfolioCollection.FindOne(context.Background(), ownerFilter).Decode(&portfolio)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Portfolio not found"})
@@ -1292,7 +1284,7 @@ func (h *Handler) GetPortfolioAnalytics(c *gin.Context) {
 		if err == nil {
 			cloudflareData = cfData
 		} else {
-			fmt.Printf("Error fetching cloudflare analytics: %v\n", err)
+			log.Printf("[Analytics] Cloudflare data unavailable for project %s: %v", cfProjectID, err)
 		}
 	}
 

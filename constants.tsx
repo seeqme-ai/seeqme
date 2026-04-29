@@ -1,7 +1,7 @@
 import {
   Layers, Mic, Upload, Search, Zap, RefreshCw, ArrowLeft, Settings,
   X, Terminal, ChevronUp, ChevronDown, Code, Monitor, Link, Globe,
-  Filter, Cpu, Sparkles, Github, Linkedin, BookOpen, Loader2, MessageSquare,
+  Filter, Cpu, Github, Linkedin, BookOpen, Loader2, MessageSquare,
   GraduationCap, Briefcase, Layout, User, Send, Shuffle, Award, FileText,
   Microscope, Newspaper, Download, Share2, Undo2, Check,
   Plus,

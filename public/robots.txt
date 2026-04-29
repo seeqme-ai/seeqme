@@ -1,3 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /builder
+Disallow: /builder/
+Disallow: /admin/
+Disallow: /portfolio/*/analytics
+Disallow: /dashboard/settings
+Disallow: /dashboard/domains
+
 Sitemap: https://seeqme.com/sitemap.xml

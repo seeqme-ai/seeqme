@@ -32,9 +32,15 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
         {canViewRevenueStats && (
           <AdminStatCard label="Total Revenue" value={`N${(stats?.totalRevenue || 0).toLocaleString()}`} icon={Zap} color="bg-amber-500" />
         )}
-        <AdminStatCard label="Total Users" value={stats?.totalUsers || users.length} icon={Users} color="bg-blue-500" />
+        <AdminStatCard label="Total Users" value={`${stats?.totalUsers || users.length} (${stats?.realUsers || 0} Real)`} icon={Users} color="bg-blue-500" />
         <AdminStatCard label="Total Portfolios" value={stats?.totalPortfolios || portfolios.length} icon={Layout} color="bg-purple-500" />
         <AdminStatCard label="Live Sites" value={stats?.liveSites || 0} icon={CheckCircle} color="bg-emerald-500" />
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+        <AdminStatCard label="Total Posts" value={`${stats?.totalPosts || 0} (${stats?.realPosts || 0} Real)`} icon={Layout} color="bg-teal-500" />
+        <AdminStatCard label="Social Connections" value={stats?.totalConnections || 0} icon={Users} color="bg-sky-500" />
+        <AdminStatCard label="Community Comments" value={stats?.totalComments || 0} icon={CheckCircle} color="bg-rose-500" />
       </div>
 
       {stats && (

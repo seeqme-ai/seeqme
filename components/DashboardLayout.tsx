@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  PanelLeftClose,
-  PanelLeftOpen,
-  Globe,
   Settings,
   LogOut,
   ChevronDown,
@@ -11,6 +8,9 @@ import {
   User,
   Layers,
   Menu,
+  Network,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -46,8 +46,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const navItems = [
     { name: 'Dashboard', icon: Layers, path: '/dashboard' },
     { name: 'Analytics', icon: Activity, path: '/dashboard/analytics' },
-    //{ name: 'Domains', icon: Globe, path: '/dashboard/domains' },
     { name: 'Settings', icon: Settings, path: '/dashboard/settings' },
+  ];
+  const platformItems = [
+    { name: 'Feed',    icon: TrendingUp, path: '/app/feed'    },
+    { name: 'Mesh',    icon: Network,    path: '/app/mesh'    },
+    { name: 'Network', icon: Users,      path: '/app/network' },
   ];
   const isAdmin = Boolean(user?.roles?.includes('admin'));
   if (isAdmin) {
@@ -84,7 +88,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             <img
               src="/seeqme-logo-black.png"
-              alt="SeeQMe"
+              alt="SeeqMe"
               className="h-6 w-auto block"
             />
             {isSidebarOpen && (
@@ -94,23 +98,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
 
         {/* Sidebar Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 py-8 space-y-2">
+        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+          {isSidebarOpen && (
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 px-4 mb-3">Workspace</p>
+          )}
           {navItems.map((item) => (
-
             <Link
+              key={item.path}
               to={item.path}
               onClick={() => setIsMobileSidebarOpen(false)}
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all relative group
+              className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative
                       ${!isSidebarOpen ? 'justify-center' : ''}
                       ${isActive(item.path)
                   ? 'bg-teal-500/10 text-teal-600 shadow-sm'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
             >
-              <item.icon className={`h-5 w-5 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
+              <item.icon className={`h-5 w-5 shrink-0 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
               {isSidebarOpen && (
-                <span className={`text-[13px] font-semibold whitespace-nowrap`}>
-                  {item.name}
-                </span>
+                <span className="text-[13px] font-semibold whitespace-nowrap">{item.name}</span>
               )}
               {isActive(item.path) && (
                 <motion.div
@@ -119,8 +124,37 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 />
               )}
             </Link>
-
           ))}
+
+          <div className="pt-4 pb-1">
+            <div className="h-px bg-slate-100 mb-4" />
+            {isSidebarOpen && (
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 px-4 mb-3">Platform</p>
+            )}
+            {platformItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative
+                        ${!isSidebarOpen ? 'justify-center' : ''}
+                        ${isActive(item.path)
+                    ? 'bg-violet-500/10 text-violet-600 shadow-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+              >
+                <item.icon className={`h-5 w-5 shrink-0 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
+                {isSidebarOpen && (
+                  <span className="text-[13px] font-semibold whitespace-nowrap">{item.name}</span>
+                )}
+                {isActive(item.path) && (
+                  <motion.div
+                    layoutId="active-pill-platform"
+                    className="absolute left-0 w-1 h-6 bg-violet-500 rounded-r-full"
+                  />
+                )}
+              </Link>
+            ))}
+          </div>
         </nav>
 
         {/* Sidebar Footer / User Info (Optional, keeping structure) */}
@@ -159,24 +193,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Sidebar Header */}
             <div className="flex items-center h-20 px-4 border-b border-border/50">
               <Link to="/" className="flex items-center hover:opacity-80 transition-opacity" onClick={() => setIsMobileSidebarOpen(false)}>
-                <img src="/seeqme-logo-black.png" alt="SeeQMe" className="h-6 w-auto block" />
+                <img src="/seeqme-logo-black.png" alt="SeeqMe" className="h-6 w-auto block" />
                 <span className="text-base font-bold text-foreground">SeeqMe</span>
               </Link>
             </div>
 
             {/* Sidebar Navigation */}
-            <nav className="flex-1 overflow-y-auto px-4 py-8 space-y-2">
+            <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 px-4 mb-3">Workspace</p>
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all relative group
+                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative
                       ${isActive(item.path)
                       ? 'bg-teal-500/10 text-teal-600 shadow-sm'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                 >
-                  <item.icon className={`h-5 w-5 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
+                  <item.icon className={`h-5 w-5 shrink-0 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
                   <span className="text-[13px] font-semibold whitespace-nowrap">{item.name}</span>
                   {isActive(item.path) && (
                     <motion.div
@@ -186,6 +221,30 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   )}
                 </Link>
               ))}
+              <div className="pt-4 pb-1">
+                <div className="h-px bg-slate-100 mb-4" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 px-4 mb-3">Platform</p>
+                {platformItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative
+                        ${isActive(item.path)
+                        ? 'bg-violet-500/10 text-violet-600 shadow-sm'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                  >
+                    <item.icon className={`h-5 w-5 shrink-0 ${isActive(item.path) ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
+                    <span className="text-[13px] font-semibold whitespace-nowrap">{item.name}</span>
+                    {isActive(item.path) && (
+                      <motion.div
+                        layoutId="active-pill-mobile-platform"
+                        className="absolute left-0 w-1 h-6 bg-violet-500 rounded-r-full"
+                      />
+                    )}
+                  </Link>
+                ))}
+              </div>
             </nav>
 
             <div className="p-4 bg-muted/30 border-t border-border/50">

@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -564,6 +566,23 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	streamLog(fmt.Sprintf("Retrieved content: HTML(%d), CSS(%d), JS(%d). SEO: %s", len(html), len(css), len(js), heroBio), "info")
 
+	// Resolve the final public domain FIRST so all SEO tags, canonical URLs,
+	// sitemap, and robots.txt use the correct address (especially for custom domains).
+	fullDomain := fmt.Sprintf("%s.%s", subdomain, cfg.DNSProviderDomain)
+	if customDomainID != "" {
+		domObjectID, err := primitive.ObjectIDFromHex(customDomainID)
+		if err == nil {
+			domainsCollection := database.Client.Database(database.DBName).Collection("domains")
+			var domDoc bson.M
+			if err = domainsCollection.FindOne(context.Background(), bson.M{"_id": domObjectID}).Decode(&domDoc); err == nil {
+				if d, ok := domDoc["domain"].(string); ok && d != "" {
+					fullDomain = d
+				}
+			}
+		}
+	}
+	fullURL := fmt.Sprintf("https://%s", fullDomain)
+
 	// Get user email
 	var userEmail string
 	var userIDObj primitive.ObjectID
@@ -636,24 +655,25 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		trackingScript = fmt.Sprintf(`
 (function() {
     try {
-        const payload = {
+        var payload = JSON.stringify({
             portfolioId: '%s',
             url: window.location.href,
             referrer: document.referrer,
             userAgent: navigator.userAgent
-        };
+        });
+        var endpoint = '%s/api/v1/analytics/track';
         if (navigator.sendBeacon) {
-            navigator.sendBeacon('%s/api/v1/analytics/track', JSON.stringify(payload));
+            navigator.sendBeacon(endpoint, new Blob([payload], {type: 'application/json'}));
         } else {
-            fetch('%s/api/v1/analytics/track', {
+            fetch(endpoint, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload),
+                body: payload,
                 keepalive: true
             });
         }
     } catch(e) {}
-})();`, portfolioID, backendURL, backendURL)
+})();`, portfolioID, backendURL)
 	}
 	// Construct the final title for the HTML document
 	var finalDocTitle string
@@ -691,7 +711,14 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 		favicon = "https://seeqme.com/seeqme-logo-black.png"
 	}
 
-	fullURL := fmt.Sprintf("https://%s.%s", subdomain, cfg.DNSProviderDomain)
+	// Download the favicon into the deploy bundle so it's served from the same domain.
+	// Google only shows favicons that are hosted on the same origin as the page.
+	faviconLocalPath := filepath.Join(tempDir, "favicon.png")
+	if dlErr := downloadFile(favicon, faviconLocalPath); dlErr == nil {
+		favicon = "/favicon.png" // serve same-domain relative path
+	} else {
+		log.Printf("[Deploy] Could not download favicon (%v) — using remote URL as fallback", dlErr)
+	}
 
 	// Schema.org JSON-LD
 	schema := fmt.Sprintf(`{
@@ -723,66 +750,66 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	// Check if the HTML is already a complete document (Manifest V2)
 	isCompleteDoc := strings.Contains(strings.ToLower(html), "<!doctype")
 
+	// SEO head block — injected into both complete docs and legacy-wrapped HTML
+	seoHead := fmt.Sprintf(
+		"\t<meta charset=\"UTF-8\">\n"+
+			"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"+
+			"\t<meta name=\"robots\" content=\"index, follow\">\n"+
+			"\t<title>%s</title>\n"+
+			"\t<meta name=\"description\" content=\"%s\">\n"+
+			"\t<link rel=\"canonical\" href=\"%s/\">\n"+
+			"\t<meta property=\"og:type\" content=\"website\">\n"+
+			"\t<meta property=\"og:url\" content=\"%s/\">\n"+
+			"\t<meta property=\"og:title\" content=\"%s\">\n"+
+			"\t<meta property=\"og:description\" content=\"%s\">\n"+
+			"\t<meta property=\"og:image\" content=\"%s\">\n"+
+			"\t<meta name=\"twitter:card\" content=\"summary_large_image\">\n"+
+			"\t<meta name=\"twitter:url\" content=\"%s/\">\n"+
+			"\t<meta name=\"twitter:title\" content=\"%s\">\n"+
+			"\t<meta name=\"twitter:description\" content=\"%s\">\n"+
+			"\t<meta name=\"twitter:image\" content=\"%s\">\n"+
+			"\t<link rel=\"icon\" href=\"%s\">\n"+
+			"\t<link rel=\"apple-touch-icon\" href=\"%s\">\n"+
+			"%s"+
+			"\t<script type=\"application/ld+json\">%s</script>\n",
+		finalDocTitle, finalDescription,
+		fullURL, fullURL, finalDocTitle, finalDescription, heroImage,
+		fullURL, finalDocTitle, finalDescription, heroImage,
+		favicon, favicon,
+		socialMeta, schema,
+	)
+
 	var finalHTML string
 	if isCompleteDoc {
-		streamLog("Full document detected. Skipping redundant template wrapping.", "info")
+		streamLog("Full document detected — injecting SEO tags and analytics.", "info")
 		finalHTML = html
 
-		// For complete docs, we still need to inject the tracking script if it exists
+		// Inject SEO head block before </head> (replace once; strip charset/title if already present)
+		if strings.Contains(finalHTML, "</head>") {
+			finalHTML = strings.Replace(finalHTML, "</head>", seoHead+"</head>", 1)
+		} else if idx := strings.Index(strings.ToLower(finalHTML), "<head>"); idx != -1 {
+			finalHTML = finalHTML[:idx+6] + "\n" + seoHead + finalHTML[idx+6:]
+		} else {
+			// No <head> at all — prepend a minimal one
+			finalHTML = strings.Replace(finalHTML, "<html", "<html><head>\n"+seoHead+"</head>", 1)
+		}
+
+		// Inject analytics tracking before </body>
 		if trackingScript != "" {
 			if strings.Contains(finalHTML, "</body>") {
-				finalHTML = strings.Replace(finalHTML, "</body>", fmt.Sprintf("<script>%s</script></body>", trackingScript), 1)
+				finalHTML = strings.Replace(finalHTML, "</body>", fmt.Sprintf("<script>%s</script>\n</body>", trackingScript), 1)
 			} else {
 				finalHTML += fmt.Sprintf("<script>%s</script>", trackingScript)
 			}
 		}
 	} else {
-		// Legacy behavior: Wrap in template
-		finalHTML = fmt.Sprintf(`<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="robots" content="index, follow">
-	<title>%s</title>
-	<meta name="description" content="%s">
-	<link rel="canonical" href="%s/">
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="%s/">
-	<meta property="og:title" content="%s">
-	<meta property="og:description" content="%s">
-	<meta property="og:image" content="%s">
-	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:url" content="%s/">
-	<meta name="twitter:title" content="%s">
-	<meta name="twitter:description" content="%s">
-	<meta name="twitter:image" content="%s">
-	<link rel="icon" href="%s">
-	<link rel="apple-touch-icon" href="%s">
-%s
-	<script type="application/ld+json">
-	%s
-	</script>
-	<script src="https://cdn.tailwindcss.com"></script>
-	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-	<style>
-		body { font-family: 'Space Grotesk', sans-serif; }
-		%s
-	</style>
-</head>
-<body>
-	%s
-	<script>%s</script>
-    <script>%s</script>
-</body>
-</html>`,
-			finalDocTitle, finalDescription, fullURL,
-			fullURL, finalDocTitle, finalDescription, heroImage,
-			fullURL, finalDocTitle, finalDescription, heroImage,
-			favicon, favicon,
-			socialMeta,
-			schema,
-			css, html, js, trackingScript)
+		// Legacy behavior: wrap in full HTML template
+		finalHTML = fmt.Sprintf("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n%s"+
+			"\t<script src=\"https://cdn.tailwindcss.com\"></script>\n"+
+			"\t<link href=\"https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap\" rel=\"stylesheet\">\n"+
+			"\t<style>body { font-family: 'Space Grotesk', sans-serif; }\n%s\n\t</style>\n"+
+			"</head>\n<body>\n%s\n<script>%s</script>\n<script>%s</script>\n</body>\n</html>",
+			seoHead, css, html, js, trackingScript)
 	}
 
 	// Write files
@@ -817,27 +844,7 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	// Initialize orchestrator
 	orchestrator := services.NewOrchestrator(cfg)
 
-	// Determine domain routing
-	var fullDomain string
-	if customDomainID != "" {
-		domObjectID, err := primitive.ObjectIDFromHex(customDomainID)
-		if err == nil {
-			domainsCollection := database.Client.Database(database.DBName).Collection("domains")
-			var domDoc bson.M
-			err = domainsCollection.FindOne(context.Background(), bson.M{"_id": domObjectID}).Decode(&domDoc)
-			if err == nil {
-				if d, ok := domDoc["domain"].(string); ok && d != "" {
-					fullDomain = d
-					streamLog(fmt.Sprintf("Routing to custom domain: %s", fullDomain), "info")
-				}
-			}
-		}
-	}
-
-	if fullDomain == "" {
-		fullDomain = fmt.Sprintf("%s.%s", subdomain, cfg.DNSProviderDomain)
-		streamLog(fmt.Sprintf("Routing to standard subdomain: %s", fullDomain), "info")
-	}
+	streamLog(fmt.Sprintf("Routing to domain: %s", fullDomain), "info")
 
 	// Execute Deployment
 	dnsRecordID, err := orchestrator.Deploy(repoName, fullDomain, tempDir, userEmail, streamLog)
@@ -938,6 +945,47 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	// Close session in SessionManager
 	services.GlobalSessionManager.CloseSession(sessionID, "completed", finalURL)
+
+	// Ping search engines so they discover and index the new portfolio quickly
+	go pingSearchEngines(fmt.Sprintf("https://%s/sitemap.xml", fullDomain))
+}
+
+// downloadFile fetches srcURL and writes the body to destPath.
+func downloadFile(srcURL, destPath string) error {
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(srcURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP %d", resp.StatusCode)
+	}
+	f, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, resp.Body)
+	return err
+}
+
+func pingSearchEngines(sitemapURL string) {
+	encoded := url.QueryEscape(sitemapURL)
+	endpoints := []string{
+		"https://www.google.com/ping?sitemap=" + encoded,
+		"https://www.bing.com/ping?sitemap=" + encoded,
+	}
+	client := &http.Client{Timeout: 10 * time.Second}
+	for _, endpoint := range endpoints {
+		resp, err := client.Get(endpoint)
+		if err != nil {
+			log.Printf("[SEO] Ping failed (%s): %v", endpoint, err)
+			continue
+		}
+		resp.Body.Close()
+		log.Printf("[SEO] Pinged %s → HTTP %d", endpoint, resp.StatusCode)
+	}
 }
 
 func (h *Handler) waitForSiteReadiness(url string, timeout time.Duration, interval time.Duration, streamLog func(string, string)) error {

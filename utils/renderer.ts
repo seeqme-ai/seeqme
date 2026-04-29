@@ -3,25 +3,57 @@ import { Manifest, ManifestSection } from '../types';
 import { Registry } from '../registry';
 import { DESIGN_SCHEMES } from '../registry/schemes';
 
+// Pools of interchangeable fallback components per section type.
+// When the AI doesn't specify (or gives an invalid) componentId, we pick
+// from the pool using a stable hash of the user's name so the same user
+// always gets the same layout but different users get variety.
+const FALLBACK_POOLS: Record<string, string[]> = {
+  header:       ['HEADER_MINIMALIST', 'HEADER_STICKY_NAV', 'HEADER_CENTERED_LOGO'],
+  hero:         ['HERO_MODERN_SPLIT', 'HERO_CENTERED_MINIMAL', 'HERO_CYBER_MONO', 'HERO_VISUALIST', 'HERO_EXECUTIVE', 'HERO_GLASS_FLOATING', 'HERO_NEOBRUTALIST', 'HERO_MINIMAL_LEFT', 'HERO_STACKED_BOLD', 'HERO_GRID_LAYOUT', 'HERO_DYNAMIC_GRADIENT', 'HERO_TERMINAL_STYLE', 'HERO_MAGAZINE', 'HERO_CIRCLE_AVATAR', 'HERO_GRADIENT_TEXT'],
+  about:        ['ABOUT_NARRATIVE', 'ABOUT_IMAGE_WRAP', 'ABOUT_GLASS_DECONSTRUCTED', 'ABOUT_SPLIT_COLUMNS', 'ABOUT_METRICS_FOCUS', 'ABOUT_TIMELINE_PERSONAL'],
+  skills:       ['SKILLS_MARQUEE', 'SKILLS_TAGS_CLOUD', 'SKILLS_GRID_ICONS', 'SKILLS_PROGRESS_BARS', 'SKILLS_HEXAGON_GRID', 'SKILLS_AGENCY', 'SKILLS_ENG_BENTO', 'SKILLS_ENG_TERMINAL'],
+  projects:     ['PROJ_MINIMAL_CARDS', 'PROJ_BENTO_GRID', 'PROJ_STACKED_LIST', 'PROJ_GITHUB_STYLE', 'PROJ_MASONRY', 'PROJ_CASE_STUDY', 'PROJ_THUMBNAIL_GRID', 'PROJ_LIST_PREVIEW'],
+  experience:   ['EXP_TIMELINE_VERTICAL', 'EXP_ACCORDION_MINIMAL', 'EXP_CARDS_GRID', 'EXP_TABS_SWITCH', 'EXP_SIDEBAR_LIST', 'EXP_GLASSMORPHIC', 'EXP_NUMBERED_LIST'],
+  testimonials: ['TESTIMONIALS_BENTO', 'TESTIMONIALS_CAROUSEL', 'TESTIMONIALS_GRID_PHOTOS', 'TESTIMONIALS_QUOTE_WALL'],
+  contact:      ['CONTACT_SPLIT', 'CONTACT_NEON_MODERN', 'CONTACT_SOCIAL_ONLY', 'CONTACT_CARD_SIMPLE', 'CONTACT_MINIMAL_SIMPLE'],
+  footer:       ['FOOTER_MINIMAL', 'FOOTER_SOCIAL_HEAVY', 'FOOTER_MULTI_COLUMN', 'FOOTER_NEWSLETTER'],
+  stats:        ['STATS_COUNTER_GRID', 'STATS_ANIMATED_COUNTERS', 'STATS_LARGE_NUMBERS', 'STATS_ICON_CARDS', 'STATS_ACHIEVEMENT_BADGES'],
+  services:     ['SERVICES_MINIMAL_LIST', 'SERVICES_CARDS_INTERACTIVE', 'SERVICES_GLASS_BENTO', 'SERVICES_LIST_MINIMAL', 'SERVICES_AGENCY_GRID', 'SERVICES_GLOW_GRID'],
+  cta:          ['CTA_HERO_INLINE', 'CTA_CENTERED_BOLD', 'CTA_SPLIT_VISUAL', 'CTA_CARD_HOVER', 'CTA_BANNER_STICKY'],
+  faq:          ['FAQ_ACCORDION_NEON'],
+  pricing:      ['PRICING_MINIMAL_CARDS'],
+  logos:        ['LOGOS_STRIP_CLEAN'],
+  process:      ['PROCESS_STEPS_VERTICAL'],
+  gallery:      ['GALLERY_MASONRY_GLASS'],
+  team:         ['TEAM_GRID_EDITORIAL'],
+};
+
+const hashString = (s: string): number => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; }
+  return Math.abs(h);
+};
+
+const pickFallback = (type: string, seed: string): string => {
+  const pool = FALLBACK_POOLS[type];
+  if (!pool || pool.length === 0) return '';
+  const idx = hashString(seed + type) % pool.length;
+  // Walk pool from idx until we find one that exists in the Registry.
+  for (let i = 0; i < pool.length; i++) {
+    const candidate = pool[(idx + i) % pool.length];
+    if (Registry[candidate]) return candidate;
+  }
+  return pool[0];
+};
+
+// Kept for the content-shape last-resort path only.
 const FALLBACK_COMPONENT_BY_TYPE: Record<string, string> = {
-  header: 'HEADER_MINIMALIST',
-  hero: 'HERO_MODERN_SPLIT',
-  about: 'ABOUT_NARRATIVE',
-  skills: 'SKILLS_MARQUEE',
-  projects: 'PROJ_MINIMAL_CARDS',
-  experience: 'EXP_TIMELINE_VERTICAL',
-  testimonials: 'TESTIMONIALS_BENTO',
-  contact: 'CONTACT_SPLIT',
-  footer: 'FOOTER_MINIMAL',
-  stats: 'STATS_COUNTER_GRID',
-  services: 'SERVICES_MINIMAL_LIST',
-  cta: 'CTA_HERO_INLINE',
-  faq: 'FAQ_ACCORDION_NEON',
-  pricing: 'PRICING_MINIMAL_CARDS',
-  logos: 'LOGOS_STRIP_CLEAN',
-  process: 'PROCESS_STEPS_VERTICAL',
-  gallery: 'GALLERY_MASONRY_GLASS',
-  team: 'TEAM_GRID_EDITORIAL'
+  header: 'HEADER_MINIMALIST', hero: 'HERO_MODERN_SPLIT', about: 'ABOUT_NARRATIVE',
+  skills: 'SKILLS_MARQUEE', projects: 'PROJ_MINIMAL_CARDS', experience: 'EXP_TIMELINE_VERTICAL',
+  testimonials: 'TESTIMONIALS_BENTO', contact: 'CONTACT_SPLIT', footer: 'FOOTER_MINIMAL',
+  stats: 'STATS_COUNTER_GRID', services: 'SERVICES_MINIMAL_LIST', cta: 'CTA_HERO_INLINE',
+  faq: 'FAQ_ACCORDION_NEON', pricing: 'PRICING_MINIMAL_CARDS', logos: 'LOGOS_STRIP_CLEAN',
+  process: 'PROCESS_STEPS_VERTICAL', gallery: 'GALLERY_MASONRY_GLASS', team: 'TEAM_GRID_EDITORIAL',
 };
 
 const safeText = (value: any, fallback = ''): string => {
@@ -54,14 +86,18 @@ const normalizeFaviconUrl = (raw: any): string => {
   return url;
 };
 
-const resolveRendererComponent = (section: ManifestSection): string => {
+const resolveRendererComponent = (section: ManifestSection, nameSeed = ''): string => {
+  // 1. Use the AI-chosen componentId if it exists in the registry.
   const directId = safeText(section.componentId);
   if (directId && Registry[directId]) return directId;
-  const typeKey = safeText(section.type).toLowerCase();
-  const fallbackId = FALLBACK_COMPONENT_BY_TYPE[typeKey];
-  if (fallbackId && Registry[fallbackId]) return fallbackId;
 
-  // Content-shape fallback when type/component is invalid.
+  const typeKey = safeText(section.type).toLowerCase();
+
+  // 2. Pick from the variety pool using a stable hash of the user's name.
+  const poolPick = pickFallback(typeKey, nameSeed);
+  if (poolPick) return poolPick;
+
+  // 3. Content-shape last-resort fallback.
   const content: any = section.content || {};
   if (Array.isArray(content?.navLinks) || content?.cta) return 'HEADER_MINIMALIST';
   if (content?.bio || content?.title || content?.name) return 'HERO_MODERN_SPLIT';
@@ -75,7 +111,7 @@ const resolveRendererComponent = (section: ManifestSection): string => {
   if (content?.email || content?.phone || Array.isArray(content?.socials)) return 'CONTACT_SPLIT';
   if (content?.copyright || content?.footerEmail) return 'FOOTER_MINIMAL';
 
-  return '';
+  return FALLBACK_COMPONENT_BY_TYPE[typeKey] || '';
 };
 
 /**
@@ -303,8 +339,9 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
         }
       }
 
-      //  Fallback to Registry Component
-      const resolvedComponentId = resolveRendererComponent(section);
+      //  Fallback to Registry Component (nameSeed ensures variety across users)
+      const nameSeed = safeText(userConfig.fullName || userConfig.name || (metadata as any)?.ownerName || '');
+      const resolvedComponentId = resolveRendererComponent(section, nameSeed);
       const componentFn = resolvedComponentId ? Registry[resolvedComponentId] : undefined;
       if (!componentFn) {
         console.warn(`[Renderer] Component ${section.componentId} not found in Registry.`);
@@ -366,11 +403,27 @@ export const renderManifest = (manifest: Manifest, showBranding: boolean = false
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${pageTitle}</title>
     <meta name="description" content="${pageDescription}">
+    <meta name="robots" content="index, follow">
     <meta property="og:title" content="${pageTitle}">
     <meta property="og:description" content="${pageDescription}">
     <meta property="og:image" content="${pageImage}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="SeeqMe">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${pageTitle}">
+    <meta name="twitter:description" content="${pageDescription}">
+    <meta name="twitter:image" content="${pageImage}">
     ${favicon ? `<link rel="icon" href="${favicon}" type="image/png">` : ''}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "${safeHeroName || pageTitle}",
+      "jobTitle": "${safeHeroTitle}",
+      "description": "${pageDescription.replace(/"/g, '\\"')}",
+      "image": "${pageImage}"
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     ${fontsLink}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

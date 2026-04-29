@@ -1,4 +1,5 @@
 import { uploadService } from './apiService';
+import { compressImage } from '@/utils/image';
 
 export interface UploadResult {
   publicId: string;
@@ -9,12 +10,23 @@ export interface UploadResult {
 
 export const cloudinaryService = {
   /**
-   * Upload a file to Cloudinary
+   * Upload a file to Cloudinary with optional compression for images
    */
   uploadFile: async (file: File): Promise<UploadResult> => {
     try {
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
+      let fileToUpload = file;
+
+      // Compress if it's an image
+      if (file.type.startsWith('image/')) {
+        try {
+          fileToUpload = await compressImage(file);
+        } catch (err) {
+          console.warn('Compression failed, uploading original:', err);
+        }
+      }
+
+      // Check file size (max 10MB after compression)
+      if (fileToUpload.size > 10 * 1024 * 1024) {
         throw new Error('File size exceeds 10MB limit');
       }
 
@@ -24,7 +36,7 @@ export const cloudinaryService = {
         throw new Error('File type not supported. Please upload images, PDFs, or text files.');
       }
 
-      const response = await uploadService.uploadFile(file);
+      const response = await uploadService.uploadFile(fileToUpload);
      
       const url = response.secure_url || response.url || response.SecureURL || response.URL;
       const publicId = response.public_id || response.PublicID;

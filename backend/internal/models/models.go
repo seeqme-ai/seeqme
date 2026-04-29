@@ -39,6 +39,8 @@ type User struct {
 	GitHubPAT              string             `bson:"githubPat,omitempty" json:"-"`
 	PromptCount            int                `bson:"promptCount" json:"promptCount"`         // For Free Plan limits
 	DeploymentCount        int                `bson:"deploymentCount" json:"deploymentCount"` // For Free Plan limits
+	IsMock                 bool               `bson:"isMock" json:"isMock"`
+	FCMToken               string             `bson:"fcmToken,omitempty" json:"fcmToken,omitempty"`
 }
 
 type Portfolio struct {
@@ -237,4 +239,97 @@ type Deployment struct {
 	Error       string             `bson:"error,omitempty" json:"error,omitempty"`
 	StartedAt   time.Time          `bson:"startedAt" json:"startedAt"`
 	CompletedAt time.Time          `bson:"completedAt,omitempty" json:"completedAt,omitempty"`
+}
+
+// ── Social Feature Models ──
+
+type SocialNode struct {
+	ID         string   `bson:"_id" json:"id"`
+	Name       string   `bson:"name" json:"name"`
+	Role       string   `bson:"role" json:"role"`
+	Similarity int      `bson:"similarity" json:"similarity"`
+	Avatar     string   `bson:"avatar" json:"avatar"`
+	Group      int      `bson:"group" json:"group"`
+	Skills     []string `bson:"skills" json:"skills"`
+}
+
+type Connection struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FromUserID   primitive.ObjectID `bson:"fromUserId" json:"fromUserId"`
+	ToUserID     primitive.ObjectID `bson:"toUserId" json:"toUserId"`
+	Status       string             `bson:"status" json:"status"` // "pending", "accepted", "blocked"
+	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+
+type LinkPreview struct {
+	URL         string `json:"url" bson:"url"`
+	Title       string `json:"title" bson:"title"`
+	Description string `json:"description" bson:"description"`
+	Image       string `json:"image" bson:"image"`
+	SiteName    string `json:"siteName" bson:"siteName"`
+}
+
+type Comment struct {
+	ID        primitive.ObjectID  `json:"id" bson:"_id"`
+	PostID    primitive.ObjectID  `json:"postId" bson:"postId"`
+	ParentID  *primitive.ObjectID `json:"parentId,omitempty" bson:"parentId,omitempty"`
+	AuthorID  primitive.ObjectID  `json:"authorId" bson:"authorId"`
+	Author    string              `json:"author" bson:"author"`
+	Avatar    string              `json:"avatar" bson:"avatar"`
+	Content   string              `json:"content" bson:"content"`
+	CreatedAt time.Time           `json:"createdAt" bson:"createdAt"`
+}
+
+type Post struct {
+	ID             primitive.ObjectID  `json:"id" bson:"_id"`
+	AuthorID       primitive.ObjectID  `json:"authorId" bson:"authorId"`
+	OriginalPostID *primitive.ObjectID `json:"originalPostId,omitempty" bson:"originalPostId,omitempty"`
+	Author         string              `json:"author" bson:"author"`
+	Role           string              `json:"role" bson:"role"`
+	Location       string              `json:"location" bson:"location"`
+	Avatar         string              `json:"avatar" bson:"avatar"`
+	Similarity     int                 `json:"similarity" bson:"similarity"`
+	Content        string              `json:"content" bson:"content"`
+	Tag            string              `json:"tag" bson:"tag"`
+	Media          string              `json:"media" bson:"media"`
+	Link           string              `json:"link" bson:"link"`
+	LinkPreview    *LinkPreview        `json:"linkPreview" bson:"linkPreview"`
+	Likes          int                 `json:"likes" bson:"likes"`
+	Comments       []Comment           `json:"comments" bson:"comments"`
+	Reposts        int                 `json:"reposts" bson:"reposts"`
+	SavedBy        []string            `json:"savedBy" bson:"savedBy"`
+	IsMock         bool                `json:"isMock" bson:"isMock"`
+	Slug           string              `json:"slug" bson:"slug"`
+	SEOTitle       string              `json:"seoTitle" bson:"seoTitle"`
+	SEODesc        string              `json:"seoDesc" bson:"seoDesc"`
+	Timestamp      string              `json:"timestamp" bson:"timestamp"`
+	CreatedAt      time.Time           `json:"createdAt" bson:"createdAt"`
+}
+
+type Notification struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID    primitive.ObjectID `bson:"userId" json:"userId"`
+	FromID    primitive.ObjectID `bson:"fromId" json:"fromId"`
+	FromName  string             `bson:"fromName" json:"fromName"`
+	Type      string             `bson:"type" json:"type"` // "like", "comment", "repost", "connect_request", "connect_accept"
+	PostID    *primitive.ObjectID `bson:"postId,omitempty" json:"postId,omitempty"`
+	Message   string             `bson:"message" json:"message"`
+	IsRead    bool               `bson:"isRead" json:"isRead"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+}
+
+type TrendingItem struct {
+	ID    primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Tag   string             `bson:"tag" json:"tag"`
+	Posts int                `bson:"posts" json:"posts"`
+}
+
+type SuggestedUser struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name       string             `bson:"name" json:"name"`
+	Role       string             `bson:"role" json:"role"`
+	Location   string             `bson:"location" json:"location"`
+	Avatar     string             `bson:"avatar" json:"avatar"`
+	Similarity int                `bson:"similarity" json:"similarity"`
 }

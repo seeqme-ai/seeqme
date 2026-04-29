@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Calendar, Loader, MoreVertical, ExternalLink,
   Trash2, Edit3, BarChart3, Globe, Layers, Zap,
-  Plus, MousePointer2, RefreshCw
+  Plus, RefreshCw, ArrowUpRight, Clock, CheckCircle2,
+  AlertCircle, FileCode2, CreditCard,
 } from 'lucide-react';
 import { Portfolio } from '../types';
 import { portfolioService, subscriptionService, deploymentService, sessionService } from '../services/apiService';
@@ -14,16 +15,195 @@ import SuccessDrawer from '../components/SuccessDrawer';
 import { Helmet } from 'react-helmet-async';
 import DashboardLayout from '../components/DashboardLayout';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger, DropdownMenuSeparator,
 } from '../components/ui/dropdown-menu';
 import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 import ConnectDomainModal from '../components/ConnectDomainModal';
+import BusinessCardModal from '../components/BusinessCardModal';
 import { Skeleton } from '../components/ui/skeleton';
+
+const STATUS_CONFIG = {
+  completed: {
+    label: 'Live',
+    dot: 'bg-emerald-500',
+    badge: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+    icon: <CheckCircle2 className="w-3 h-3" />,
+  },
+  failed: {
+    label: 'Failed',
+    dot: 'bg-red-500',
+    badge: 'text-red-600 bg-red-50 border-red-100',
+    icon: <AlertCircle className="w-3 h-3" />,
+  },
+  draft: {
+    label: 'Draft',
+    dot: 'bg-slate-400',
+    badge: 'text-slate-500 bg-slate-50 border-slate-200',
+    icon: <FileCode2 className="w-3 h-3" />,
+  },
+};
+
+const PortfolioCard: React.FC<{
+  portfolio: Portfolio;
+  idx: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  onAnalytics: () => void;
+  onConnectDomain: () => void;
+  onRollback: () => void;
+  onSwapTemplate: () => void;
+  onCard: () => void;
+}> = ({ portfolio: p, idx, onEdit, onDelete, onAnalytics, onConnectDomain, onRollback, onSwapTemplate, onCard }) => {
+  const statusKey = (p.status === 'completed' ? 'completed' : p.status === 'failed' ? 'failed' : 'draft') as keyof typeof STATUS_CONFIG;
+  const status = STATUS_CONFIG[statusKey];
+  const liveUrl = p.customDomain ? `https://${p.customDomain}` : p.subdomain ? `https://${p.subdomain}.seeqme.com` : null;
+
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ delay: idx * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative flex flex-col bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-900/6 hover:border-slate-200 transition-all duration-400"
+    >
+      {/* Preview area */}
+      <div className="relative h-40 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-100 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:20px_20px]" />
+
+        {/* Color accent based on status */}
+        <div className={`absolute top-0 right-0 w-48 h-48 -mr-16 -mt-16 rounded-full blur-3xl opacity-30 ${p.status === 'completed' ? 'bg-teal-400' : p.status === 'failed' ? 'bg-red-400' : 'bg-slate-300'}`} />
+
+        {/* Center icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+            <Globe className={`w-7 h-7 ${p.status === 'completed' ? 'text-teal-500' : 'text-slate-300'}`} />
+          </div>
+        </div>
+
+        {/* Top-left: status badge */}
+        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${status.badge}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+          {status.label}
+        </div>
+
+        {/* Top-right: More menu */}
+        <div className="absolute top-2.5 right-2.5">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/80 hover:bg-white border border-slate-100 shadow-sm backdrop-blur-sm">
+                <MoreVertical className="w-4 h-4 text-slate-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 p-1.5 rounded-2xl bg-white border border-slate-100 shadow-2xl shadow-slate-900/10">
+              <DropdownMenuItem onClick={onEdit} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
+                <Edit3 className="w-4 h-4 text-teal-600 shrink-0" /> Edit portfolio
+              </DropdownMenuItem>
+              {p.status === 'completed' && (
+                <DropdownMenuItem onClick={onAnalytics} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
+                  <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" /> View analytics
+                </DropdownMenuItem>
+              )}
+              {p.status === 'completed' && !p.customDomain && (
+                <DropdownMenuItem onClick={onConnectDomain} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
+                  <Globe className="w-4 h-4 text-violet-600 shrink-0" /> Connect a domain
+                </DropdownMenuItem>
+              )}
+              {p.status === 'completed' && p.hasPreviousVersion && (
+                <DropdownMenuItem onClick={onRollback} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
+                  <RefreshCw className="w-4 h-4 text-amber-600 shrink-0" /> Rollback version
+                </DropdownMenuItem>
+              )}
+              {p.status === 'completed' && (
+                <DropdownMenuItem onClick={onSwapTemplate} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
+                  <Layers className="w-4 h-4 text-indigo-600 shrink-0" /> Change template
+                </DropdownMenuItem>
+              )}
+              {p.status === 'completed' && (
+                <DropdownMenuItem onClick={onCard} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer text-sm font-medium text-slate-700">
+                  <CreditCard className="w-4 h-4 text-teal-600 shrink-0" /> Business card & QR
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator className="my-1 bg-slate-100" />
+              <DropdownMenuItem onClick={onDelete} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 cursor-pointer text-sm font-medium text-red-500">
+                <Trash2 className="w-4 h-4 shrink-0" /> Delete project
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Live link quick-access */}
+        {liveUrl && (
+          <a
+            href={liveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-full opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300 shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            Visit site <ArrowUpRight className="w-3 h-3" />
+          </a>
+        )}
+      </div>
+
+      {/* Card body */}
+      <div className="flex flex-col flex-1 p-5">
+        <h3 className="text-base font-bold text-slate-900 mb-1 truncate leading-tight">
+          {p.name}
+        </h3>
+
+        <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium mb-5 truncate">
+          <Globe className="w-3 h-3 shrink-0" />
+          <span className="truncate">
+            {p.customDomain || (p.subdomain ? `${p.subdomain}.seeqme.com` : 'Not yet published')}
+          </span>
+        </div>
+
+        {/* Meta */}
+        <div className="flex items-center gap-4 pb-4 border-b border-slate-50 mb-4 text-xs text-slate-400 font-medium">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{new Date(p.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+          {p.status === 'completed' && (
+            <div className="flex items-center gap-1 text-teal-600">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Live</span>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2.5">
+          <button
+            onClick={onEdit}
+            className="flex-1 h-10 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all active:scale-95"
+          >
+            Edit
+          </button>
+          {liveUrl ? (
+            <a
+              href={liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-1.5 h-10 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 uppercase tracking-wide transition-all"
+            >
+              View Live <ExternalLink className="w-3 h-3" />
+            </a>
+          ) : (
+            <button
+              onClick={onEdit}
+              className="flex-1 h-10 border border-slate-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wide transition-all"
+            >
+              Publish
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.article>
+  );
+};
 
 const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }> = ({ onNew, onEdit }) => {
   const navigate = useNavigate();
@@ -34,51 +214,37 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteInFlightRef = useRef(false);
   const [connectDomainPortfolio, setConnectDomainPortfolio] = useState<Portfolio | null>(null);
-
+  const [cardPortfolio, setCardPortfolio] = useState<Portfolio | null>(null);
   const [isDeployDrawerOpen, setIsDeployDrawerOpen] = useState(false);
   const [deployStatus, setDeployStatus] = useState<'deploying' | 'completed' | 'failed'>('deploying');
   const [deployUrl, setDeployUrl] = useState('');
   const [deployDomain, setDeployDomain] = useState('');
   const [deployLogs, setDeployLogs] = useState<string[]>([]);
-  const [rollbackPortfolio, setRollbackPortfolio] = useState<Portfolio | null>(null); // Added for rollback session recovery
 
   useEffect(() => {
     fetchPortfolios();
     fetchSubscription();
-
-    // Check for active sessions (deployment/rollback) to resume
     const checkActiveSession = async () => {
       try {
         const activeSession = await sessionService.getActiveSession();
-        if (activeSession && activeSession.status === 'active' && (activeSession.type === 'deployment' || activeSession.type === 'rollback')) {
-          setRollbackPortfolio({ id: activeSession.portfolioId } as any); // Assuming this is for the portfolio being rolled back
-          setDeployStatus('deploying'); // Using deployStatus for rollback status
-          setDeployLogs(activeSession.logs.map((l: string) => l.replace(/\[.*?\] /, ''))); // Using deployLogs for rollback logs
-          setIsDeployDrawerOpen(true); // Using isDeployDrawerOpen for success drawer
-
-          // Subscribe to the recovered session for live updates
+        if (activeSession?.status === 'active' && (activeSession.type === 'deployment' || activeSession.type === 'rollback')) {
+          setDeployStatus('deploying');
+          setDeployLogs(activeSession.logs.map((l: string) => l.replace(/\[.*?\] /, '')));
+          setIsDeployDrawerOpen(true);
           socketService.subscribeToSession(activeSession.id);
         }
-      } catch (err) {
-        console.log("No active dashboard session.");
-      }
+      } catch { /* no active session */ }
     };
     checkActiveSession();
   }, [navigate]);
 
   const fetchSubscription = async () => {
-    try {
-      const data = await subscriptionService.getSubscription();
-      setSubscription(data);
-    } catch (err) { console.error(err); }
+    try { setSubscription(await subscriptionService.getSubscription()); } catch { /* ignore */ }
   };
 
   const fetchPortfolios = async () => {
-    try {
-      setLoading(true);
-      const data = await portfolioService.getPortfolios();
-      setPortfolios(data.portfolios || []);
-    } finally { setLoading(false); }
+    try { setLoading(true); const data = await portfolioService.getPortfolios(); setPortfolios(data.portfolios || []); }
+    finally { setLoading(false); }
   };
 
   const handleDelete = async (id: string) => {
@@ -89,80 +255,42 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
       await portfolioService.deletePortfolio(id);
       setPortfolios(prev => prev.filter(p => p.id !== id));
       setDeleteConfirm(null);
-      toast.success('Project deleted');
+      toast.success('Project permanently deleted.');
     } catch (error: any) {
       if (error?.response?.status === 404) {
-        // Idempotent UX: if already gone, keep local state consistent.
         setPortfolios(prev => prev.filter(p => p.id !== id));
         setDeleteConfirm(null);
-        toast.success('Project already deleted.');
-      } else {
-        toast.error('Could not delete project.');
-      }
-    } finally {
-      setIsDeleting(false);
-      deleteInFlightRef.current = false;
-    }
+        toast.success('Project removed.');
+      } else { toast.error('Could not delete this project. Please try again.'); }
+    } finally { setIsDeleting(false); deleteInFlightRef.current = false; }
   };
 
   const handleConnectDomainClick = (p: Portfolio) => {
-    // Plan validation
-    const currentPlan = subscription?.planId?.toLowerCase() || 'free';
-    const canConnect = currentPlan === 'pro' || currentPlan === 'premium';
-
-    if (!canConnect) {
-      toast.error('Upgrade Required', {
-        description: 'Custom domains are available on the Pro and Premium plans.',
-        action: {
-          label: 'View Plans',
-          onClick: () => navigate('/plans')
-        }
+    const plan = subscription?.planId?.toLowerCase() || 'free';
+    if (plan !== 'pro' && plan !== 'premium') {
+      toast.error('Custom domains require a Pro or Premium plan.', {
+        action: { label: 'Upgrade', onClick: () => navigate('/plans') },
       });
       return;
     }
-
     setConnectDomainPortfolio(p);
   };
 
   const handleRollback = async (p: Portfolio) => {
     if (!p.id) return;
-
     try {
       setDeployStatus('deploying');
-      setDeployLogs(['Initiating rollback...']);
+      setDeployLogs(['Initiating rollback…']);
       setDeployDomain(p.subdomain || '');
       setIsDeployDrawerOpen(true);
-
-      // Connect socket and listen for this portfolio
       socketService.connect();
       socketService.subscribeToPortfolio(p.id);
-
       socketService.setCallbacks(
-        // onLog
-        (log: any) => {
-          const msg = log.message || (typeof log === 'string' ? log : '');
-          if (msg) setDeployLogs(prev => [...prev, msg]);
-        },
-        // onComplete
-        (data: any) => {
-          setDeployUrl(data.url);
-          setDeployStatus('completed');
-          fetchPortfolios(); // Refresh list to show updated version
-          toast.success('Rollback completed successfully');
-          socketService.unsubscribeFromPortfolio(p.id!);
-        },
-        // onFailure
-        (error: any) => {
-          setDeployStatus('failed');
-          toast.error(`Rollback failed: ${error.message || 'Unknown error'}`);
-          socketService.unsubscribeFromPortfolio(p.id!);
-        }
+        (log: any) => { const msg = log.message || (typeof log === 'string' ? log : ''); if (msg) setDeployLogs(prev => [...prev, msg]); },
+        (data: any) => { setDeployUrl(data.url); setDeployStatus('completed'); fetchPortfolios(); toast.success('Rollback successful'); socketService.unsubscribeFromPortfolio(p.id!); },
+        (error: any) => { setDeployStatus('failed'); toast.error(`Rollback failed: ${error.message || 'Unknown error'}`); socketService.unsubscribeFromPortfolio(p.id!); }
       );
-
-      // Trigger the rollback
       await deploymentService.rollbackDeployment(p.id);
-      setDeployLogs(prev => [...prev, 'Rollback request sent to server.']);
-
     } catch (err: any) {
       setIsDeployDrawerOpen(false);
       toast.error(`Rollback failed: ${err.message || 'Could not initiate rollback'}`);
@@ -172,74 +300,28 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="max-w-7xl mx-auto py-4 pb-24 space-y-12">
-          {/* ENHANCED SKELETON HEADER */}
-          <header className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-48 sm:w-64 rounded-xl bg-zinc-200/80" />
-              <div className="flex gap-2">
-                <Skeleton className="h-5 w-24 rounded-lg bg-zinc-100" />
-                <Skeleton className="h-5 w-32 rounded-lg bg-teal-500/10" />
-              </div>
+        <div className="max-w-7xl mx-auto py-6 pb-24 space-y-10">
+          <div className="flex justify-between items-end">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48 rounded-xl bg-slate-100" />
+              <Skeleton className="h-4 w-64 rounded-lg bg-slate-50" />
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-              <div className="flex items-center gap-4 px-6 py-4 bg-white/50 backdrop-blur-md border border-zinc-100/80 rounded-[1.25rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] w-full sm:w-auto">
-                <div className="sm:pr-4 sm:border-r sm:border-zinc-100 space-y-2">
-                  <Skeleton className="h-3 w-12 rounded-full bg-zinc-200/50" />
-                  <Skeleton className="h-5 w-20 rounded-lg bg-zinc-200/80" />
-                </div>
-                <Skeleton className="h-10 w-28 rounded-xl bg-teal-500/10 ml-auto sm:ml-0 delay-75 animate-pulse" />
-              </div>
-              <Skeleton className="h-[72px] w-full sm:w-36 rounded-[1.25rem] bg-indigo-500/5 delay-150 animate-pulse" />
+            <div className="flex gap-3">
+              <Skeleton className="h-12 w-36 rounded-2xl bg-slate-100" />
+              <Skeleton className="h-12 w-36 rounded-2xl bg-teal-100" />
             </div>
-          </header>
-
-          {/* ENHANCED SKELETON GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="group relative flex flex-col bg-white border border-zinc-100/80 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-5 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-                {/* Decorative background glow */}
-                <div className={`absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full blur-3xl opacity-20 ${i % 3 === 0 ? 'bg-teal-500' : i % 3 === 1 ? 'bg-blue-500' : 'bg-purple-500'}`} />
-
-                {/* Card Preview Area */}
-                <div className="relative h-36 sm:h-48 w-full rounded-[1.25rem] bg-zinc-50 border border-zinc-100/50 mb-5 overflow-hidden flex items-center justify-center">
-                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-                  <div className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center bg-white shadow-sm border border-zinc-100">
-                    <Skeleton className="w-8 h-8 rounded-full bg-zinc-200/80 animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-3xl border border-slate-100 overflow-hidden bg-white">
+                <Skeleton className="h-40 w-full bg-slate-50" />
+                <div className="p-5 space-y-3">
+                  <Skeleton className="h-5 w-3/4 rounded-lg bg-slate-100" />
+                  <Skeleton className="h-3.5 w-1/2 rounded-md bg-slate-50" />
+                  <div className="flex gap-2.5 pt-2">
+                    <Skeleton className="flex-1 h-10 rounded-xl bg-teal-50" />
+                    <Skeleton className="flex-1 h-10 rounded-xl bg-slate-50" />
                   </div>
-                  <div className="absolute bottom-3 right-3">
-                    <Skeleton className="w-10 h-10 rounded-xl bg-zinc-200/60" />
-                  </div>
-                </div>
-
-                <div className="px-1 flex-1">
-                  <div className="flex justify-between items-start mb-4 gap-2">
-                    <Skeleton className="h-5 w-20 rounded-full bg-zinc-100" />
-                    <Skeleton className="h-8 w-8 rounded-full bg-zinc-100" />
-                  </div>
-
-                  <Skeleton className="h-7 w-[85%] mb-2 rounded-lg bg-zinc-200/80" />
-
-                  <div className="flex items-center gap-2 mb-6 mt-3">
-                    <Skeleton className="w-3.5 h-3.5 rounded-full flex-shrink-0 bg-teal-500/20" />
-                    <Skeleton className="h-4 w-48 rounded-md bg-zinc-100" />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 py-4 border-t border-zinc-100/80 mt-auto">
-                    <div className="space-y-2">
-                      <Skeleton className="h-2.5 w-14 rounded-sm bg-zinc-200/50" />
-                      <div className="flex items-center gap-2">
-                        <Skeleton className="w-4 h-4 rounded-md flex-shrink-0 bg-zinc-100" />
-                        <Skeleton className="h-3 w-20 rounded-sm bg-zinc-200/70" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex gap-3">
-                  <Skeleton className="flex-1 h-11 sm:h-12 rounded-xl bg-teal-500/10" style={{ animationDelay: `${(i * 100) + 50}ms` }} />
-                  <Skeleton className="flex-1 h-11 sm:h-12 rounded-xl bg-zinc-100" style={{ animationDelay: `${(i * 100) + 150}ms` }} />
                 </div>
               </div>
             ))}
@@ -252,235 +334,139 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   return (
     <DashboardLayout>
       <Helmet>
-        <title>Dashboard - SeeqMe AI</title>
-        <meta name="description" content="Manage all your AI-generated portfolios, track their performance, and customize your projects on SeeqMe AI." />
-        <meta property="og:title" content="Dashboard - SeeqMe AI" />
-        <meta property="og:description" content="Manage all your AI-generated portfolios, track their performance, and customize your projects on SeeqMe AI." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://seeqme.com/dashboard" />
+        <title>Dashboard — SeeqMe AI</title>
+        <meta name="description" content="Manage your AI-generated portfolios, track performance, and publish your professional presence." />
       </Helmet>
-      <div className="max-w-7xl mx-auto py-4 pb-24 space-y-12">
 
-        {/* ENHANCED RESPONSIVE HEADER */}
-        <header className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-3">
-            <h1 className="text-3xl font-black text-slate-900 leading-none">
-              Your <span className="bg-clip-text">Portfolios</span>
+      <div className="max-w-7xl mx-auto py-6 pb-28 space-y-10">
+
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Your Portfolios
             </h1>
-            <p className="text-slate-500 font-medium max-w-md">
-              You have <span className="text-slate-900 font-bold">{portfolios.length} projects</span> in your workshop.
+            <p className="text-sm text-slate-400 font-medium mt-1">
+              {portfolios.length === 0
+                ? 'No projects yet — create your first one below.'
+                : `${portfolios.length} project${portfolios.length !== 1 ? 's' : ''} in your workspace`}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            {/* Plan Status + Upgrade - now fully responsive */}
-            <div className="flex items-center gap-4 px-4 py-3 bg-white/50 backdrop-blur-md border border-slate-200 rounded-xl shadow-sm w-full sm:w-auto">
-              <div className="sm:pr-4 sm:border-r sm:border-slate-200">
-                <p className="text-[10px] text-slate-400 font-bold uppercase italic leading-none">Status</p>
-                <p className="text-sm font-black text-slate-800 uppercase">{subscription?.planId || 'Free'}</p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            {/* Plan badge */}
+            <div className="flex items-center gap-3 px-5 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Current plan</p>
+                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">{subscription?.planId || 'Free'}</p>
               </div>
-              <Button
+              <button
                 onClick={() => navigate('/plans')}
-                variant="ghost"
-                className="h-9 rounded-xl hover:bg-teal-50 text-teal-600 font-bold text-xs uppercase ml-auto sm:ml-0"
+                className="flex items-center gap-1.5 ml-2 px-3.5 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors"
               >
-                Upgrade <Zap className="w-3 h-3 ml-1 fill-current" />
-              </Button>
+                <Zap className="w-3 h-3" /> Upgrade
+              </button>
             </div>
 
-            {/* Create New Button - full width on mobile for better touch target */}
-            <Button
+            {/* Create new */}
+            <button
               onClick={onNew}
-              className="h-14 px-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-500/10 group transition-all duration-300 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl text-sm font-bold shadow-lg shadow-teal-600/15 active:scale-95 transition-all w-full sm:w-auto"
             >
-              <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
-              <span className="font-bold">Create New</span>
-            </Button>
+              <Plus className="w-5 h-5" />
+              New Portfolio
+            </button>
           </div>
         </header>
 
-        {/* Rest of the component remains unchanged */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence mode='popLayout'>
+        {/* Portfolio grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode="popLayout">
             {portfolios.map((p, idx) => (
-              <motion.div
+              <PortfolioCard
                 key={p.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: idx * 0.05 }}
-                whileHover={{ y: -8 }}
-                className="group relative flex flex-col bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3 sm:p-4 transition-all duration-300 hover:shadow-xl hover:border-teal-500/30 overflow-hidden"
-              >
-                {/* Decorative Background Gradient */}
-                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl group-hover:bg-teal-500/10 transition-colors" />
-
-                {/* Card Preview Area */}
-                <div className="relative h-32 sm:h-44 w-full rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-100 mb-4 sm:mb-6 overflow-hidden flex items-center justify-center">
-                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-slate-100/50 to-slate-200/20" />
-                  <div className="relative z-10 w-12 sm:w-16 h-12 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                    <Globe className="w-6 sm:w-8 h-6 sm:h-8 text-slate-300 group-hover:text-teal-500 transition-colors" />
-                  </div>
-
-                  {/* Floating Action Buttons */}
-                  <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 flex gap-1 sm:gap-2 transition-all duration-300">
-                    {p.subdomain && (
-                      <a href={`https://${p.subdomain}.seeqme.com`} target="_blank" className="p-2 sm:p-3 backdrop-blur-sm rounded-lg sm:rounded-xl bg-teal-600 text-white transition-colors hover:bg-teal-700">
-                        <ExternalLink className="w-3 sm:w-4 h-3 sm:h-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                <div className="px-2 sm:px-3 flex-1">
-                  <div className="flex justify-between items-start mb-3 sm:mb-4 gap-2">
-                    <Badge className={`rounded-full px-2 sm:px-3 py-0.5 sm:py-1 font-bold text-[9px] sm:text-[10px] uppercase flex-shrink-0 ${p.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'failed' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                      {p.status === 'completed' ? '• Published' : p.status === 'failed' ? '• Failed' : '• Draft'}
-                    </Badge>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-slate-100 flex-shrink-0">
-                          <MoreVertical className="w-3 sm:w-4 h-3 sm:h-4 text-slate-400" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 sm:w-56 p-2 rounded-xl sm:rounded-2xl bg-white shadow-2xl">
-                        <DropdownMenuItem onClick={() => onEdit(p)} className="flex p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
-                          <Edit3 className="w-4 h-4 text-teal-600 flex-shrink-0" /> <span className="font-semibold">Edit</span>
-                        </DropdownMenuItem>
-                        {p.status === 'completed' &&
-                          <DropdownMenuItem onClick={() => navigate(`/portfolio/${p.id}/analytics`)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
-                            <BarChart3 className="w-4 h-4 text-blue-600 flex-shrink-0" /> <span className="font-semibold">Analytics</span>
-                          </DropdownMenuItem>
-                        }
-                        {p.status === 'completed' && !p.customDomain && (
-                          <DropdownMenuItem onClick={() => handleConnectDomainClick(p)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
-                            <Globe className="w-4 h-4 text-teal-600 flex-shrink-0" /> <span className="font-semibold">Connect Domain</span>
-                          </DropdownMenuItem>
-                        )}
-                        {p.status === 'completed' && p.hasPreviousVersion && (
-                          <DropdownMenuItem onClick={() => handleRollback(p)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
-                            <RefreshCw className="w-4 h-4 text-amber-600 flex-shrink-0" /> <span className="font-semibold">Rollback</span>
-                          </DropdownMenuItem>
-                        )}
-                        {p.status === 'completed' && <DropdownMenuItem onClick={() => navigate(`/portfolio/${p.id}/template-preview`)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-slate-50 cursor-pointer text-sm ">
-                          <Layers className="w-4 h-4 text-indigo-600 flex-shrink-0" /> <span className="font-semibold">Swap Template</span>
-                        </DropdownMenuItem>
-                        }
-                        <DropdownMenuSeparator className="my-2" />
-                        <DropdownMenuItem onClick={() => setDeleteConfirm(p.id!)} className="flex gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl focus:bg-red-50 text-red-500 focus:text-red-500 cursor-pointer text-sm ">
-                          <Trash2 className="w-4 h-4 flex-shrink-0" /> <span className="font-semibold">Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <h3 className="text-base sm:text-xl font-black text-slate-900 mb-1 truncate group-hover:text-teal-600 transition-colors">
-                    {p.name}
-                  </h3>
-
-                  <div className="flex items-center gap-1 sm:gap-1.5 text-slate-400 text-[11px] sm:text-xs font-semibold mb-4 sm:mb-6 truncate">
-                    <MousePointer2 className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">{p.customDomain || (p.subdomain ? `${p.subdomain}.seeqme.com` : 'No domain assigned')}</span>
-                  </div>
-
-                  {/* QUICK STATS */}
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4 py-3 sm:py-4 border-t border-slate-100">
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400">Created</p>
-                      <div className="flex items-center gap-1 text-slate-700 font-bold text-[11px] sm:text-xs">
-                        <Calendar className="w-3 h-3 text-teal-500 flex-shrink-0" />
-                        {new Date(p.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 sm:mt-4 flex gap-2">
-                  <Button
-                    onClick={() => onEdit(p)}
-                    className="flex-1 h-9 sm:h-12 rounded-lg sm:rounded-2xl bg-teal-600 text-white border border-teal-600 font-bold text-[11px] sm:text-xs uppercase hover:bg-teal-600 transition-all"
-                  >
-                    Customise
-                  </Button>
-
-                  {p.customDomain && (
-                    <a
-                      href={`https://${p.customDomain}`}
-                      target="_blank"
-                      className="flex-1 flex items-center justify-center gap-1 sm:gap-2 h-9 sm:h-12 rounded-lg sm:rounded-2xl bg-teal-600 text-white font-bold text-[11px] sm:text-xs uppercase hover:bg-teal-700 transition-all"
-                    >
-                      View Live <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-              </motion.div>
+                portfolio={p}
+                idx={idx}
+                onEdit={() => onEdit(p)}
+                onDelete={() => setDeleteConfirm(p.id!)}
+                onAnalytics={() => navigate(`/portfolio/${p.id}/analytics`)}
+                onConnectDomain={() => handleConnectDomainClick(p)}
+                onRollback={() => handleRollback(p)}
+                onSwapTemplate={() => navigate(`/portfolio/${p.id}/template-preview`)}
+                onCard={() => setCardPortfolio(p)}
+              />
             ))}
           </AnimatePresence>
 
-          {/* EMPTY STATE */}
+          {/* Empty state */}
           {portfolios.length === 0 && (
-            <div className="col-span-full py-12 sm:py-20 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 rounded-2xl sm:rounded-[3rem] bg-slate-50/50">
-              <div className="relative mb-6 sm:mb-8">
-                <div className="w-16 sm:w-24 h-16 sm:h-24 bg-white rounded-xl sm:rounded-[2rem] shadow-2xl flex items-center justify-center relative z-10">
-                  <Layers className="w-8 sm:w-10 h-8 sm:h-10 text-teal-500 animate-pulse" />
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50/50">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-white rounded-3xl shadow-xl border border-slate-100 flex items-center justify-center">
+                  <Layers className="w-9 h-9 text-teal-400" />
                 </div>
-                <div className="absolute inset-0 bg-teal-500/20 blur-3xl rounded-full" />
+                <div className="absolute inset-0 bg-teal-400/15 rounded-full blur-2xl" />
               </div>
-              <h2 className="text-sm sm:text-base text-slate-900 mb-3 sm:mb-4">Your canvas is empty</h2>
-
-              <Button
+              <h2 className="text-xl font-black text-slate-900 mb-2">Start your professional presence</h2>
+              <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
+                Upload your CV or describe what you do — AI builds your portfolio in under a minute.
+              </p>
+              <button
                 onClick={onNew}
-                size="lg"
-                className="h-10 sm:h-14 px-6 sm:px-10 rounded-lg sm:rounded-2xl bg-teal-600 text-white text-sm sm:text-base font-bold hover:shadow-lg hover:shadow-teal-500/30 transition-all"
+                className="flex items-center gap-2 px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl text-sm font-bold shadow-xl shadow-teal-600/15 active:scale-95 transition-all"
               >
-                Launch Portfolio
-              </Button>
+                <Plus className="w-4 h-4" />
+                Create My Portfolio
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* DELETE MODAL */}
+      {/* Delete confirmation modal */}
       <AnimatePresence>
         {deleteConfirm && (
-          <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-slate-900/40">
+          <div className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white p-6 sm:p-10 rounded-xl sm:rounded-[2.5rem] border border-slate-200 max-w-md w-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25)]"
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 300 }}
+              className="bg-white rounded-3xl border border-slate-100 max-w-sm w-full p-8 shadow-2xl shadow-slate-900/20"
             >
-              <div className="w-12 sm:w-16 h-12 sm:h-16 bg-red-50 rounded-lg sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
-                <Trash2 className="w-6 sm:w-8 h-6 sm:h-8 text-red-500" />
+              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-5">
+                <Trash2 className="w-6 h-6 text-red-500" />
               </div>
-              <h4 className="text-lg sm:text-2xl font-black text-slate-900 mb-2">Delete Project?</h4>
-              <p className="text-sm sm:text-base text-slate-500 font-medium mb-6 sm:mb-8 leading-relaxed">
-                This will permanently erase <span className="font-bold text-slate-900">all assets</span> and your public URL. This action is irreversible.
+              <h4 className="text-xl font-black text-slate-900 mb-2">Delete this project?</h4>
+              <p className="text-sm text-slate-500 font-medium mb-7 leading-relaxed">
+                This will permanently remove the portfolio, its files, and your public URL. <span className="text-slate-800 font-bold">This cannot be undone.</span>
               </p>
-              <div className="flex gap-3 sm:gap-4">
-                <Button
-                  variant="ghost"
+              <div className="flex gap-3">
+                <button
                   onClick={() => setDeleteConfirm(null)}
                   disabled={isDeleting}
-                  className="flex-1 h-10 sm:h-14 rounded-lg sm:rounded-2xl font-bold text-slate-500 hover:bg-slate-100 text-sm sm:text-base"
+                  className="flex-1 h-12 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
-                  Keep Project
-                </Button>
-                <Button
+                  Keep it
+                </button>
+                <button
                   onClick={() => handleDelete(deleteConfirm)}
                   disabled={isDeleting}
-                  className="flex-1 h-10 sm:h-14 rounded-lg sm:rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 shadow-lg shadow-red-500/20 text-sm sm:text-base"
+                  className="flex-1 h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isDeleting ? 'Deleting...' : 'Confirm Delete'}
-                </Button>
+                  {isDeleting ? <><Loader className="w-4 h-4 animate-spin" /> Deleting…</> : 'Yes, delete'}
+                </button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
+      <BusinessCardModal
+        isOpen={!!cardPortfolio}
+        onClose={() => setCardPortfolio(null)}
+        portfolio={cardPortfolio!}
+      />
 
       <ConnectDomainModal
         isOpen={!!connectDomainPortfolio}

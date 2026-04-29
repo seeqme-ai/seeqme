@@ -1,122 +1,119 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Zap, ShieldCheck, Globe, MousePointer2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const MotionDiv = motion.div as any;
+const MotionSpan = motion.span as any;
+
+const TICKER_ITEMS = [
+  '2,400+ portfolios deployed',
+  'Average 47 seconds to live',
+  'Indexed by Google on day one',
+  'Custom domains on every plan',
+  'AI-written copy, zero blanks',
+  'SSL-secured out of the box',
+];
+
+const PROOF_AVATARS = ['bg-teal-400', 'bg-violet-400', 'bg-sky-400', 'bg-amber-400', 'bg-rose-400'];
 
 const HeroSection = () => {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.12, delayChildren: 0.2 },
-        },
-    };
+  const [tickerIndex, setTickerIndex] = useState(0);
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 40, rotateX: 45 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            rotateX: 0,
-            transition: { type: "spring", damping: 12, stiffness: 100 }
-        },
-    };
+  useEffect(() => {
+    const t = setInterval(() => setTickerIndex(i => (i + 1) % TICKER_ITEMS.length), 2800);
+    return () => clearInterval(t);
+  }, []);
 
-    return (
-        <section className="relative flex flex-col items-center justify-center overflow-hidden py-20 px-4">
+  return (
+    <section className="relative flex flex-col items-center justify-center text-center pt-20 pb-4 px-4 w-full overflow-hidden">
 
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        rotate: [0, 90, 0],
-                        opacity: [0.3, 0.5, 0.3]
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] bg-teal-500/20 rounded-full blur-[120px]"
-                />
-            </div>
+      {/* Ambient background glows */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-teal-500/[0.07] rounded-full blur-[140px]" />
+        <div className="absolute top-24 -left-48 w-80 h-80 bg-violet-500/[0.05] rounded-full blur-[100px]" />
+        <div className="absolute top-24 -right-48 w-80 h-80 bg-sky-500/[0.05] rounded-full blur-[100px]" />
+      </div>
 
+      {/* Live status ticker */}
+      <MotionDiv
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+        className="mb-10 inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white border border-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+      >
+        <span className="relative flex items-center justify-center w-2 h-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-60" />
+          <span className="relative w-2 h-2 rounded-full bg-teal-500" />
+        </span>
+        <AnimatePresence mode="wait">
+          <MotionSpan
+            key={tickerIndex}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.25 }}
+            className="text-xs font-semibold text-slate-600 tabular-nums min-w-[220px] text-left"
+          >
+            {TICKER_ITEMS[tickerIndex]}
+          </MotionSpan>
+        </AnimatePresence>
+      </MotionDiv>
 
-            <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
-                <FloatingChip icon={<Zap className="w-4 h-4" />} text="AI Optimized" top="15%" left="5%" delay={0} />
-                <FloatingChip icon={<ShieldCheck className="w-4 h-4" />} text="SEO Ready" top="50%" left="10%" delay={1} />
-                <FloatingChip icon={<Globe className="w-4 h-4" />} text="Custom Domains" top="30%" right="5%" delay={0.5} />
-                <FloatingChip icon={<MousePointer2 className="w-4 h-4" />} text="Drag & Drop" bottom="15%" right="0" delay={1.5} />
-            </div>
+      {/* Main headline */}
+      <motion.h1
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="text-5xl sm:text-6xl md:text-[6vw] lg:text-[5.5vw] font-black tracking-[-0.04em] leading-[0.88] mb-6 text-slate-900 max-w-5xl mx-auto"
+      >
+        From résumé
+        <br />
+        to{' '}
+        <span className="text-transparent bg-clip-text bg-gradient-to-br from-teal-500 to-teal-700">
+          live portfolio
+        </span>
+        <br />
+        in 60 seconds.
+      </motion.h1>
 
+      {/* Subheadline */}
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="text-lg md:text-xl text-slate-500 font-medium max-w-lg mx-auto leading-relaxed"
+      >
+        Upload your CV. Pick your style. Let AI craft a stunning portfolio and deploy it — live on the web, instantly.
+      </motion.p>
 
-            <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="relative z-20 text-center max-w-6xl mx-auto"
-            >
-
-                <h1 className="text-5xl md:text-[7vw] font-black tracking-tighter leading-[0.85] mb-8 uppercase text-slate-900">
-                    Build your <br />
-                    <span className="relative">
-                        <span className="text-transparent bg-clip-text bg-teal-600">
-                            Identity
-                        </span>
-                        <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
-                            <path d="M1 11C50 3.5 150 3.5 299 11" stroke="url(#paint0_linear)" strokeWidth="3" strokeLinecap="round" />
-                            <defs>
-                                <linearGradient id="paint0_linear" x1="1" y1="11" x2="299" y2="11" gradientUnits="userSpaceOnUse">
-                                    <stop stopColor="#0D9488" stopOpacity="0" />
-                                    <stop offset="0.5" stopColor="#0D9488" />
-                                    <stop offset="1" stopColor="#0D9488" stopOpacity="0" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </span>
-                    <br /> in Minutes
-                </h1>
-
-                <motion.p
-                    variants={itemVariants}
-                    className="text-lg md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed"
-                >
-                    The <span className="text-slate-900  font-bold">AI-native</span> designer that  craft a professional identity that stands out and get you hired
-                </motion.p>
-
-
-                {/* <motion.div variants={itemVariants} className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-6">
-
-
-                    <div className="flex items-center -space-x-3">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="w-10 h-10 rounded-full border-2 border-white  bg-slate-200" />
-                        ))}
-                        <p className="ml-4 text-sm font-bold text-slate-400">
-                            Joined by <span className="text-slate-900 ">2,400+</span> creators
-                        </p>
-                    </div>
-                </motion.div> */}
-            </motion.div>
-        </section>
-    );
+      {/* Social proof row */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.55, duration: 0.5 }}
+        className="mt-8 flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex -space-x-2">
+            {PROOF_AVATARS.map((c, i) => (
+              <div key={i} className={`w-7 h-7 rounded-full ${c} border-2 border-white shadow-sm`} />
+            ))}
+          </div>
+          <span className="text-sm text-slate-500 font-medium">
+            Trusted by <span className="text-slate-900 font-bold">2,400+</span> professionals
+          </span>
+        </div>
+        <div className="hidden sm:block w-px h-5 bg-slate-200" />
+        <div className="flex items-center gap-1.5">
+          {[1,2,3,4,5].map(i => (
+            <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          ))}
+          <span className="text-sm text-slate-500 font-medium ml-1">4.9 out of 5</span>
+        </div>
+      </motion.div>
+    </section>
+  );
 };
-
-// Sub-component for those floating "substance" chips
-const FloatingChip = ({ icon, text, top, left, right, bottom, delay }: any) => (
-    <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{
-            opacity: 1,
-            scale: 1,
-            y: [0, -15, 0]
-        }}
-        transition={{
-            opacity: { duration: 0.5, delay },
-            scale: { duration: 0.5, delay },
-            y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay }
-        }}
-        style={{ position: 'absolute', top, left, right, bottom }}
-        className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-xl border border-white/20 rounded-xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] z-10"
-    >
-        <div className="text-teal-500">{icon}</div>
-        <span className="text-xs font-bold text-slate-700 whitespace-nowrap">{text}</span>
-    </motion.div>
-);
 
 export default HeroSection;

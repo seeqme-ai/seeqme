@@ -67,7 +67,7 @@ const AnalyticsDashboard: React.FC = () => {
                 }
             } catch (err) {
                 console.error("Failed to initialize analytics", err);
-                setError('Failed to extract node telemetry');
+                setError('Could not load analytics. Please try again.');
             } finally {
                 setLoading(false);
             }
@@ -237,7 +237,7 @@ const AnalyticsDashboard: React.FC = () => {
             <div className="h-full flex flex-col items-center justify-center gap-4 text-rose-500">
                 <Activity className="w-12 h-12 opacity-20" />
                 <p className="text-sm font-black  ">{error}</p>
-                <button onClick={() => navigate('/dashboard')} className="text-xs font-bold underline opacity-60">Return to Grid</button>
+                <button onClick={() => navigate('/dashboard')} className="text-xs font-bold underline opacity-60">Back to Dashboard</button>
             </div>
         </DashboardLayout>
     );
@@ -250,7 +250,7 @@ const AnalyticsDashboard: React.FC = () => {
         name,
         value,
         fill: idx === 0 ? '#14b8a6' : idx === 1 ? '#0d9488' : idx === 2 ? '#0f766e' : '#115e59'
-    })).sort((a, b) => b.value - a.value).slice(0, 5);
+    })).sort((a: any, b: any) => (b.value as number) - (a.value as number)).slice(0, 5);
 
     // Extract Cloudflare stats
     const cfStats = data?.cloudflare?.data?.viewer?.accounts?.[0]?.pagesProjects?.[0]?.analytics1dGroups || [];
@@ -323,8 +323,7 @@ const AnalyticsDashboard: React.FC = () => {
                             <TrendingUp className="w-4 h-4" />
                             Live Insights
                         </div>
-                        <h1 className="text-3xl font-bold text-zinc-900">
-                        </h1>
+                        <h1 className="text-3xl font-bold text-zinc-900">Analytics</h1>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -368,7 +367,8 @@ const AnalyticsDashboard: React.FC = () => {
                             <Activity className="w-10 h-10 text-teal-500/20" />
                         </div>
                         <div className="max-w-xs mx-auto">
-                            <h3 className="text-xl font-bold mb-2">Awaiting Telemetry...</h3>
+                            <h3 className="text-xl font-bold mb-2">No data yet</h3>
+                            <p className="text-sm text-zinc-500">Once your portfolio receives visitors, your analytics will appear here.</p>
                         </div>
                     </div>
                 ) : (
@@ -506,12 +506,12 @@ const AnalyticsDashboard: React.FC = () => {
                                                 <div className="h-1.5 w-16 bg-zinc-100 rounded-full overflow-hidden">
                                                     <div
                                                         className="h-full bg-teal-500"
-                                                        style={{ width: `${(country.value / countryData[0].value) * 100}%` }}
+                                                        style={{ width: `${((country.value as number) / (countryData[0].value as number)) * 100}%` }}
                                                     />
                                                 </div>
                                             </div>
                                         )) : (
-                                            <p className="text-xs text-zinc-400 italic text-center py-10">Awaiting geo-location pings...</p>
+                                            <p className="text-xs text-zinc-400 italic text-center py-10">No location data yet — check back after your first visitors.</p>
                                         )}
                                     </div>
                                 </GlassCard>
@@ -520,7 +520,7 @@ const AnalyticsDashboard: React.FC = () => {
                                     <div className="grid grid-cols-3 gap-3 mt-6">
                                         {['Desktop', 'Mobile', 'Tablet'].map((type) => {
                                             const count = data.deviceTypes?.[type] || 0;
-                                            const total = Object.values(data.deviceTypes || {}).reduce((a, b) => a + b, 0) || 1;
+                                            const total = (Object.values(data.deviceTypes || {}) as number[]).reduce((a, b) => a + b, 0) || 1;
                                             const perc = Math.round((count / total) * 100);
                                             return (
                                                 <div key={type} className="bg-zinc-50 p-4 rounded-2xl text-center border border-zinc-100 transition-transform hover:scale-105">

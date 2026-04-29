@@ -1,16 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "../../../context/auth-context";
 import { motion } from "framer-motion";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useMutation } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
+import { Loader, CheckCircle2, ArrowRight } from "lucide-react";
 import { GoogleLogin } from '@react-oauth/google';
 import apiClient from "@/services/apiService";
 
@@ -24,6 +20,12 @@ const forgotPassword = async (email: string) => {
   return data;
 };
 
+const TRUST_POINTS = [
+  '2,400+ professionals trust SeeqMe',
+  'Average 47 seconds from CV to live site',
+  'Google-indexed on day one',
+];
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +38,7 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
+    onSuccess: () => {
       login(email, password);
       toast.success("Logged in successfully!");
       const redirect = searchParams.get("redirect");
@@ -53,13 +55,12 @@ export default function LoginPage() {
       return data;
     },
     onSuccess: (data) => {
-
       localStorage.setItem("token", data.token);
       window.location.href = searchParams.get("redirect") || "/dashboard";
-      toast.success("Successfully Authenticated!");
+      toast.success("Successfully authenticated!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Google Login verification failed.");
+      toast.error(error.response?.data?.error || "Google login failed.");
     },
   });
 
@@ -79,148 +80,198 @@ export default function LoginPage() {
     loginMutation.mutate({ email, password });
   };
 
-
-
   const handleForgotPassword = (e: React.FormEvent) => {
     e.preventDefault();
     forgotPasswordMutation.mutate(forgotPasswordEmail);
   };
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: -50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   return (
-    <div className="flex relative min-h-screen ">
-      {/* Left side: Auth Form */}
-      <div className="flex-1 flex items-center justify-center z-10">
+    <div className="flex min-h-screen">
+
+      {/* ── LEFT — Brand panel ── */}
+      <div
+        className="hidden lg:flex relative w-[44%] flex-col overflow-hidden"
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 30% 40%, rgba(20,184,166,0.12) 0%, transparent 65%), #020817' }}
+      >
+        {/* Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        {/* Extra glow */}
+        <div className="absolute top-2/3 -right-20 w-64 h-64 bg-violet-500/[0.06] rounded-full blur-[100px]" />
+
+        <div className="relative flex flex-col justify-between h-full p-12 z-10">
+
+          {/* Logo */}
+          <div className='text-white font-bold flex items-center gap-2'>
+            <img src="/seeqme-logo-white.png" alt="SeeqMe" className="h-7 w-auto" />
+            SeeqMe
+          </div>
+
+          {/* Center */}
+          <div>
+            <h2 className="text-4xl font-black text-white leading-[1.05] tracking-tight mb-5">
+              Your career.
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-br from-teal-400 to-teal-600">
+                Live. In 60 seconds.
+              </span>
+            </h2>
+            <p className="text-slate-400 text-base font-medium mb-10 leading-relaxed max-w-xs">
+              AI-crafted portfolio websites, deployed globally, indexed by Google from the moment you publish.
+            </p>
+
+            <div className="flex flex-col gap-3.5">
+              {TRUST_POINTS.map((txt, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm text-slate-400">
+                  <div className="w-5 h-5 rounded-full bg-teal-500/15 border border-teal-500/20 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-teal-400" />
+                  </div>
+                  {txt}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <p className="text-xs text-slate-700 font-medium">
+            © 2026 SeeqMe AI. All rights reserved.
+          </p>
+        </div>
+      </div>
+
+      {/* ── RIGHT — Form panel ── */}
+      <div className="flex-1 flex items-center justify-center bg-white px-6 py-12">
         <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-[400px]"
         >
-          <Card className="border-none shadow-none  overflow-hidden">
-            <CardHeader className="space-y-1 p-6">
-              <CardTitle className="text-2xl font-bold text-center bg-clip-text ">Welcome Back</CardTitle>
-              <CardDescription className="text-gray-400 text-center">Sign in to your account</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <GoogleLogin
-                onSuccess={(credentialResponse) => {
-                  if (credentialResponse.credential) {
-                    verifyGoogleTokenMutation.mutate(credentialResponse.credential);
-                  }
-                }}
-                onError={() => {
-                  toast.error('Google Login Failed');
-                }}
+
+          {/* Mobile logo */}
+          <div className="font-bold item-center text-2xl lg:hidden mb-8 flex justify-center">
+            <img src="/seeqme-logo-black.png" alt="SeeqMe" className="h-8 w-auto" />
+            seeqMe
+          </div>
+
+          <div className="mb-8">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back</h1>
+            <p className="text-sm text-slate-500 font-medium mt-1.5">Sign in to your SeeqMe account</p>
+          </div>
+
+          {/* Google */}
+          <div className="mb-5">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse.credential) {
+                  verifyGoogleTokenMutation.mutate(credentialResponse.credential);
+                }
+              }}
+              onError={() => toast.error('Google Login Failed')}
+              width="368"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="relative mb-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-100" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                or continue with email
+              </span>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                required
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@example.com"
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:bg-white transition-all"
               />
+            </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-700" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-black px-2 text-white">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-600">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@example.com"
-                    required
-                    autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="border-gray-700 h-12  placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-600">Password</Label>
-                  <PasswordInput
-                    id="password"
-                    required
-                    autoFocus
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="border-gray-700 h-12  placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-                <Button type="submit" className="w-full text-white px-16 py-6 bg-teal-500 hover:bg-teal-600 rounded-[30px] text-xs transition-all shadow-2xl" disabled={loginMutation.isPending}>
-                  {loginMutation.isPending ? <Loader className="animate-spin" /> : "Login"}
-                </Button>
-              </form>
-
-              <div className="text-center text-sm text-gray-600">
-                Don't have an account?{" "}
-                <Link to="/auth/signup" className="text-teal-600 hover:underline">
-                  Sign up
-                </Link>
-              </div>
-              <div className="text-center text-sm">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700">Password</label>
                 <Dialog open={isForgotPasswordModalOpen} onOpenChange={setIsForgotPasswordModalOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="link" className="text-teal-600 hover:underline p-0 h-auto">Forgot Password?</Button>
+                    <button type="button" className="text-xs text-teal-600 hover:text-teal-700 font-semibold transition-colors">
+                      Forgot password?
+                    </button>
                   </DialogTrigger>
-                  <DialogContent className="border-gray-800 bg-white rounded-lg p-6">
+                  <DialogContent className="bg-white border-slate-100 rounded-2xl p-7 max-w-sm shadow-2xl shadow-slate-900/10">
                     <DialogHeader>
-                      <DialogTitle className="text-2xl font-bold text-center">Reset Password</DialogTitle>
-                      <DialogDescription className="text-gray-600 text-center">Enter your email to receive a password reset link.</DialogDescription>
+                      <DialogTitle className="text-xl font-black text-slate-900">Reset your password</DialogTitle>
+                      <DialogDescription className="text-slate-500 text-sm mt-1">
+                        Enter your email and we'll send a reset link right away.
+                      </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleForgotPassword} className="space-y-4 py-4">
-                      <Label htmlFor="forgot-email" className="text-gray-600 mb-2">Email</Label>
-                      <Input
-                        id="forgot-email"
-                        type="email"
-                        placeholder="your@gmail.com"
-                        required
-                        value={forgotPasswordEmail}
-                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                        className="border-gray-700 h-12  placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
-                      <DialogFooter className="flex-col sm:flex-col gap-2">
-                        <Button type="submit" className="w-full px-16 py-6 bg-teal-500 hover:bg-teal-600 text-white rounded-[30px] text-xs  transition-all shadow-2xl" disabled={forgotPasswordMutation.isPending}>
-                          {forgotPasswordMutation.isPending ? <Loader className="animate-spin" /> : "Send Reset Link"}
-                        </Button>
-
+                    <form onSubmit={handleForgotPassword} className="space-y-4 mt-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+                        <input
+                          type="email"
+                          required
+                          value={forgotPasswordEmail}
+                          onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                          placeholder="your@example.com"
+                          className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 transition-all"
+                        />
+                      </div>
+                      <DialogFooter>
+                        <button
+                          type="submit"
+                          disabled={forgotPasswordMutation.isPending}
+                          className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {forgotPasswordMutation.isPending ? <Loader className="w-4 h-4 animate-spin" /> : 'Send reset link'}
+                        </button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
                 </Dialog>
               </div>
-            </CardContent>
-          </Card>
+              <PasswordInput
+                id="password"
+                required
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 focus:bg-white transition-all"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loginMutation.isPending}
+              className="w-full h-12 mt-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/8 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loginMutation.isPending ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <>Sign in <ArrowRight className="w-4 h-4" /></>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-slate-500 font-medium mt-7">
+            Don't have an account?{' '}
+            <Link
+              to={`/auth/signup${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}
+              className="text-teal-600 hover:text-teal-700 font-bold transition-colors"
+            >
+              Create one free
+            </Link>
+          </p>
         </motion.div>
       </div>
-
-      {/* Right side: Image */}
-      <motion.div
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0, transition: { duration: 0.5, delay: 0.2 } }}
-        className="hidden lg:flex relative flex-1 items-center justify-center p-8 bg-black"
-      >
-        <img
-          src="/sideImg.jpg"
-          alt="Login Illustration"
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
-        />
-
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent z-10"></div> {/* Black overlay at bottom */}
-
-        <div className="relative z-20 text-white text-center flex flex-col items-center justify-center p-8">
-          <img src='/seeqme-logo-white.png' className="w-20" alt='SEEQME LOGO' />
-          <h2 className="text-3xl font-bold mb-4">GET SEEN, GET HIRED</h2>
-
-        </div>
-      </motion.div>
     </div>
   );
 }

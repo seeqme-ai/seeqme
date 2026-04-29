@@ -215,12 +215,7 @@ const ChatBot: React.FC = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => {setIsOpen(false);window.dispatchEvent(new Event('open-hire-expert'))}}
-                                    className="bg-white text-teal-600 px-3 py-1 text-[10px] font-bold uppercase rounded-lg hover:bg-teal-50 transition-colors flex items-center gap-1 shadow-sm"
-                                >
-                                    <Code2 className="w-3 h-3" /> Hire a Designer
-                                </button>
+                              
                                 <button
                                     onClick={() => setIsExpanded(!isExpanded)}
                                     className="p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90"

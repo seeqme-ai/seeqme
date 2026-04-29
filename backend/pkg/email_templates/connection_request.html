@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>New Connection Request</title>
+<style>
+    body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+    .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; overflow: hidden; }
+    .hero { padding: 36px 40px; text-align: center; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+    .logo { height: 32px; margin-bottom: 20px; }
+    h1 { font-size: 24px; color: #0f172a; margin: 0; }
+    .content { padding: 36px 40px; text-align: center; }
+    .button { display: inline-block; background-color: #0f766e; color: #ffffff !important; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; }
+    .footer { padding: 24px; text-align: center; background-color: #f9fafb; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <img src="https://seeqme.com/seeqme-logo-black.png" alt="SeeqMe" class="logo" />
+        <h1>Someone wants to <span style="color: #0f766e">connect</span>!</h1>
+    </div>
+    <div class="content">
+        <p>Hi there,</p>
+        <p><strong>{{.FullName}}</strong> has sent you a connection request on the SeeqMe Mesh. Expanding your network helps you discover new opportunities and creative collaborations.</p>
+        <a href="{{.ActionLink}}" class="button">View Request</a>
+    </div>
+    <div class="footer">
+        <p>&copy; {{.Year}} SeeqMe. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

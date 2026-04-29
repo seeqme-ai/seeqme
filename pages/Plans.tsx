@@ -1,285 +1,370 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ICONS } from '../constants';
 import { configService, subscriptionService } from '../services/apiService';
 import { PaystackButton } from 'react-paystack';
 import { useAuth } from '../context/auth-context';
 import { toast } from 'sonner';
-import { Loader } from 'lucide-react';
+import { Loader, Check, X as XIcon, Zap, Globe, BarChart3, Shield, Headphones, Code2 } from 'lucide-react';
 
 const MotionDiv = motion.div as any;
 
 interface Plan {
-    id: string;
-    name: string;
-    price: {
-        usd: number;
-        ngn: number;
-    };
-    features: string[];
-    recommended?: boolean;
-    limits: {
-        portfolios: number;
-        customDomain: boolean;
-    };
+  id: string;
+  name: string;
+  tagline: string;
+  price: { usd: number; ngn: number };
+  features: { text: string; included: boolean }[];
+  recommended?: boolean;
+  cta: string;
+  limits: { portfolios: number; customDomain: boolean };
 }
 
-const DEFAULT_PLANS: Plan[] = [
-    {
-        id: 'pro',
-        name: 'Professional',
-        price: { usd: 3, ngn: 2000 },
-        recommended: true,
-        features: [
-            '1 Portfolio Project',
-            'Advanced Customization',
-            'Priority Support',
-            'Custom Domain Connection',
-            'Unlimited AI Re-generations',
-            'SEO Optimization Tools',
-            'SeeqMe Branding'
-        ],
-        limits: { portfolios: 1, customDomain: true }
-    },
-    {
-        id: 'premium',
-        name: 'Premium',
-        price: { usd: 5, ngn: 5000 },
-        features: [
-            '5 Portfolios',
-            'White-label Solution',
-            '24/7 Dedicated Support',
-            'Multiple Custom Domains',
-            'Advanced Analytics (Visitor Tracking)',
-            'Priority Feature Access',
-            'API Access'
-        ],
-        limits: { portfolios:5, customDomain: true }
-    }
+const FREE_PLAN: Plan = {
+  id: 'free',
+  name: 'Free',
+  tagline: 'Build your identity. Enter the mesh.',
+  price: { usd: 0, ngn: 0 },
+  cta: 'Get started free',
+  features: [
+    { text: '1 portfolio (draft only)', included: true },
+    { text: 'AI-generated copy & design', included: true },
+    { text: 'All template styles', included: true },
+    { text: 'Browse the mesh', included: true },
+    { text: 'Publish to seeqme.com', included: false },
+    { text: 'Mesh node — discoverable', included: false },
+    { text: 'Custom domain', included: false },
+    { text: 'Visitor analytics', included: false },
+  ],
+  limits: { portfolios: 1, customDomain: false },
+};
+
+const DEFAULT_PAID_PLANS: Plan[] = [
+  {
+    id: 'pro',
+    name: 'Pro',
+    tagline: 'Live portfolio + full mesh presence.',
+    price: { usd: 3, ngn: 2000 },
+    recommended: true,
+    cta: 'Start Pro',
+    features: [
+      { text: '1 published portfolio', included: true },
+      { text: 'AI-generated copy & design', included: true },
+      { text: 'All template styles', included: true },
+      { text: 'Mesh node — fully discoverable', included: true },
+      { text: 'Published on seeqme.com', included: true },
+      { text: 'Custom domain + SSL', included: true },
+      { text: 'SEO + Google indexing', included: true },
+      { text: 'Visitor analytics', included: false },
+    ],
+    limits: { portfolios: 1, customDomain: true },
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    tagline: 'Maximum visibility across the mesh.',
+    price: { usd: 5, ngn: 5000 },
+    cta: 'Go Premium',
+    features: [
+      { text: '5 published portfolios', included: true },
+      { text: 'AI-generated copy & design', included: true },
+      { text: 'All template styles', included: true },
+      { text: 'Mesh node + priority ranking', included: true },
+      { text: 'Multiple custom domains + SSL', included: true },
+      { text: 'Advanced visitor analytics', included: true },
+      { text: 'Mesh insights — who found you', included: true },
+      { text: 'Remove SeeqMe branding', included: true },
+    ],
+    limits: { portfolios: 5, customDomain: true },
+  },
 ];
 
+const FEATURE_ICONS: Record<string, React.ReactNode> = {
+  'domain': <Globe className="w-4 h-4" />,
+  'analytics': <BarChart3 className="w-4 h-4" />,
+  'ssl': <Shield className="w-4 h-4" />,
+  'support': <Headphones className="w-4 h-4" />,
+  'api': <Code2 className="w-4 h-4" />,
+};
+
 const Plans: React.FC = () => {
-    const navigate = useNavigate();
-    const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-    const queryParams = new URLSearchParams(window.location.search);
-    const redirectUrl = queryParams.get('redirect');
-    const autoDeploy = queryParams.get('autoDeploy');
+  const queryParams = new URLSearchParams(window.location.search);
+  const redirectUrl = queryParams.get('redirect');
+  const autoDeploy = queryParams.get('autoDeploy');
 
-    const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
-    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [plans, setPlans] = useState<Plan[]>(DEFAULT_PLANS);
-    const [isLoadingPlans, setIsLoadingPlans] = useState(false);
-    const paystackPublicKey = import.meta.env.VITE_PAYSTACK_TEST_PK || 'pk_live_3c875aee389f6ee11841c33b6500adf5d94a8bff'
-        
-    useEffect(() => {
-        if (user?.country) {
-            setCurrency(user.country === 'Nigeria' ? 'NGN' : 'USD');
-        } else {
-            setCurrency('NGN');
-        }
-    }, [user?.country]);
+  const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [paidPlans, setPaidPlans] = useState<Plan[]>(DEFAULT_PAID_PLANS);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
-    useEffect(() => {
-        const loadPlans = async () => {
-            setIsLoadingPlans(true);
-            try {
-                const data = await configService.getPricing();
-                if (data?.pricingPlans?.length) {
-                    setPlans(data.pricingPlans);
-                } else {
-                    setPlans(DEFAULT_PLANS);
-                }
-            } catch {
-                setPlans(DEFAULT_PLANS);
-            } finally {
-                setIsLoadingPlans(false);
-            }
-        };
-        loadPlans();
-    }, []);
+  const paystackPublicKey = import.meta.env.VITE_PAYSTACK_TEST_PK || 'pk_live_3c875aee389f6ee11841c33b6500adf5d94a8bff';
 
-    const handlePaystackSuccess = async (reference: any, planId: string) => {
-        setIsSyncing(true);
-        const plan = plans.find(p => p.id === planId);
-        const basePrice = currency === 'USD' ? plan?.price.usd : plan?.price.ngn;
-        const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 12 : (basePrice || 0);
+  useEffect(() => {
+    setCurrency(user?.country === 'Nigeria' ? 'NGN' : 'USD');
+  }, [user?.country]);
 
-        try {
-            await subscriptionService.verifyPayment(
-                reference.reference,
-                planId,
-                'paystack',
-                billingCycle,
-                finalPrice,
-                currency
-            );
-            toast.success('Subscription activated successfully!');
-
-            if (redirectUrl) {
-                navigate(`${redirectUrl}${autoDeploy ? `?autoDeploy=${autoDeploy}` : ''}`);
-            } else {
-                navigate('/dashboard');
-            }
-        } catch (error) {
-            console.error("Verification failed", error);
-            toast.error('Payment successful but verification failed. Please contact support.');
-        } finally {
-            setIsSyncing(false);
-        }
+  useEffect(() => {
+    const loadPlans = async () => {
+      setIsLoadingPlans(true);
+      try {
+        const data = await configService.getPricing();
+        if (data?.pricingPlans?.length) setPaidPlans(data.pricingPlans);
+      } catch { /* use defaults */ } finally { setIsLoadingPlans(false); }
     };
+    loadPlans();
+  }, []);
 
-    const handlePaystackClose = () => {
-        toast.info('Payment cancelled');
-    };
+  const handlePaystackSuccess = async (reference: any, planId: string) => {
+    setIsSyncing(true);
+    const plan = paidPlans.find(p => p.id === planId);
+    const basePrice = currency === 'USD' ? plan?.price.usd : plan?.price.ngn;
+    const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 10 : (basePrice || 0);
+    try {
+      await subscriptionService.verifyPayment(reference.reference, planId, 'paystack', billingCycle, finalPrice, currency);
+      toast.success('Your subscription is now active — welcome to SeeqMe!');
+      navigate(redirectUrl ? `${redirectUrl}${autoDeploy ? `?autoDeploy=${autoDeploy}` : ''}` : '/dashboard');
+    } catch {
+      toast.error('Payment received but verification failed. Contact support with your reference.');
+    } finally { setIsSyncing(false); }
+  };
 
-    const handleSubscribe = (planId: string) => {
-        if (planId === 'free') {
-            navigate('/dashboard');
-            return;
-        }
-        if (!paystackPublicKey) {
-            toast.error('Payments are temporarily unavailable. Missing Paystack public key.');
-        }
-    };
+  const allPlans = [FREE_PLAN, ...paidPlans];
 
-    return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-teal-500/20">
-            {/* Header */}
-            <header className="fixed top-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/')}>
-                        <img src="/seeqme-logo-white.png" alt="SeeqMe" className="h-8 w-auto brightness-0" />
-                    </div>
-                    <button onClick={() => navigate('/dashboard')} className="p-2 rounded-full hover:bg-muted transition-colors">
-                        <ICONS.X className="w-6 h-6" />
-                    </button>
-                </div>
-            </header>
+  const getPlanPrice = (plan: Plan) => {
+    const base = currency === 'USD' ? plan.price.usd : plan.price.ngn;
+    return billingCycle === 'yearly' ? Math.round(base * 10) : base;
+  };
 
+  const formatPrice = (plan: Plan) => {
+    const p = getPlanPrice(plan);
+    if (p === 0) return 'Free';
+    return `${currency === 'USD' ? '$' : '₦'}${p.toLocaleString()}`;
+  };
 
-            <main className="flex-1 pt-32 pb-20 px-6">
-                {(isSyncing || isLoadingPlans) && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
-                        <div className="bg-white border border-border p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
-                            <Loader className="text-teal-500 animate-spin" />
-                            <div className="text-center">
-                                <h3 className="text-xl text-black font-bold">{isSyncing ? 'Verifying Payment...' : 'Loading Plans...'}</h3>
-                            </div>
-                        </div>
-                    </div>
-                )}
-                <div className="max-w-7xl mx-auto space-y-16">
-
-                    <div className="text-center space-y-6 max-w-3xl mx-auto">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-teal-500">Upgrade Your Presence</span>
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter uppercase leading-none">
-                            Professional Tools for <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-600">Global Impact</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium text-lg leading-relaxed">
-                            Unlock the full potential of your digital identity with advanced features, custom domains, and professional analytics.
-                        </p>
-
-                        {/* Billing Toggle */}
-                        <div className="flex items-center justify-center gap-6 pt-8">
-                            <span className={`text-xs font-bold uppercase tracking-widest ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
-                            <button
-                                onClick={() => setBillingCycle(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
-                                className="w-16 h-8 rounded-full bg-muted border border-border relative p-1 transition-colors"
-                            >
-                                <div className={`w-6 h-6 rounded-full bg-teal-500 shadow-md transform transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-8' : 'translate-x-0'}`} />
-                            </button>
-                            <span className={`text-xs font-bold uppercase tracking-widest ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                Yearly <span className="text-teal-500 text-[10px] ml-2">(SAVE 20%)</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Pricing Cards */}
-                    <div className="grid md:grid-cols-2 gap-8 items-start">
-                        {plans.map((plan) => {
-                            const isYearly = billingCycle === 'yearly';
-                            const basePrice = currency === 'USD' ? plan.price.usd : plan.price.ngn;
-                            const price = isYearly ? basePrice * 12 : basePrice; // Corrected: monthly_price * 12
-
-                            return (
-                                <MotionDiv
-                                    key={plan.id}
-                                    whileHover={{ y: -10 }}
-                                    className={`relative p-8 rounded-[32px] border ${plan.recommended ? 'border-teal-500/50 bg-teal-500/5 shadow-2xl shadow-teal-500/10' : 'border-border bg-card'} flex flex-col gap-8 transition-all`}
-                                >
-                                    {plan.recommended && (
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-teal-500 text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg">
-                                            Most Popular
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-4">
-                                        <h3 className="text-2xl font-black uppercase tracking-tighter">{plan.name}</h3>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-4xl font-bold tracking-tighter">
-                                                {currency === 'USD' ? '$' : '₦'}{price.toLocaleString()}
-                                            </span>
-                                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
-                                                /{isYearly ? 'yr' : 'mo'} {/* Corrected: 'yr' for yearly */}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4 flex-1">
-                                        {plan.features.map((feature, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-                                                <div className="w-5 h-5 rounded-full bg-teal-500/10 flex items-center justify-center shrink-0">
-                                                    <ICONS.Check className="w-3 h-3 text-teal-500" />
-                                                </div>
-                                                {feature}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="w-full">
-                                        {paystackPublicKey ? (
-                                            <PaystackButton
-                                                className={`w-full py-4 rounded-full text-xs font-bold transition-all active:scale-95 shadow-lg ${plan.recommended
-                                                    ? 'bg-teal-500 text-white hover:bg-teal-600'
-                                                    : 'bg-teal-500 text-white hover:bg-teal-500/90'
-                                                    }`}
-                                                publicKey={paystackPublicKey}
-                                                email={user?.email || ''}
-                                                amount={Math.round(price * 1.075 * 100)} // Paystack expects lowest currency unit with 7.5% VAT
-                                                currency={currency}
-                                                metadata={{
-                                                    custom_fields: [
-                                                        { display_name: "Plan", variable_name: "plan", value: plan.id }
-                                                    ]
-                                                }}
-                                                text={`Pay ${currency === 'USD' ? '$' : '₦'}${Math.round(price * 1.075).toLocaleString()}`}
-                                                onSuccess={(ref: any) => handlePaystackSuccess(ref, plan.id)}
-                                                onClose={handlePaystackClose}
-                                                onClick={() => handleSubscribe(plan.id)}
-                                            />
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleSubscribe(plan.id)}
-                                                className="w-full py-4 rounded-full text-xs font-bold shadow-lg bg-slate-300 text-slate-700 cursor-not-allowed"
-                                            >
-                                                Payment Unavailable
-                                            </button>
-                                        )}
-                                    </div>
-                                </MotionDiv>
-                            );
-                        })}
-                    </div>
-
-                </div>
-            </main>
-
+  return (
+    <div className="min-h-screen bg-[#fafafa] text-foreground flex flex-col font-sans">
+      <Helmet>
+        <title>Pricing — SeeqMe</title>
+        <meta name="description" content="Simple, transparent pricing for SeeqMe. Build your portfolio, enter the professional discovery mesh, and get found. Free to start." />
+        <link rel="canonical" href="https://seeqme.com/plans" />
+        <meta property="og:title" content="Pricing — SeeqMe AI Portfolio Builder" />
+        <meta property="og:description" content="Simple, transparent pricing for AI-generated portfolios. Free to start, upgrade when you need more." />
+        <meta property="og:url" content="https://seeqme.com/plans" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      {/* Overlay */}
+      {(isSyncing || isLoadingPlans) && (
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-[100] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
+            <p className="text-sm font-semibold text-slate-600">
+              {isSyncing ? 'Verifying your payment…' : 'Loading plans…'}
+            </p>
+          </div>
         </div>
-    );
+      )}
+
+      {/* Header */}
+      <header className="fixed top-0 w-full z-50 border-b border-slate-100 bg-white/90 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <img src="/seeqme-logo-white.png" alt="SeeqMe" className="h-7 w-auto brightness-0" />
+          </div>
+          <button onClick={() => navigate('/dashboard')} className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+            <ICONS.X className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 pt-28 pb-24 px-6">
+        <div className="max-w-6xl mx-auto space-y-16">
+
+          {/* Page heading */}
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-xs font-bold uppercase tracking-widest">
+              <Zap className="w-3 h-3" />
+              Simple pricing
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-tight">
+              Build your node.
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-700">
+                Own your discovery.
+              </span>
+            </h1>
+            <p className="text-slate-500 text-lg font-medium leading-relaxed">
+              No hidden fees. Cancel any time. Your portfolio and mesh presence, fully yours.
+            </p>
+
+            {/* Billing toggle */}
+            <div className="inline-flex items-center gap-4 mt-2 p-1.5 bg-slate-100 rounded-full">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${billingCycle === 'monthly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${billingCycle === 'yearly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
+              >
+                Yearly
+                <span className="px-1.5 py-0.5 rounded-full bg-teal-500 text-white text-[9px] font-black">SAVE 17%</span>
+              </button>
+            </div>
+
+            {/* Currency selector */}
+            <div className="flex items-center justify-center gap-3 mt-2">
+              {(['USD', 'NGN'] as const).map(c => (
+                <button
+                  key={c}
+                  onClick={() => setCurrency(c)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${currency === c ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                >
+                  {c === 'USD' ? '🇺🇸 USD' : '🇳🇬 NGN'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Plan cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {allPlans.map((plan, idx) => {
+              const displayPrice = getPlanPrice(plan);
+              const basePrice = currency === 'USD' ? plan.price.usd : plan.price.ngn;
+              const vatPrice = Math.round(displayPrice * 1.075);
+              const isFree = plan.id === 'free';
+
+              return (
+                <MotionDiv
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className={`relative flex flex-col rounded-3xl border p-8 transition-all ${
+                    plan.recommended
+                      ? 'bg-slate-900 border-slate-900 shadow-2xl shadow-slate-900/20 text-white'
+                      : 'bg-white border-slate-200 text-slate-900 shadow-sm hover:shadow-md'
+                  }`}
+                >
+                  {plan.recommended && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
+                      Most Popular
+                    </div>
+                  )}
+
+                  {/* Plan name + tagline */}
+                  <div className="mb-6">
+                    <h3 className={`text-lg font-black uppercase tracking-tight mb-1 ${plan.recommended ? 'text-white' : 'text-slate-900'}`}>
+                      {plan.name}
+                    </h3>
+                    <p className={`text-xs font-medium ${plan.recommended ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {plan.tagline}
+                    </p>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-8">
+                    <div className="flex items-baseline gap-1">
+                      <span className={`text-4xl font-black tracking-tight ${plan.recommended ? 'text-white' : 'text-slate-900'}`}>
+                        {formatPrice(plan)}
+                      </span>
+                      {!isFree && (
+                        <span className={`text-xs font-semibold ${plan.recommended ? 'text-slate-500' : 'text-slate-400'}`}>
+                          /{billingCycle === 'yearly' ? 'yr' : 'mo'}
+                        </span>
+                      )}
+                    </div>
+                    {!isFree && billingCycle === 'yearly' && (
+                      <p className={`text-xs font-medium mt-1 ${plan.recommended ? 'text-teal-400' : 'text-teal-600'}`}>
+                        = {currency === 'USD' ? '$' : '₦'}{basePrice.toLocaleString()}/mo — 2 months free
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <div className="flex-1 space-y-3 mb-8">
+                    {plan.features.map((f, i) => (
+                      <div key={i} className={`flex items-center gap-3 text-sm ${f.included ? (plan.recommended ? 'text-slate-200' : 'text-slate-700') : (plan.recommended ? 'text-slate-600' : 'text-slate-300')}`}>
+                        {f.included ? (
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.recommended ? 'bg-teal-500/20 text-teal-400' : 'bg-teal-50 text-teal-600'}`}>
+                            <Check className="w-3 h-3" />
+                          </div>
+                        ) : (
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.recommended ? 'bg-white/5' : 'bg-slate-50'}`}>
+                            <XIcon className="w-3 h-3" />
+                          </div>
+                        )}
+                        <span className={`font-medium ${!f.included ? 'line-through opacity-40' : ''}`}>{f.text}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  {isFree ? (
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${
+                        plan.recommended
+                          ? 'bg-teal-500 text-white hover:bg-teal-400'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {plan.cta}
+                    </button>
+                  ) : paystackPublicKey ? (
+                    <PaystackButton
+                      {...({
+                        className: `w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 ${plan.recommended ? 'bg-teal-500 text-white hover:bg-teal-400 shadow-lg shadow-teal-500/30' : 'bg-slate-900 text-white hover:bg-slate-800'}`,
+                        publicKey: paystackPublicKey,
+                        email: user?.email || '',
+                        amount: vatPrice * 100,
+                        currency,
+                        metadata: { custom_fields: [{ display_name: 'Plan', variable_name: 'plan', value: plan.id }] },
+                        text: plan.cta,
+                        onSuccess: (ref: any) => handlePaystackSuccess(ref, plan.id),
+                        onClose: () => toast.info('Payment cancelled'),
+                      } as any)}
+                    />
+                  ) : (
+                    <button disabled className="w-full py-3.5 rounded-2xl text-sm font-bold bg-slate-100 text-slate-400 cursor-not-allowed">
+                      Payments unavailable
+                    </button>
+                  )}
+
+                  {!isFree && (
+                    <p className={`text-center text-[10px] font-medium mt-3 ${plan.recommended ? 'text-slate-500' : 'text-slate-400'}`}>
+                      Includes 7.5% VAT · Cancel anytime
+                    </p>
+                  )}
+                </MotionDiv>
+              );
+            })}
+          </div>
+
+          {/* Trust row */}
+          <div className="flex flex-wrap items-center justify-center gap-8 text-xs text-slate-400 font-medium pt-4">
+            {[
+              { icon: <Shield className="w-4 h-4" />, label: 'Secured by Paystack' },
+              { icon: <Globe className="w-4 h-4" />, label: 'Global CDN delivery' },
+              { icon: <Zap className="w-4 h-4" />, label: 'Instant activation' },
+            ].map(({ icon, label }) => (
+              <div key={label} className="flex items-center gap-2">
+                <span className="text-slate-300">{icon}</span>
+                {label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 };
 
 export default React.memo(Plans);

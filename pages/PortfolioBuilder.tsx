@@ -78,6 +78,8 @@ const PortfolioBuilder: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(true);
+  const [isTerminalVisible, setIsTerminalVisible]     = useState(false);
+  const [isFloatingPromptVisible, setIsFloatingPromptVisible] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [refinementPrompt, setRefinementPrompt] = useState('');
@@ -480,7 +482,7 @@ const PortfolioBuilder: React.FC = () => {
     setIsIframeLoading(true);
     const template = publicTemplates.find(t => t.id === id);
     if (!template) {
-      addLog(`ERR_RESOLVE: Template ${id} not found.`, 'error');
+      addLog(`Template not found: ${id}`, 'error');
       setIsIframeLoading(false);
       setStatus('idle');
       return;
@@ -656,11 +658,11 @@ const PortfolioBuilder: React.FC = () => {
       setProgress(0);
 
       if (error.response && error.response.status === 402 && error.response.data && error.response.data.code === 'LIMIT_REACHED') {
-        addLog(`ERR_LIMIT: ${error.response.data.error}`, "error");
+        addLog(`Limit reached: ${error.response.data.error}`, "error");
         toast.error(error.response.data.error);
         navigate('/plans');
       } else {
-        addLog(`ERR_SYNTHESIS: ${error?.message || error}`, "error");
+        addLog(`Generation failed: ${error?.message || error}`, "error");
         toast.error(error?.message || 'Failed to generate portfolio');
       }
       setStatus('ready');
@@ -674,13 +676,13 @@ const PortfolioBuilder: React.FC = () => {
     setStatus('generating');
     setProgress(10);
     setIsTerminalCollapsed(false);
-    addLog('AI Protocol: Redesigning visual architecture...', 'info');
+    addLog('Starting redesign — keeping your content, refreshing the look...', 'info');
 
     const progressSteps = [
-      { p: 25, m: "Analyzing visual hierarchy...", t: 1500 },
-      { p: 50, m: "Synthesizing new design components...", t: 4000 },
-      { p: 75, m: "Re-rendering UI layout...", t: 7000 },
-      { p: 90, m: "Finalizing redesign polish...", t: 10000 }
+      { p: 25, m: "Reviewing your content and layout options...", t: 1500 },
+      { p: 50, m: "Selecting new design components...", t: 4000 },
+      { p: 75, m: "Assembling the new layout...", t: 7000 },
+      { p: 90, m: "Applying final polish...", t: 10000 }
     ];
 
     const timeouts: any[] = [];
@@ -706,19 +708,17 @@ const PortfolioBuilder: React.FC = () => {
     } catch (error: any) {
       timeouts.forEach(clearTimeout);
       setProgress(0);
-      addLog(`ERR_REDESIGN: ${error.message}`, 'error');
+      addLog(`Redesign failed: ${error.message}`, 'error');
       setStatus('ready');
 
-      // Fallback to local remix if AI fails
-      addLog(`LOCAL_REMIX_FB...`, 'info')
+      addLog('Switching to a different layout instead...', 'info');
 
       const currentIdx = layouts.indexOf(currentLayout);
       const nextIdx = (currentIdx + 1) % layouts.length;
       const newLayout = layouts[nextIdx];
       setCurrentLayout(newLayout);
       const template = publicTemplates.find(t => t.id === selectedTemplateId);
-      // Fallback: Generate valid HTML using the local engine if AI fails
-      addLog(`LOCAL_GEN_FB...`, 'info')
+      addLog('Generating layout locally...', 'info');
       const remixedHtml = generateTemplateHTML(newLayout, template?.niche || 'Engineering', currentTheme, data.structuredContent);
       setData({ ...data, html: remixedHtml, layout: newLayout });
     }
@@ -731,7 +731,7 @@ const PortfolioBuilder: React.FC = () => {
     const portfolioId = data.id.startsWith('portfolio-') ? null : data.id;
     if (portfolioId) {
       setStatus('generating');
-      addLog('AI Protocol: Reverting to previous artifact state...', 'info');
+      addLog('Reverting to your previous version...', 'info');
       try {
         const response = await portfolioService.undoPortfolio(portfolioId);
         // After undo, we need to refresh the portfolio data
@@ -753,7 +753,7 @@ const PortfolioBuilder: React.FC = () => {
         addLog(`Undo successful: Returned to version ${response.version}`, 'success');
         return;
       } catch (error: any) {
-        addLog(`ERR_UNDO: ${error?.message || 'Failed to revert'}`, 'error');
+        addLog(`Undo failed: ${error?.message || 'Could not revert'}`, 'error');
         setStatus('ready');
         // fall back to local history if backend undo fails
       }
@@ -845,7 +845,7 @@ const PortfolioBuilder: React.FC = () => {
       console.error('[PortfolioBuilder] Refinement failed:', error);
       timeouts.forEach(clearTimeout);
       setProgress(0);
-      addLog(`ERR_REFINE: ${error?.message || error || 'Unknown AI error'}`, 'error');
+      addLog(`Refinement failed: ${error?.message || 'Please try again'}`, 'error');
       setStatus('ready');
       toast.error(error?.message || 'Failed to refine portfolio');
     }
@@ -1405,7 +1405,7 @@ const PortfolioBuilder: React.FC = () => {
         onOpenEditor={() => setIsEditorOpen(true)}
       />
 
-      <div className="flex-1 mt-20 sm:mt-24 relative flex flex-col">
+      <div className="flex-1 mt-20 sm:mt-24 relative flex flex-col pl-12">
         <BuilderViewport
           status={status}
           data={data}
@@ -1421,22 +1421,32 @@ const PortfolioBuilder: React.FC = () => {
         isTemplateSelectorOpen={isTemplateSelectorOpen}
         onOpenTemplateSelector={() => setIsTemplateSelectorOpen(true)}
         onStartTour={() => setRunTour(true)}
+        onOpenEditor={() => setIsEditorOpen(true)}
+        onToggleFloatingPrompt={() => setIsFloatingPromptVisible(v => !v)}
+        onToggleTerminal={() => setIsTerminalVisible(v => !v)}
+        isFloatingPromptVisible={isFloatingPromptVisible}
+        isTerminalVisible={isTerminalVisible}
+        manifest={data?.structuredContent}
       />
 
-      <FloatingPromptInput
-        onSubmit={handleFloatingSubmit}
-        isGenerating={status === 'generating' || status === 'synthesizing'}
-        onToggleTerminal={() => setIsTerminalCollapsed(prev => !prev)}
-      />
+      {isFloatingPromptVisible && (
+        <FloatingPromptInput
+          onSubmit={handleFloatingSubmit}
+          isGenerating={status === 'generating' || status === 'synthesizing'}
+          onToggleTerminal={() => setIsTerminalCollapsed(prev => !prev)}
+        />
+      )}
 
-      <Terminal
-        logs={logs}
-        isCollapsed={isTerminalCollapsed}
-        onToggle={() => setIsTerminalCollapsed(!isTerminalCollapsed)}
-        code={data ? getUpdatedHtml(data) : ''}
-        onCodeChange={handleCodeUpdate}
-        isPaid={user?.subscription && user.subscription !== 'free'}
-      />
+      {isTerminalVisible && (
+        <Terminal
+          logs={logs}
+          isCollapsed={isTerminalCollapsed}
+          onToggle={() => setIsTerminalCollapsed(!isTerminalCollapsed)}
+          code={data ? getUpdatedHtml(data) : ''}
+          onCodeChange={handleCodeUpdate}
+          isPaid={user?.subscription && user.subscription !== 'free'}
+        />
+      )}
 
       <SectionEditor
         key={data?.id || 'editor'}
@@ -1516,7 +1526,7 @@ const PortfolioBuilder: React.FC = () => {
           navigate('/plans?redirect=/builder&autoDeploy=true');
         }}
       />
-      <Joyride
+      {/* <Joyride
         steps={TOUR_STEPS}
         run={runTour}
         continuous={true}
@@ -1568,7 +1578,7 @@ const PortfolioBuilder: React.FC = () => {
             color: '#0f172a'
           }
         }}
-      />
+      /> */}
     </div>
   );
 };

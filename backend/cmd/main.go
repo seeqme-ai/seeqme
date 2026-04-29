@@ -43,6 +43,14 @@ func main() {
 	backupWorker := services.NewBackupCleanupWorker()
 	go backupWorker.Start(context.Background())
 
+	// Start Sitemap worker
+	sitemapWorker := services.NewSitemapWorker(cfg.FrontendURL)
+	go sitemapWorker.Start(context.Background())
+
+	// Start Social Email batch worker
+	socialEmailWorker := services.NewSocialEmailWorker(cfg)
+	go socialEmailWorker.Start(context.Background())
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -95,6 +103,7 @@ func main() {
 			auth.POST("/login", h.Login)
 			auth.GET("/me", middleware.RequiredAuthMiddleware(), h.GetMe)
 			auth.PUT("/me", middleware.RequiredAuthMiddleware(), h.UpdateUser)
+			auth.POST("/fcm-token", middleware.RequiredAuthMiddleware(), h.UpdateFCMToken)
 			auth.GET("/google/login", h.GoogleLogin)
 			auth.GET("/google/callback", h.GoogleCallback)
 			auth.POST("/google/verify-token", h.VerifyGoogleIDToken)
@@ -174,6 +183,8 @@ func main() {
 			admin.POST("/templates", h.AdminCreateTemplate)
 			admin.PUT("/templates/:id", h.AdminUpdateTemplate)
 			admin.DELETE("/templates/:id", h.AdminDeleteTemplate)
+
+			admin.POST("/social/seed", h.SeedMockData)
 		}
 
 		subscription := api.Group("/subscription")
@@ -183,6 +194,30 @@ func main() {
 			subscription.POST("/verify", h.VerifySubscription)
 		}
 
+		social := api.Group("/social")
+		{
+			social.GET("/mesh/nodes", h.GetMeshNodes)
+			social.GET("/connections", middleware.RequiredAuthMiddleware(), h.GetConnections)
+			social.POST("/connections/request", middleware.RequiredAuthMiddleware(), h.SendConnectionRequest)
+			social.POST("/connections/:id/accept", middleware.RequiredAuthMiddleware(), h.AcceptConnectionRequest)
+			social.POST("/connections/:id/reject", middleware.RequiredAuthMiddleware(), h.RejectConnectionRequest)
+			social.GET("/notifications", middleware.RequiredAuthMiddleware(), h.GetNotifications)
+			social.POST("/notifications/read", middleware.RequiredAuthMiddleware(), h.MarkNotificationsRead)
+			social.GET("/feed", h.GetFeed)
+			social.GET("/feed/following", middleware.RequiredAuthMiddleware(), h.GetFollowingFeed)
+			social.GET("/feed/foryou", middleware.RequiredAuthMiddleware(), h.GetForYouFeed)
+			social.POST("/feed", middleware.RequiredAuthMiddleware(), h.CreatePost)
+			social.PUT("/feed/:id", middleware.RequiredAuthMiddleware(), h.UpdatePost)
+			social.DELETE("/feed/:id", middleware.RequiredAuthMiddleware(), h.DeletePost)
+			social.POST("/feed/:id/like", middleware.RequiredAuthMiddleware(), h.LikePost)
+			social.DELETE("/feed/:id/like", middleware.RequiredAuthMiddleware(), h.UnlikePost)
+			social.POST("/feed/:id/repost", middleware.RequiredAuthMiddleware(), h.RepostPost)
+			social.POST("/feed/:id/save", middleware.RequiredAuthMiddleware(), h.SavePost)
+			social.POST("/feed/:id/comment", middleware.RequiredAuthMiddleware(), h.CommentOnPost)
+			social.GET("/feed/post/:slug", h.GetPostBySlug)
+			social.GET("/trending", h.GetTrending)
+			social.GET("/suggested", h.GetSuggested)
+		}
 	}
 
 	// Setup static file serving for production

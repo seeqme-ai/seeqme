@@ -367,6 +367,38 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, userResponse(updatedUser))
 }
 
+// UpdateFCMToken updates the user's Firebase Cloud Messaging token
+func (h *Handler) UpdateFCMToken(c *gin.Context) {
+	authedUser, exists := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var req struct {
+		FCMToken string `json:"fcmToken" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: fcmToken is required"})
+		return
+	}
+
+	objectID, _ := primitive.ObjectIDFromHex(authedUser.ID)
+	db := database.Client.Database(database.DBName)
+	
+	_, err := db.Collection("users").UpdateOne(
+		c.Request.Context(),
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"fcmToken": req.FCMToken, "updatedAt": time.Now()}},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update FCM token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "FCM token updated successfully"})
+}
+
 // RequestPasswordReset initiates a password reset process
 func (h *Handler) RequestPasswordReset(c *gin.Context) {
 	var req ForgotPasswordRequest
