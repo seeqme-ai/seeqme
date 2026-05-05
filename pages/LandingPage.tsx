@@ -865,7 +865,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </div>
 
               <p className="text-center text-xs text-slate-400 font-medium mt-3 select-none">
-                Upload a CV, describe your role, or paste your LinkedIn URL
+                Upload a CV or describe your role
                 <span className="ml-2 opacity-50">⌘↵ to build</span>
               </p>
             </MotionDiv>
@@ -1238,10 +1238,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16"
           >
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-teal-200 bg-teal-50 mb-5">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-teal-600">Platform capabilities</span>
-              </div>
+             
               <h2 className="text-3xl md:text-4xl font-black tracking-[-0.035em] leading-tight text-slate-900 max-w-sm">
                 Everything the platform
                 <br />

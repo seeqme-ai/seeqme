@@ -162,7 +162,7 @@ const Plans: React.FC = () => {
       {(isSyncing || isLoadingPlans) && (
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-[100] flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
+            <Loader className="text-teal-600 animate-spin" />
             <p className="text-sm font-semibold text-slate-600">
               {isSyncing ? 'Verifying your payment…' : 'Loading plans…'}
             </p>
@@ -247,11 +247,10 @@ const Plans: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className={`relative flex flex-col rounded-3xl border p-8 transition-all ${
-                    plan.recommended
+                  className={`relative flex flex-col rounded-3xl border p-8 transition-all ${plan.recommended
                       ? 'bg-slate-900 border-slate-900 shadow-2xl shadow-slate-900/20 text-white'
                       : 'bg-white border-slate-200 text-slate-900 shadow-sm hover:shadow-md'
-                  }`}
+                    }`}
                 >
                   {plan.recommended && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
@@ -291,17 +290,17 @@ const Plans: React.FC = () => {
                   {/* Features */}
                   <div className="flex-1 space-y-3 mb-8">
                     {plan.features.map((f, i) => (
-                      <div key={i} className={`flex items-center gap-3 text-sm ${f.included ? (plan.recommended ? 'text-slate-200' : 'text-slate-700') : (plan.recommended ? 'text-slate-600' : 'text-slate-300')}`}>
+                      <div key={i} className={`flex items-center gap-3 text-sm ${f.included ? (plan.recommended ? 'text-slate-200' : 'text-slate-700') : (plan.recommended ? 'text-slate-400' : 'text-slate-400')}`}>
                         {f.included ? (
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.recommended ? 'bg-teal-500/20 text-teal-400' : 'bg-teal-50 text-teal-600'}`}>
                             <Check className="w-3 h-3" />
                           </div>
                         ) : (
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.recommended ? 'bg-white/5' : 'bg-slate-50'}`}>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.recommended ? 'bg-white/10' : 'bg-slate-100'}`}>
                             <XIcon className="w-3 h-3" />
                           </div>
                         )}
-                        <span className={`font-medium ${!f.included ? 'line-through opacity-40' : ''}`}>{f.text}</span>
+                        <span className={`font-medium ${!f.included ? 'line-through opacity-60' : ''}`}>{f.text}</span>
                       </div>
                     ))}
                   </div>
@@ -310,11 +309,10 @@ const Plans: React.FC = () => {
                   {isFree ? (
                     <button
                       onClick={() => navigate('/dashboard')}
-                      className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${
-                        plan.recommended
+                      className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${plan.recommended
                           ? 'bg-teal-500 text-white hover:bg-teal-400'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
+                        }`}
                     >
                       {plan.cta}
                     </button>
