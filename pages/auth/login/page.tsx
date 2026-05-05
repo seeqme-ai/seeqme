@@ -60,7 +60,9 @@ export default function LoginPage() {
       toast.success("Successfully authenticated!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Google login failed.");
+      const errorMsg = error.response?.data?.details || error.response?.data?.error || "Google login failed.";
+      console.error("Google auth error:", errorMsg);
+      toast.error(errorMsg);
     },
   });
 

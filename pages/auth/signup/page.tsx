@@ -52,7 +52,9 @@ export default function SignupPage() {
       toast.success("Successfully authenticated!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Google signup failed.");
+      const errorMsg = error.response?.data?.details || error.response?.data?.error || "Google signup failed.";
+      console.error("Google auth error:", errorMsg);
+      toast.error(errorMsg);
     },
   });
 

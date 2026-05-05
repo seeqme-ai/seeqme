@@ -273,15 +273,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             >
               <Menu className="h-6 w-6" />
             </Button>
-            <p className="text-lg font-bold">
-              {navItems.find(i => isActive(i.path))?.name || 'Dashboard'}
+            <p className="text-base font-bold">
+              {[...navItems, ...platformItems].find(i => isActive(i.path))?.name || 'Dashboard'}
             </p>
           </div>
 
           <div className="hidden lg:flex flex-col text-left">
-
             <p className="text-lg font-bold">
-              {navItems.find(i => isActive(i.path))?.name || 'Dashboard'}
+              {[...navItems, ...platformItems].find(i => isActive(i.path))?.name || 'Dashboard'}
             </p>
           </div>
 

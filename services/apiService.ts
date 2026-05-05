@@ -427,6 +427,16 @@ export const socialService = {
     return response.data;
   },
 
+  // ── User Activity ──
+  getMyPosts: async () => {
+    const response = await apiClient.get('/social/feed/me');
+    return response.data;
+  },
+  getSavedPosts: async () => {
+    const response = await apiClient.get('/social/feed/saved');
+    return response.data;
+  },
+
   // ── Suggested ──
   getSuggested: async () => {
     const response = await apiClient.get('/social/suggested');

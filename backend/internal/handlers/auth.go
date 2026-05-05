@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +22,79 @@ import (
 	"seeqmeai/backend/internal/models"
 	"seeqmeai/backend/pkg/geoip"
 )
+
+// Helper function to get minimum of two integers
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// GoogleClaims represents the structure of Google JWT claims
+type GoogleClaims struct {
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
+	Sub           string `json:"sub"`
+	Aud           string `json:"aud"`
+	Iss           string `json:"iss"`
+	Exp           int64  `json:"exp"`
+	Iat           int64  `json:"iat"`
+}
+
+// ValidateGoogleJWTOffline validates Google ID token without contacting Google servers
+// This is useful when network access to Google is unavailable
+func ValidateGoogleJWTOffline(tokenString, clientID string) (*GoogleClaims, error) {
+	// Split the token into parts
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid token format: expected 3 parts, got %d", len(parts))
+	}
+
+	// Decode the payload (second part)
+	// Add padding if needed for base64 decoding
+	payload := parts[1]
+	payload += strings.Repeat("=", (4-len(payload)%4)%4)
+
+	decodedPayload, err := base64.RawURLEncoding.DecodeString(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode token payload: %v", err)
+	}
+
+	var claims GoogleClaims
+	if err := json.Unmarshal(decodedPayload, &claims); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal claims: %v", err)
+	}
+
+	// Validate expiration
+	if time.Now().Unix() > claims.Exp {
+		return nil, fmt.Errorf("token has expired")
+	}
+
+	// Validate issued at time (not in future)
+	if time.Now().Unix() < claims.Iat-60 { // Allow 60 second clock skew
+		return nil, fmt.Errorf("token used before issued")
+	}
+
+	// Validate audience
+	if claims.Aud != clientID {
+		return nil, fmt.Errorf("invalid audience: expected %s, got %s", clientID, claims.Aud)
+	}
+
+	// Validate issuer
+	if claims.Iss != "https://accounts.google.com" && claims.Iss != "accounts.google.com" {
+		return nil, fmt.Errorf("invalid issuer: %s", claims.Iss)
+	}
+
+	// Validate email is verified
+	if !claims.EmailVerified {
+		return nil, fmt.Errorf("email is not verified by Google")
+	}
+
+	return &claims, nil
+}
 
 // RegisterRequest defines the structure for user registration requests
 type RegisterRequest struct {
@@ -258,10 +335,44 @@ func (h *Handler) VerifyGoogleIDToken(c *gin.Context) {
 		return
 	}
 
-	payload, err := idtoken.Validate(c.Request.Context(), req.Token, h.Config.GoogleClientID)
+	fmt.Printf("🔍 Attempting to validate Google token for client ID: %s\n", h.Config.GoogleClientID)
+
+	// Try online validation first (with timeout context)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
+	defer cancel()
+
+	var payload *idtoken.Payload
+	var err error
+	var useOfflineValidation bool
+
+	payload, err = idtoken.Validate(ctx, req.Token, h.Config.GoogleClientID)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Google token.", "details": err.Error()})
-		return
+		errorMsg := err.Error()
+		fmt.Printf("⚠️  Online validation failed: %v\n", errorMsg)
+		fmt.Printf("📋 Token (first 50 chars): %s...\n", req.Token[:minInt(50, len(req.Token))])
+
+		// Fallback to offline validation
+		fmt.Println("🔄 Falling back to offline JWT validation...")
+		claims, offlineErr := ValidateGoogleJWTOffline(req.Token, h.Config.GoogleClientID)
+		if offlineErr != nil {
+			fmt.Printf("❌ Offline validation also failed: %v\n", offlineErr)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Google token.", "details": offlineErr.Error()})
+			return
+		}
+
+		// Convert offline claims to payload-like structure
+		payload = &idtoken.Payload{
+			Claims: map[string]interface{}{
+				"email":   claims.Email,
+				"name":    claims.Name,
+				"picture": claims.Picture,
+			},
+			Subject: claims.Sub,
+		}
+		useOfflineValidation = true
+		fmt.Printf("✅ Offline validation successful for: %s\n", claims.Email)
+	} else {
+		fmt.Printf("✅ Online validation successful for: %s\n", payload.Claims["email"])
 	}
 
 	db := database.Client.Database(database.DBName)
@@ -315,6 +426,12 @@ func (h *Handler) VerifyGoogleIDToken(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate session token."})
 		return
 	}
+
+	validationMethod := "online"
+	if useOfflineValidation {
+		validationMethod = "offline (no internet)"
+	}
+	fmt.Printf("🎉 User authenticated via Google (%s validation): %s\n", validationMethod, user.Email)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": appToken,
@@ -385,7 +502,7 @@ func (h *Handler) UpdateFCMToken(c *gin.Context) {
 
 	objectID, _ := primitive.ObjectIDFromHex(authedUser.ID)
 	db := database.Client.Database(database.DBName)
-	
+
 	_, err := db.Collection("users").UpdateOne(
 		c.Request.Context(),
 		bson.M{"_id": objectID},

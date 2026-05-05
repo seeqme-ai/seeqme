@@ -14,6 +14,61 @@ import { socketService } from '@/services/socketService';
 
 const MotionDiv = motion.div as any;
 
+const MOCK_POSTS = [
+  {
+    id: 'm1',
+    author: 'Sarah Chen',
+    role: 'Principal Design Engineer',
+    avatar: '#8b5cf6',
+    similarity: 94,
+    content: "Just finished refactoring our design system's token architecture. Moving from static variables to a multi-tiered semantic system has reduced our UI debt by nearly 40%. The key was establishing a 'base -> semantic -> component' flow that designers actually enjoy using in Figma. \n\nHas anyone else experimented with automated token syncing between Figma and Style Dictionary recently?",
+    timestamp: '2h ago',
+    slug: 'sarah-chen-design-tokens',
+    likes: 124,
+    reposts: 12,
+    comments: []
+  },
+  {
+    id: 'm2',
+    author: 'Marcus Thorne',
+    role: 'Product Lead @ SeeqMe',
+    avatar: '#0ea5e9',
+    similarity: 88,
+    content: "The future of networking isn't about having 500+ connections; it's about the density of your professional cluster. We're seeing that users with smaller, high-similarity meshes are 3x more likely to secure high-value partnerships than those with broad, generic networks. \n\nQuality over quantity is finally being mathematically enforced by the Mesh.",
+    timestamp: '5h ago',
+    slug: 'marcus-thorne-mesh-density',
+    likes: 245,
+    reposts: 56,
+    comments: []
+  },
+  {
+    id: 'm3',
+    author: 'Elena Rodriguez',
+    role: 'AI Research Lead',
+    avatar: '#14b8a6',
+    similarity: 72,
+    content: "Agentic workflows are completely shifting how we think about IDEs. We're no longer just 'autocompleting' code; we're collaborating with agents that understand the broader architectural context. The next step is better state management for these agents so they can handle multi-file refactors without losing the mental model of the system.",
+    timestamp: '8h ago',
+    slug: 'elena-rodriguez-agentic-workflows',
+    likes: 89,
+    reposts: 8,
+    comments: []
+  },
+  {
+    id: 'm4',
+    author: 'David Okoro',
+    role: 'Venture Partner',
+    avatar: '#f59e0b',
+    similarity: 65,
+    content: "The tech ecosystem in West Africa is maturing rapidly. We're seeing a shift from simple consumer-facing apps to deep infrastructure solutions in logistics and fintech. The resilience shown by founders in this macro environment is nothing short of incredible. Looking for early-stage teams building the 'rails' for the next decade.",
+    timestamp: '1d ago',
+    slug: 'david-okoro-africa-tech',
+    likes: 167,
+    reposts: 31,
+    comments: []
+  }
+];
+
 const PostPage: React.FC = () => {
   const { user } = useAuth();
   const { slug } = useParams();
@@ -35,9 +90,23 @@ const PostPage: React.FC = () => {
           setPost(res.post);
           setComments(res.post.comments || []);
           setLikeCount(res.post.likes || 0);
+        } else {
+           // Try mock data
+           const mock = MOCK_POSTS.find(p => p.slug === slug);
+           if (mock) {
+             setPost(mock);
+             setComments(mock.comments);
+             setLikeCount(mock.likes);
+           }
         }
         setLoading(false);
       } catch {
+        const mock = MOCK_POSTS.find(p => p.slug === slug);
+        if (mock) {
+          setPost(mock);
+          setComments(mock.comments);
+          setLikeCount(mock.likes);
+        }
         setLoading(false);
       }
     };

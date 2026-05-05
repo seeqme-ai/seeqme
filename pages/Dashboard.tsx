@@ -6,10 +6,11 @@ import {
   Calendar, Loader, MoreVertical, ExternalLink,
   Trash2, Edit3, BarChart3, Globe, Layers, Zap,
   Plus, RefreshCw, ArrowUpRight, Clock, CheckCircle2,
-  AlertCircle, FileCode2, CreditCard,
+  AlertCircle, FileCode2, CreditCard, Bookmark, MessageSquare,
+  Heart, UserMinus, FileText, Users as UsersIcon
 } from 'lucide-react';
 import { Portfolio } from '../types';
-import { portfolioService, subscriptionService, deploymentService, sessionService } from '../services/apiService';
+import { portfolioService, subscriptionService, deploymentService, sessionService, socialService } from '../services/apiService';
 import { socketService } from '../services/socketService';
 import SuccessDrawer from '../components/SuccessDrawer';
 import { Helmet } from 'react-helmet-async';
@@ -22,6 +23,7 @@ import { Button } from '../components/ui/button';
 import ConnectDomainModal from '../components/ConnectDomainModal';
 import BusinessCardModal from '../components/BusinessCardModal';
 import { Skeleton } from '../components/ui/skeleton';
+import { useAuth } from '../context/auth-context';
 
 const STATUS_CONFIG = {
   completed: {
@@ -207,6 +209,7 @@ const PortfolioCard: React.FC<{
 
 const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }> = ({ onNew, onEdit }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -220,6 +223,11 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   const [deployUrl, setDeployUrl] = useState('');
   const [deployDomain, setDeployDomain] = useState('');
   const [deployLogs, setDeployLogs] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'portfolios' | 'posts' | 'saved'>('portfolios');
+  const [myPosts, setMyPosts] = useState<any[]>([]);
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
+  const [connections, setConnections] = useState<any[]>([]);
+  const [socialLoading, setSocialLoading] = useState(false);
 
   useEffect(() => {
     fetchPortfolios();
@@ -236,7 +244,23 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
       } catch { /* no active session */ }
     };
     checkActiveSession();
+    fetchSocialData();
   }, [navigate]);
+
+  const fetchSocialData = async () => {
+    try {
+      setSocialLoading(true);
+      const [postsRes, savedRes, connRes] = await Promise.all([
+        socialService.getMyPosts(),
+        socialService.getSavedPosts(),
+        socialService.getConnections()
+      ]);
+      setMyPosts(postsRes.posts || []);
+      setSavedPosts(savedRes.posts || []);
+      setConnections(connRes.accepted || []);
+    } catch { /* ignore */ }
+    finally { setSocialLoading(false); }
+  };
 
   const fetchSubscription = async () => {
     try { setSubscription(await subscriptionService.getSubscription()); } catch { /* ignore */ }
@@ -377,42 +401,174 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
           </div>
         </header>
 
-        {/* Portfolio grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence mode="popLayout">
-            {portfolios.map((p, idx) => (
-              <PortfolioCard
-                key={p.id}
-                portfolio={p}
-                idx={idx}
-                onEdit={() => onEdit(p)}
-                onDelete={() => setDeleteConfirm(p.id!)}
-                onAnalytics={() => navigate(`/portfolio/${p.id}/analytics`)}
-                onConnectDomain={() => handleConnectDomainClick(p)}
-                onRollback={() => handleRollback(p)}
-                onSwapTemplate={() => navigate(`/portfolio/${p.id}/template-preview`)}
-                onCard={() => setCardPortfolio(p)}
-              />
-            ))}
-          </AnimatePresence>
+        {/* Tabs */}
+        <div className="flex border-b border-slate-200 mb-8">
+          <button
+            onClick={() => setActiveTab('portfolios')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-all border-b-2 -mb-px ${
+              activeTab === 'portfolios' ? 'text-teal-600 border-teal-600' : 'text-slate-400 border-transparent hover:text-slate-600'
+            }`}
+          >
+            <Layers className="w-4 h-4" /> Portfolios
+          </button>
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-all border-b-2 -mb-px ${
+              activeTab === 'posts' ? 'text-teal-600 border-teal-500' : 'text-slate-400 border-transparent hover:text-slate-600'
+            }`}
+          >
+            <FileText className="w-4 h-4" /> My Posts
+            {myPosts.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{myPosts.length}</span>}
+          </button>
+          <button
+            onClick={() => setActiveTab('saved')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-all border-b-2 -mb-px ${
+              activeTab === 'saved' ? 'text-teal-600 border-teal-500' : 'text-slate-400 border-transparent hover:text-slate-600'
+            }`}
+          >
+            <Bookmark className="w-4 h-4" /> Saved
+            {savedPosts.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{savedPosts.length}</span>}
+          </button>
+          <button
+            onClick={() => setActiveTab('connections' as any)}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-all border-b-2 -mb-px hidden sm:flex ${
+              activeTab as any === 'connections' ? 'text-teal-600 border-teal-500' : 'text-slate-400 border-transparent hover:text-slate-600'
+            }`}
+          >
+            <UsersIcon className="w-4 h-4" /> Connections
+            {connections.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{connections.length}</span>}
+          </button>
+        </div>
 
-          {/* Empty state */}
-          {portfolios.length === 0 && (
-            <div className="col-span-full py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
-              <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
-                  <Layers className="w-8 h-8 text-teal-400" />
-              </div>
-              <h2 className="text-lg font-semibold text-slate-900 mb-2">Start your professional presence</h2>
-              <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
-                Upload your CV or describe what you do — AI builds your portfolio in under a minute.
-              </p>
-              <button
-                onClick={onNew}
-                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Create My Portfolio
-              </button>
+        {/* Tab Content */}
+        <div className="min-h-[400px]">
+          {activeTab === 'portfolios' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <AnimatePresence mode="popLayout">
+                {portfolios.map((p, idx) => (
+                  <PortfolioCard
+                    key={p.id}
+                    portfolio={p}
+                    idx={idx}
+                    onEdit={() => onEdit(p)}
+                    onDelete={() => setDeleteConfirm(p.id!)}
+                    onAnalytics={() => navigate(`/portfolio/${p.id}/analytics`)}
+                    onConnectDomain={() => handleConnectDomainClick(p)}
+                    onRollback={() => handleRollback(p)}
+                    onSwapTemplate={() => navigate(`/portfolio/${p.id}/template-preview`)}
+                    onCard={() => setCardPortfolio(p)}
+                  />
+                ))}
+              </AnimatePresence>
+
+              {portfolios.length === 0 && (
+                <div className="col-span-full py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
+                  <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
+                      <Layers className="w-8 h-8 text-teal-400" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-slate-900 mb-2">Start your professional presence</h2>
+                  <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
+                    Upload your CV or describe what you do — AI builds your portfolio in under a minute.
+                  </p>
+                  <button
+                    onClick={onNew}
+                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create My Portfolio
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {(activeTab === 'posts' || activeTab === 'saved') && (
+            <div className="max-w-2xl mx-auto space-y-4">
+              {socialLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 animate-pulse">
+                    <div className="h-3 bg-slate-100 rounded w-24 mb-4" />
+                    <div className="h-4 bg-slate-100 rounded w-full mb-2" />
+                    <div className="h-4 bg-slate-100 rounded w-3/4" />
+                  </div>
+                ))
+              ) : (
+                (activeTab === 'posts' ? myPosts : savedPosts).length === 0 ? (
+                  <div className="py-20 flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center mb-6 text-slate-300">
+                      {activeTab === 'posts' ? <FileText className="w-8 h-8" /> : <Bookmark className="w-8 h-8" />}
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900 mb-1">No {activeTab} yet</h3>
+                    <p className="text-sm text-slate-400 font-medium max-w-[240px]">Explore the mesh to find insights or share your professional journey.</p>
+                    <button onClick={() => navigate('/app/feed')} className="mt-8 px-6 py-2.5 bg-slate-900 text-white rounded-[50px] text-sm font-bold shadow-lg shadow-slate-200 transition-all hover:bg-black active:scale-95">Browse Feed</button>
+                  </div>
+                ) : (
+                  (activeTab === 'posts' ? myPosts : savedPosts).map((post, i) => (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      key={post.id}
+                      className="bg-white border border-slate-200 rounded-3xl p-6 group hover:border-teal-500/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all cursor-pointer relative overflow-hidden"
+                      onClick={() => navigate(`/app/feed/post/${post.slug || post.id}`)}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400">
+                            {user?.fullName?.charAt(0) || 'Y'}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">{user?.fullName || 'You'}</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.1em]">{post.timestamp || 'Just now'}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-400"><Heart className="w-3.5 h-3.5" /> {post.likes || 0}</div>
+                          <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-400"><MessageSquare className="w-3.5 h-3.5" /> {post.comments?.length || 0}</div>
+                        </div>
+                      </div>
+                      <p className="text-[14px] text-slate-700 font-medium leading-relaxed mb-4">{post.content}</p>
+                      <div className="flex items-center justify-between mt-auto">
+                        {post.tag && (
+                          <span className="text-[9px] font-black text-teal-600 bg-teal-50 px-3 py-1 rounded-full uppercase tracking-widest border border-teal-100">
+                            {post.tag}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-bold text-slate-300 group-hover:text-teal-400 transition-colors uppercase tracking-widest flex items-center gap-1">
+                          View details <ArrowUpRight className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))
+                )
+              )}
+            </div>
+          )}
+
+          {activeTab as any === 'connections' && (
+            <div className="max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+               {connections.length === 0 ? (
+                 <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
+                    <UsersIcon className="w-12 h-12 text-slate-100 mb-4" />
+                    <p className="text-slate-400 font-medium text-sm">No active connections in your mesh.</p>
+                    <button onClick={() => navigate('/app/mesh')} className="mt-4 text-teal-600 font-bold text-sm hover:underline">Explore the Mesh</button>
+                 </div>
+               ) : connections.map((c) => (
+                 <div key={c.id} className="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-slate-300 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm font-black">
+                        {c.name?.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{c.name}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider truncate">{c.role}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => navigate(`/portfolio/${c.id}`)} className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-300 hover:text-teal-500 transition-all">
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                 </div>
+               ))}
             </div>
           )}
         </div>
