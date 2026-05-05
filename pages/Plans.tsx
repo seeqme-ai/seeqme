@@ -188,8 +188,7 @@ const Plans: React.FC = () => {
           {/* Page heading */}
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-xs font-bold uppercase tracking-widest">
-              <Zap className="w-3 h-3" />
-              Simple pricing
+              Pricing
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-[-0.03em] text-slate-900 leading-tight">
               Build your node.
