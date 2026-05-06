@@ -321,9 +321,39 @@ type Notification struct {
 }
 
 type TrendingItem struct {
-	ID    primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Tag   string             `bson:"tag" json:"tag"`
-	Posts int                `bson:"posts" json:"posts"`
+	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Tag    string             `bson:"tag" json:"tag"`
+	Posts  int                `bson:"posts" json:"posts"`
+	Source string             `bson:"source" json:"source"` // "reddit", "inapp", ""
+}
+
+type RedditComment struct {
+	ID     string `bson:"id" json:"id"`
+	Author string `bson:"author" json:"author"`
+	Body   string `bson:"body" json:"body"`
+	Score  int    `bson:"score" json:"score"`
+}
+
+type RedditPost struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	RedditID    string             `bson:"redditId" json:"redditId"`
+	Subreddit   string             `bson:"subreddit" json:"subreddit"`
+	Title       string             `bson:"title" json:"title"`
+	Selftext    string             `bson:"selftext" json:"selftext"`
+	Author      string             `bson:"author" json:"author"`
+	Score       int                `bson:"score" json:"score"`
+	NumComments int                `bson:"numComments" json:"numComments"`
+	Thumbnail   string             `bson:"thumbnail" json:"thumbnail"`
+	URL         string             `bson:"url" json:"url"`
+	Permalink   string             `bson:"permalink" json:"permalink"`
+	Slug        string             `bson:"slug" json:"slug"`
+	SEOTitle    string             `bson:"seoTitle" json:"seoTitle"`
+	SEODesc     string             `bson:"seoDesc" json:"seoDesc"`
+	Category    string             `bson:"category" json:"category"` // "hot", "rising"
+	TopComments []RedditComment    `bson:"topComments" json:"topComments"`
+	OurComments []Comment          `bson:"ourComments" json:"ourComments"`
+	OurLikes    []string           `bson:"ourLikes" json:"ourLikes"` // user IDs who liked
+	FetchedAt   time.Time          `bson:"fetchedAt" json:"fetchedAt"`
 }
 
 type SuggestedUser struct {

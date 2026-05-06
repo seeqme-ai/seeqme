@@ -43,15 +43,25 @@ func (w *SocialEmailWorker) Start(ctx context.Context) {
 func (w *SocialEmailWorker) ProcessTrendingBatch() {
 	log.Println("[SocialEmail] Processing daily trending batch...")
 
-	// 1. Get trending posts
+	// 1. Get trending in-app posts (by likes)
 	var trendingPosts []models.Post
 	cursor, _ := database.Client.Database(database.DBName).Collection("posts").Find(
 		context.Background(),
-		bson.M{"likes": bson.M{"$gt": 5}}, // Example "trending" criteria
+		bson.M{"likes": bson.M{"$gt": 3}},
+		options.Find().SetSort(bson.M{"likes": -1}).SetLimit(5),
 	)
 	cursor.All(context.Background(), &trendingPosts)
 
-	if len(trendingPosts) == 0 {
+	// 2. Get Reddit hot posts for the email
+	var redditPosts []models.RedditPost
+	rcursor, _ := database.Client.Database(database.DBName).Collection("reddit_posts").Find(
+		context.Background(),
+		bson.M{"category": "hot"},
+		options.Find().SetSort(bson.M{"score": -1}).SetLimit(3),
+	)
+	rcursor.All(context.Background(), &redditPosts)
+
+	if len(trendingPosts) == 0 && len(redditPosts) == 0 {
 		log.Println("[SocialEmail] No trending posts found, skipping batch.")
 		return
 	}
@@ -81,10 +91,11 @@ func (w *SocialEmailWorker) ProcessTrendingBatch() {
 		cursor.Decode(&u)
 		
 		// 3. Send email
-		err := w.Resend.SendEmail(u.Email, "SeeqMe Mesh: What's Trending in Your Network", "trending_batch.html", map[string]interface{}{
-			"FullName": u.FullName,
-			"Posts":    trendingPosts,
-			"Year":     time.Now().Year(),
+		err := w.Resend.SendEmail(u.Email, "SeeqMe: What's Trending in Your Mesh", "trending_batch.html", map[string]interface{}{
+			"FullName":    u.FullName,
+			"Posts":       trendingPosts,
+			"RedditPosts": redditPosts,
+			"Year":        time.Now().Year(),
 		})
 		
 		if err == nil {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth-context';
@@ -212,13 +212,16 @@ const MeshPage: React.FC = () => {
   const [zoom, setZoom]   = useState(0.82);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const posRef   = useRef<Record<string, { x: number; y: number }>>({});
+  const posRef    = useRef<Record<string, { x: number; y: number }>>({});
   const [, setTick] = useState(0);
-  const t0       = useRef(Date.now());
-  const rafId    = useRef(0);
-  const touchRef = useRef<{ x: number; y: number } | null>(null);
-  const panRef   = useRef(pan);
-  panRef.current = pan;
+  const t0        = useRef(Date.now());
+  const rafId     = useRef(0);
+  const touchRef  = useRef<{ x: number; y: number } | null>(null);
+  const panRef    = useRef(pan);
+  const zoomRef   = useRef(zoom);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  panRef.current  = pan;
+  zoomRef.current = zoom;
 
   const allNodes = useMemo(() => [...mainNodes, ...BACKGROUND_NODES], [mainNodes]);
 
@@ -397,13 +400,40 @@ const MeshPage: React.FC = () => {
     }
   };
 
-  /* ── Pan / Zoom ── */
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.93 : 1.07;
-    setZoom(p => Math.max(0.25, Math.min(p * delta, 3.5)));
+  /* ── Non-passive wheel listener (React's onWheel is passive in some envs) ── */
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.93 : 1.07;
+      setZoom(p => Math.max(0.25, Math.min(p * delta, 3.5)));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
   }, []);
 
+  /* ── Pinch-to-zoom (touch) ── */
+  const pinchRef = useRef<number | null>(null);
+  const handleTouchStartPinch = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchRef.current = Math.sqrt(dx * dx + dy * dy);
+    }
+  };
+  const handleTouchMovePinch = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchRef.current !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const scale = dist / pinchRef.current;
+      setZoom(p => Math.max(0.25, Math.min(p * scale, 3.5)));
+      pinchRef.current = dist;
+    }
+  };
+
+  /* ── Pan / Zoom ── */
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button, a')) return;
     const startX = e.clientX - pan.x;
@@ -583,14 +613,14 @@ const MeshPage: React.FC = () => {
 
       {/* ── Mesh Canvas ── */}
       <div
+        ref={canvasRef}
         className="relative flex-1 overflow-hidden cursor-grab active:cursor-grabbing select-none"
         style={{ background: 'radial-gradient(ellipse at 50% 38%, #0a1a2e 0%, #050b16 68%)' }}
-        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={e => { if (!selectedNode) setMousePos({ x: e.clientX, y: e.clientY }); }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={e => { handleTouchStart(e); handleTouchStartPinch(e); }}
+        onTouchMove={e => { handleTouchMove(e); handleTouchMovePinch(e); }}
+        onTouchEnd={() => { handleTouchEnd(); pinchRef.current = null; }}
       >
         <svg className="w-full h-full" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
           <motion.g
@@ -742,41 +772,6 @@ const MeshPage: React.FC = () => {
             </>
           )}
         </AnimatePresence>
-
-        {/* ── Status Bar ── */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3 sm:gap-5 px-4 sm:px-7 py-3 rounded-full bg-[#0c1628]/95 backdrop-blur-2xl border border-white/[0.08] shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-40 whitespace-nowrap">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,1)] animate-pulse" />
-            <span className="text-[10px] sm:text-[11px] font-black text-white uppercase tracking-[0.15em]">Cluster Active</span>
-          </div>
-          <div className="w-px h-3.5 bg-white/10" />
-          <span className="text-[10px] sm:text-[11px] font-black text-teal-400">{mainNodes.length - 1} nodes</span>
-          <div className="w-px h-3.5 bg-white/10" />
-          <button onClick={() => { setPan({ x: 0, y: 0 }); setZoom(0.82); }}
-            className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors">
-            Reset
-          </button>
-        </div>
-
-        {/* ── Zoom Controls (mobile) ── */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-40 md:hidden">
-          <button onClick={() => setZoom(p => Math.min(p * 1.2, 3.5))} className="w-10 h-10 rounded-2xl bg-[#0c1628]/90 backdrop-blur border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-            <Plus className="w-5 h-5" />
-          </button>
-          <button onClick={() => setZoom(p => Math.max(p * 0.8, 0.25))} className="w-10 h-10 rounded-2xl bg-[#0c1628]/90 backdrop-blur border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-            <div className="w-4 h-0.5 bg-current rounded-full" />
-          </button>
-        </div>
-
-        {/* ── Desktop Zoom Controls ── */}
-        <div className="absolute top-5 right-5 hidden md:flex flex-col gap-2 z-40">
-          <button onClick={() => setZoom(p => Math.min(p * 1.2, 3.5))} className="w-9 h-9 rounded-xl bg-white/5 backdrop-blur border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-            <Plus className="w-4 h-4" />
-          </button>
-          <button onClick={() => setZoom(p => Math.max(p * 0.8, 0.25))} className="w-9 h-9 rounded-xl bg-white/5 backdrop-blur border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-            <div className="w-3.5 h-0.5 bg-current rounded-full" />
-          </button>
-        </div>
 
         {/* ── Legend (desktop only) ── */}
         <div className="absolute bottom-5 right-5 hidden lg:block p-4 rounded-[28px] bg-[#0c1628]/60 backdrop-blur border border-white/[0.05]">

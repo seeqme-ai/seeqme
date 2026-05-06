@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -50,6 +51,10 @@ func main() {
 	// Start Social Email batch worker
 	socialEmailWorker := services.NewSocialEmailWorker(cfg)
 	go socialEmailWorker.Start(context.Background())
+
+	// Seed mock users/posts and post on a rolling schedule (8 h interval)
+	mockWorker := services.NewMockContentWorker(8 * time.Hour)
+	go mockWorker.Start(context.Background())
 
 	r := gin.Default()
 
@@ -184,7 +189,7 @@ func main() {
 			admin.PUT("/templates/:id", h.AdminUpdateTemplate)
 			admin.DELETE("/templates/:id", h.AdminDeleteTemplate)
 
-			admin.POST("/social/seed", h.SeedMockData)
+			// /social/seed removed — mock content is now managed by MockContentWorker
 		}
 
 		subscription := api.Group("/subscription")
@@ -216,7 +221,13 @@ func main() {
 			social.POST("/feed/:id/comment", middleware.RequiredAuthMiddleware(), h.CommentOnPost)
 			social.GET("/feed/post/:slug", h.GetPostBySlug)
 			social.GET("/trending", h.GetTrending)
+			social.GET("/feed/trending", h.GetTrendingFeed)
 			social.GET("/suggested", h.GetSuggested)
+			social.GET("/reddit/feed", h.GetRedditFeed)
+			social.GET("/reddit/post/:slug", h.GetRedditPostBySlug)
+			social.POST("/reddit/:id/like", middleware.RequiredAuthMiddleware(), h.LikeRedditPost)
+			social.DELETE("/reddit/:id/like", middleware.RequiredAuthMiddleware(), h.UnlikeRedditPost)
+			social.POST("/reddit/:id/comment", middleware.RequiredAuthMiddleware(), h.CommentOnRedditPost)
 		}
 	}
 

@@ -51,81 +51,46 @@ interface Post {
   likes: number;
   comments: Comment[];
   reposts: number;
-  time: string;
+  time?: string;
+  timestamp?: string;
   slug: string;
   liked?: boolean;
   savedBy?: string[];
   repostedBy?: string; // Virtual for UI
+  createdAt?: string;
+  seoTitle?: string;
+  seoDesc?: string;
+}
+
+interface RedditComment {
+  id: string;
+  author: string;
+  body: string;
+  score: number;
+}
+
+interface RedditPost {
+  id: string;
+  redditId: string;
+  subreddit: string;
+  title: string;
+  selftext: string;
+  author: string;
+  score: number;
+  numComments: number;
+  thumbnail?: string;
+  url: string;
+  permalink: string;
+  slug: string;
+  seoTitle: string;
+  seoDesc: string;
+  category: string;
+  topComments: RedditComment[];
+  ourComments: Comment[];
+  ourLikes: string[];
 }
 
 const CATEGORIES = ['Opinion', 'Case Study', 'Engineering', 'Startup', 'Design', 'Product', 'News'];
-
-const REALISTIC_POSTS: Post[] = [
-  {
-    id: 'm1',
-    authorId: 'a1',
-    author: 'Sarah Chen',
-    role: 'Principal Design Engineer',
-    location: 'Singapore',
-    avatar: '#8b5cf6',
-    similarity: 94,
-    content: "Just finished refactoring our design system's token architecture. Moving from static variables to a multi-tiered semantic system has reduced our UI debt by nearly 40%. The key was establishing a 'base -> semantic -> component' flow that designers actually enjoy using in Figma. \n\nHas anyone else experimented with automated token syncing between Figma and Style Dictionary recently?",
-    tag: 'Design',
-    likes: 124,
-    comments: [],
-    reposts: 12,
-    time: '2h ago',
-    slug: 'sarah-chen-design-tokens'
-  },
-  {
-    id: 'm2',
-    authorId: 'a2',
-    author: 'Marcus Thorne',
-    role: 'Product Lead @ SeeqMe',
-    location: 'London',
-    avatar: '#0ea5e9',
-    similarity: 88,
-    content: "The future of networking isn't about having 500+ connections; it's about the density of your professional cluster. We're seeing that users with smaller, high-similarity meshes are 3x more likely to secure high-value partnerships than those with broad, generic networks. \n\nQuality over quantity is finally being mathematically enforced by the Mesh.",
-    tag: 'Product',
-    likes: 245,
-    comments: [],
-    reposts: 56,
-    time: '5h ago',
-    slug: 'marcus-thorne-mesh-density'
-  },
-  {
-    id: 'm3',
-    authorId: 'a3',
-    author: 'Elena Rodriguez',
-    role: 'AI Research Lead',
-    location: 'Madrid',
-    avatar: '#14b8a6',
-    similarity: 72,
-    content: "Agentic workflows are completely shifting how we think about IDEs. We're no longer just 'autocompleting' code; we're collaborating with agents that understand the broader architectural context. The next step is better state management for these agents so they can handle multi-file refactors without losing the mental model of the system.",
-    tag: 'Engineering',
-    likes: 89,
-    comments: [],
-    reposts: 8,
-    time: '8h ago',
-    slug: 'elena-rodriguez-agentic-workflows'
-  },
-  {
-    id: 'm4',
-    authorId: 'a4',
-    author: 'David Okoro',
-    role: 'Venture Partner',
-    location: 'Lagos',
-    avatar: '#f59e0b',
-    similarity: 65,
-    content: "The tech ecosystem in West Africa is maturing rapidly. We're seeing a shift from simple consumer-facing apps to deep infrastructure solutions in logistics and fintech. The resilience shown by founders in this macro environment is nothing short of incredible. Looking for early-stage teams building the 'rails' for the next decade.",
-    tag: 'Startup',
-    likes: 167,
-    comments: [],
-    reposts: 31,
-    time: '1d ago',
-    slug: 'david-okoro-africa-tech'
-  }
-];
 
 /* ── Components ── */
 
@@ -313,7 +278,7 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
                 {post.similarity}% match
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">{post.role} · {post.location} · {post.time}</p>
+            <p className="text-[11px] text-slate-400 font-medium">{post.role} · {post.location} · {post.time || post.timestamp}</p>
           </div>
         </div>
         <div className="relative">
@@ -500,6 +465,220 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
   );
 };
 
+/* ── Reddit Badge ── */
+const RedditBadge: React.FC<{ subreddit: string }> = ({ subreddit }) => (
+  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-100">
+    <svg className="w-3 h-3 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+      <circle cx="10" cy="10" r="10" className="text-orange-500" fill="currentColor" />
+      <path fill="white" d="M16.67 10a1.46 1.46 0 0 0-2.47-1 7.12 7.12 0 0 0-3.85-1.23l.65-3.07 2.13.45a1 1 0 1 0 1-.97.94.94 0 0 0-.68.28l-2.38-.5a.27.27 0 0 0-.32.2l-.73 3.44a7.14 7.14 0 0 0-3.89 1.23 1.46 1.46 0 1 0-1.61 2.39 2.87 2.87 0 0 0 0 .44c0 2.24 2.61 4.06 5.83 4.06s5.83-1.82 5.83-4.06a2.87 2.87 0 0 0 0-.44 1.46 1.46 0 0 0 .4-1.22zm-9.4 1.31a1 1 0 1 1 1 1 1 1 0 0 1-1-1zm5.58 2.63a3.55 3.55 0 0 1-2.85.79 3.55 3.55 0 0 1-2.85-.79.28.28 0 0 1 .39-.39 3.07 3.07 0 0 0 2.46.64 3.07 3.07 0 0 0 2.46-.64.28.28 0 1 1 .39.39zm-.17-1.63a1 1 0 1 1 1-1 1 1 0 0 1-1 1z" />
+    </svg>
+    <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">r/{subreddit}</span>
+  </div>
+);
+
+/* ── Reddit Post Card ── */
+const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [liked, setLiked] = useState(post.ourLikes?.includes(user?.id || '') || false);
+  const [likeCount, setLikeCount] = useState(post.ourLikes?.length || 0);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [ourComments, setOurComments] = useState<Comment[]>(post.ourComments || []);
+
+  const toggleLike = async () => {
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount(p => wasLiked ? p - 1 : p + 1);
+    try {
+      if (wasLiked) await socialService.unlikeRedditPost(post.id);
+      else await socialService.likeRedditPost(post.id);
+    } catch {
+      setLiked(wasLiked);
+      setLikeCount(p => wasLiked ? p + 1 : p - 1);
+    }
+  };
+
+  const handleComment = async () => {
+    if (!commentText.trim()) return;
+    const content = commentText;
+    const tempId = 'temp-rc-' + Date.now();
+    const optimistic: Comment = {
+      id: tempId, postId: post.id, authorId: user?.id || 'you',
+      author: user?.fullName || 'You', avatar: '#14b8a6',
+      content, createdAt: 'Just now'
+    };
+    setOurComments(prev => [...prev, optimistic]);
+    setCommentText('');
+    try {
+      const res = await socialService.commentOnRedditPost(post.id, content);
+      if (res?.comment) setOurComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
+    } catch {
+      toast.error('Could not add comment');
+      setOurComments(prev => prev.filter(c => c.id !== tempId));
+      setCommentText(content);
+    }
+  };
+
+  const hasImage = post.thumbnail && post.thumbnail.startsWith('http');
+  const isTextPost = !post.url.includes('reddit.com') === false || post.selftext;
+
+  return (
+    <MotionDiv
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: i * 0.04, duration: 0.3 }}
+      className="bg-white border border-slate-200 rounded-lg p-5 hover:border-orange-200 transition-colors duration-200"
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <RedditBadge subreddit={post.subreddit} />
+          <span className="text-[10px] text-slate-400 font-medium">u/{post.author}</span>
+          <span className="text-[10px] text-slate-300">·</span>
+          <div className="flex items-center gap-1 text-[10px] text-orange-500 font-semibold">
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            {post.score.toLocaleString()} upvotes
+          </div>
+        </div>
+        <button
+          onClick={() => navigate(`/app/feed/reddit/${post.slug}`)}
+          className="p-1.5 text-slate-300 hover:text-slate-600 transition-colors rounded-lg hover:bg-slate-50"
+          title="View full post"
+        >
+          <ExternalLink className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Title */}
+      <p
+        onClick={() => navigate(`/app/feed/reddit/${post.slug}`)}
+        className="text-[14px] font-bold text-slate-900 leading-snug mb-3 cursor-pointer hover:text-orange-600 transition-colors"
+      >
+        {post.title}
+      </p>
+
+      {/* Body text (truncated) */}
+      {post.selftext && (
+        <p className="text-[13px] text-slate-600 font-medium leading-relaxed mb-3 line-clamp-3 whitespace-pre-line">
+          {post.selftext}
+        </p>
+      )}
+
+      {/* Thumbnail */}
+      {hasImage && (
+        <div className="mb-3 rounded-xl overflow-hidden border border-slate-100">
+          <img
+            src={post.thumbnail}
+            alt={post.title}
+            className="w-full h-40 object-cover"
+            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-1 pt-3 border-t border-slate-100">
+        <button
+          onClick={toggleLike}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${liked ? 'text-rose-500 bg-rose-50' : 'text-slate-400 hover:text-rose-400 hover:bg-rose-50/50'}`}
+        >
+          <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+          {likeCount}
+        </button>
+        <button
+          onClick={() => setShowComments(!showComments)}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${showComments ? 'text-teal-500 bg-teal-50' : 'text-slate-400 hover:text-teal-400 hover:bg-teal-50/50'}`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          {ourComments.length} <span className="text-[10px] opacity-60">+ {post.numComments} Reddit</span>
+        </button>
+        <a
+          href={post.permalink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-auto flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-orange-500 hover:bg-orange-50 transition-colors"
+        >
+          <ExternalLink className="w-3 h-3" />
+          View on Reddit
+        </a>
+      </div>
+
+      {/* Comments section */}
+      <AnimatePresence>
+        {showComments && (
+          <MotionDiv initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-4 pt-4 border-t border-slate-50">
+            {/* Reddit top comments */}
+            {post.topComments?.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#FF4500"/><path fill="white" d="M16.67 10a1.46 1.46 0 0 0-2.47-1 7.12 7.12 0 0 0-3.85-1.23l.65-3.07 2.13.45a1 1 0 1 0 1-.97.94.94 0 0 0-.68.28l-2.38-.5a.27.27 0 0 0-.32.2l-.73 3.44a7.14 7.14 0 0 0-3.89 1.23 1.46 1.46 0 1 0-1.61 2.39 2.87 2.87 0 0 0 0 .44c0 2.24 2.61 4.06 5.83 4.06s5.83-1.82 5.83-4.06a2.87 2.87 0 0 0 0-.44 1.46 1.46 0 0 0 .4-1.22zm-9.4 1.31a1 1 0 1 1 1 1 1 1 0 0 1-1-1zm5.58 2.63a3.55 3.55 0 0 1-2.85.79 3.55 3.55 0 0 1-2.85-.79.28.28 0 0 1 .39-.39 3.07 3.07 0 0 0 2.46.64 3.07 3.07 0 0 0 2.46-.64.28.28 0 1 1 .39.39zm-.17-1.63a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"/></svg>
+                  Top Reddit Comments
+                </p>
+                <div className="space-y-2">
+                  {post.topComments.slice(0, 3).map(rc => (
+                    <div key={rc.id} className="flex gap-2 p-2.5 rounded-xl bg-orange-50/50 border border-orange-100/50">
+                      <div className="w-6 h-6 rounded-full bg-orange-100 flex-shrink-0 flex items-center justify-center text-orange-500 text-[9px] font-black">
+                        {rc.author.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black text-orange-600 mb-0.5">u/{rc.author}</p>
+                        <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-3">{rc.body}</p>
+                        <p className="text-[9px] text-orange-400 mt-1 flex items-center gap-1">
+                          <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                          {rc.score}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Our platform comments */}
+            {ourComments.length > 0 && (
+              <div className="mb-3 space-y-2">
+                <p className="text-[9px] font-black text-teal-500 uppercase tracking-widest">SeeqMe Members</p>
+                {ourComments.map(c => (
+                  <div key={c.id} className="flex gap-2 items-start">
+                    <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[9px] font-black" style={{ background: c.avatar || '#14b8a6' }}>
+                      {c.author.charAt(0)}
+                    </div>
+                    <div className="flex-1 bg-slate-50 rounded-xl rounded-tl-none p-2.5 border border-slate-100/50">
+                      <p className="text-[10px] font-bold text-slate-900 mb-0.5">{c.author}</p>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">{c.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add comment */}
+            <div className="flex items-center gap-2 mt-2">
+              <div className="w-6 h-6 rounded-full bg-teal-500 flex-shrink-0 flex items-center justify-center text-white text-[9px] font-black">
+                {user?.fullName?.charAt(0) || 'Y'}
+              </div>
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={e => setCommentText(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleComment()}
+                  placeholder="Add your take…"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400/20 transition-all placeholder:text-slate-300"
+                />
+                <button onClick={handleComment} disabled={!commentText.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 text-teal-500 disabled:opacity-30 hover:scale-110 transition-transform">
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </MotionDiv>
+        )}
+      </AnimatePresence>
+    </MotionDiv>
+  );
+};
+
 /* ── Main Feed Page ── */
 
 const FeedPage: React.FC = () => {
@@ -511,6 +690,7 @@ const FeedPage: React.FC = () => {
   const [linkUrl, setLinkUrl] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [redditPosts, setRedditPosts] = useState<RedditPost[]>([]);
   const [trending, setTrending] = useState<{ tag: string, posts: number }[]>([]);
   const [suggested, setSuggested] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('For You');
@@ -528,26 +708,34 @@ const FeedPage: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [feedRes, trendRes, suggestRes, notifRes] = await Promise.all([
-          activeTab === 'Following' ? socialService.getFollowingFeed() :
-            activeTab === 'Trending' ? socialService.getTrending() : socialService.getFeed(),
+        let feedPromise;
+        if (activeTab === 'Following') {
+          feedPromise = socialService.getFollowingFeed();
+        } else if (activeTab === 'Trending') {
+          feedPromise = socialService.getTrendingFeed();
+        } else {
+          feedPromise = socialService.getFeed();
+        }
+
+        const [feedRes, trendRes, suggestRes, notifRes, redditRes] = await Promise.all([
+          feedPromise,
           socialService.getTrending(),
           socialService.getSuggested(),
-          socialService.getNotifications()
+          socialService.getNotifications(),
+          socialService.getRedditFeed(activeTab === 'Trending' ? 'hot' : 'all'),
         ]);
 
         const sp: Post[] = feedRes?.posts || [];
-        if (sp.length === 0 && activeTab === 'For You') {
-          setAllPosts(REALISTIC_POSTS);
-        } else {
-          setAllPosts(sp);
-        }
+        const rp: RedditPost[] = feedRes?.redditPosts || redditRes?.redditPosts || [];
+
+        setAllPosts(sp);
+        setRedditPosts(rp);
+
         if (trendRes?.trending) setTrending(trendRes.trending);
         if (suggestRes?.suggested) setSuggested(suggestRes.suggested);
         if (notifRes?.notifications) setNotifications(notifRes.notifications);
       } catch (e) {
         console.error(e);
-        setAllPosts([]);
       } finally {
         setIsLoading(false);
       }
@@ -893,7 +1081,7 @@ const FeedPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Feed Posts */}
+            {/* Feed Posts — interleave Reddit every 3 in-app posts */}
             <div className="space-y-4">
               {isLoading ? (
                 <>
@@ -901,13 +1089,38 @@ const FeedPage: React.FC = () => {
                   <PostSkeleton />
                   <PostSkeleton />
                 </>
-              ) : allPosts.length === 0 ? (
+              ) : allPosts.length === 0 && redditPosts.length === 0 ? (
                 <div className="text-center py-16 bg-white border border-dashed border-slate-200 rounded-xl">
-                  <p className="text-sm font-medium text-slate-400 mb-2">No posts yet in your cluster.</p>
-                  <p className="text-xs text-slate-400">Be the first to broadcast something!</p>
+                  <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center mx-auto mb-4">
+                    <Send className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-700 mb-1">
+                    {activeTab === 'Following' ? 'Nothing from your connections yet.' : 'The feed is warming up.'}
+                  </p>
+                  <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                    {activeTab === 'Following'
+                      ? 'Connect with more nodes in the Mesh and their posts will appear here.'
+                      : 'Be the first to broadcast something to your cluster.'}
+                  </p>
                 </div>
               ) : (
-                allPosts.map((post, i) => <PostCard key={post.id} post={post} i={i} onDelete={setDeleteId} />)
+                (() => {
+                  const items: React.ReactNode[] = [];
+                  let ri = 0;
+                  allPosts.forEach((post, i) => {
+                    items.push(<PostCard key={post.id} post={post} i={i} onDelete={setDeleteId} />);
+                    // Insert a Reddit post every 3 in-app posts
+                    if ((i + 1) % 3 === 0 && ri < redditPosts.length) {
+                      items.push(<RedditPostCard key={redditPosts[ri].id} post={redditPosts[ri]} i={ri} />);
+                      ri++;
+                    }
+                  });
+                  // Append remaining Reddit posts at the end
+                  for (; ri < redditPosts.length; ri++) {
+                    items.push(<RedditPostCard key={redditPosts[ri].id} post={redditPosts[ri]} i={ri} />);
+                  }
+                  return items;
+                })()
               )}
             </div>
 

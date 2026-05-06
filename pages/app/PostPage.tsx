@@ -1,80 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { socialService } from '@/services/apiService';
 import { useAuth } from '@/context/auth-context';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, ChevronLeft, MessageSquare, Heart, Share2, Bookmark, Send, 
-  Network, MoreHorizontal, Copy, Trash2, ExternalLink,
-  Link as LinkIcon, Reply, X, Bell
+  ArrowLeft, MessageSquare, Heart, Share2, Bookmark, Send,
+  Network, ExternalLink, Link as LinkIcon, Reply, X
 } from 'lucide-react';
 import { socketService } from '@/services/socketService';
 
 const MotionDiv = motion.div as any;
 
-const MOCK_POSTS = [
-  {
-    id: 'm1',
-    author: 'Sarah Chen',
-    role: 'Principal Design Engineer',
-    avatar: '#8b5cf6',
-    similarity: 94,
-    content: "Just finished refactoring our design system's token architecture. Moving from static variables to a multi-tiered semantic system has reduced our UI debt by nearly 40%. The key was establishing a 'base -> semantic -> component' flow that designers actually enjoy using in Figma. \n\nHas anyone else experimented with automated token syncing between Figma and Style Dictionary recently?",
-    timestamp: '2h ago',
-    slug: 'sarah-chen-design-tokens',
-    likes: 124,
-    reposts: 12,
-    comments: []
-  },
-  {
-    id: 'm2',
-    author: 'Marcus Thorne',
-    role: 'Product Lead @ SeeqMe',
-    avatar: '#0ea5e9',
-    similarity: 88,
-    content: "The future of networking isn't about having 500+ connections; it's about the density of your professional cluster. We're seeing that users with smaller, high-similarity meshes are 3x more likely to secure high-value partnerships than those with broad, generic networks. \n\nQuality over quantity is finally being mathematically enforced by the Mesh.",
-    timestamp: '5h ago',
-    slug: 'marcus-thorne-mesh-density',
-    likes: 245,
-    reposts: 56,
-    comments: []
-  },
-  {
-    id: 'm3',
-    author: 'Elena Rodriguez',
-    role: 'AI Research Lead',
-    avatar: '#14b8a6',
-    similarity: 72,
-    content: "Agentic workflows are completely shifting how we think about IDEs. We're no longer just 'autocompleting' code; we're collaborating with agents that understand the broader architectural context. The next step is better state management for these agents so they can handle multi-file refactors without losing the mental model of the system.",
-    timestamp: '8h ago',
-    slug: 'elena-rodriguez-agentic-workflows',
-    likes: 89,
-    reposts: 8,
-    comments: []
-  },
-  {
-    id: 'm4',
-    author: 'David Okoro',
-    role: 'Venture Partner',
-    avatar: '#f59e0b',
-    similarity: 65,
-    content: "The tech ecosystem in West Africa is maturing rapidly. We're seeing a shift from simple consumer-facing apps to deep infrastructure solutions in logistics and fintech. The resilience shown by founders in this macro environment is nothing short of incredible. Looking for early-stage teams building the 'rails' for the next decade.",
-    timestamp: '1d ago',
-    slug: 'david-okoro-africa-tech',
-    likes: 167,
-    reposts: 31,
-    comments: []
-  }
-];
 
 const PostPage: React.FC = () => {
   const { user } = useAuth();
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isRedditPost = location.pathname.includes('/reddit/');
   const [post, setPost] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
+  const [redditComments, setRedditComments] = useState<any[]>([]);
+  const [ourComments, setOurComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [liked, setLiked] = useState(false);
@@ -85,28 +34,26 @@ const PostPage: React.FC = () => {
     const fetchData = async () => {
       if (!slug) return;
       try {
-        const res = await socialService.getPostBySlug(slug);
-        if (res?.post) {
-          setPost(res.post);
-          setComments(res.post.comments || []);
-          setLikeCount(res.post.likes || 0);
+        if (isRedditPost) {
+          const res = await socialService.getRedditPostBySlug(slug);
+          if (res?.post) {
+            setPost(res.post);
+            setRedditComments(res.post.topComments || []);
+            setOurComments(res.post.ourComments || []);
+            const uid = user?.id || '';
+            setLiked(res.post.ourLikes?.includes(uid) || false);
+            setLikeCount(res.post.ourLikes?.length || 0);
+          }
         } else {
-           // Try mock data
-           const mock = MOCK_POSTS.find(p => p.slug === slug);
-           if (mock) {
-             setPost(mock);
-             setComments(mock.comments);
-             setLikeCount(mock.likes);
-           }
+          const res = await socialService.getPostBySlug(slug);
+          if (res?.post) {
+            setPost(res.post);
+            setComments(res.post.comments || []);
+            setLikeCount(res.post.likes || 0);
+          }
         }
         setLoading(false);
       } catch {
-        const mock = MOCK_POSTS.find(p => p.slug === slug);
-        if (mock) {
-          setPost(mock);
-          setComments(mock.comments);
-          setLikeCount(mock.likes);
-        }
         setLoading(false);
       }
     };
@@ -142,7 +89,7 @@ const PostPage: React.FC = () => {
 
   const handleComment = async () => {
     if (!comment.trim() || !post) return;
-    
+
     const content = comment;
     const tempId = 'temp-c-' + Date.now();
     const optimisticComment = {
@@ -156,19 +103,31 @@ const PostPage: React.FC = () => {
       createdAt: new Date().toISOString()
     };
 
-    setComments(prev => [...prev, optimisticComment]);
+    if (isRedditPost) {
+      setOurComments(prev => [...prev, optimisticComment]);
+    } else {
+      setComments(prev => [...prev, optimisticComment]);
+    }
     setComment('');
     setReplyTo(null);
 
     try {
-      const res = await socialService.commentOnPost(post.id, content, replyTo?.id);
-      if (res?.comment) {
-        setComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
-        toast.success('Thought added to the thread');
+      let res;
+      if (isRedditPost) {
+        res = await socialService.commentOnRedditPost(post.id, content);
+        if (res?.comment) setOurComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
+      } else {
+        res = await socialService.commentOnPost(post.id, content, replyTo?.id);
+        if (res?.comment) setComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
       }
-    } catch { 
+      toast.success('Thought added to the thread');
+    } catch {
       toast.error('Could not add comment');
-      setComments(prev => prev.filter(c => c.id !== tempId));
+      if (isRedditPost) {
+        setOurComments(prev => prev.filter(c => c.id !== tempId));
+      } else {
+        setComments(prev => prev.filter(c => c.id !== tempId));
+      }
       setComment(content);
     }
   };
@@ -179,11 +138,16 @@ const PostPage: React.FC = () => {
     setLiked(!wasLiked);
     setLikeCount(p => wasLiked ? p - 1 : p + 1);
     try {
-      if (wasLiked) await socialService.unlikePost(post.id);
-      else await socialService.likePost(post.id);
-    } catch { 
-      setLiked(wasLiked); 
-      setLikeCount(p => wasLiked ? p + 1 : p - 1); 
+      if (isRedditPost) {
+        if (wasLiked) await socialService.unlikeRedditPost(post.id);
+        else await socialService.likeRedditPost(post.id);
+      } else {
+        if (wasLiked) await socialService.unlikePost(post.id);
+        else await socialService.likePost(post.id);
+      }
+    } catch {
+      setLiked(wasLiked);
+      setLikeCount(p => wasLiked ? p + 1 : p - 1);
     }
   };
 
@@ -191,20 +155,40 @@ const PostPage: React.FC = () => {
     <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
   </div>;
 
-  if (!post) return <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
-    <p className="text-slate-500 font-medium">Post not found in your cluster.</p>
-    <button onClick={() => navigate('/app/feed')} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold">Back to Feed</button>
-  </div>;
+  if (!post) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4 px-4 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-2">
+        <MessageSquare className="w-6 h-6 text-slate-300" />
+      </div>
+      <p className="text-base font-bold text-slate-800">Post not found</p>
+      <p className="text-sm text-slate-400 max-w-xs leading-relaxed">
+        This post may have been deleted or the link is no longer valid.
+      </p>
+      <button
+        onClick={() => navigate('/app/feed')}
+        className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-full text-sm font-semibold transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Feed
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <Helmet>
-        <title>{post.seoTitle || post.author + " on SeeqMe Mesh"}</title>
-        <meta name="description" content={post.seoDesc || post.content.substring(0, 160)} />
-        <meta property="og:title" content={post.seoTitle || post.author + " on SeeqMe Mesh"} />
-        <meta property="og:description" content={post.seoDesc || post.content.substring(0, 160)} />
+        <title>{post.seoTitle || (isRedditPost ? post.title : post.author + " on SeeqMe")}</title>
+        <meta name="description" content={post.seoDesc || (isRedditPost ? post.title : post.content?.substring(0, 160))} />
+        <meta property="og:title" content={post.seoTitle || (isRedditPost ? post.title : post.author + " on SeeqMe")} />
+        <meta property="og:description" content={post.seoDesc || (isRedditPost ? post.selftext?.substring(0, 160) : post.content?.substring(0, 160))} />
         <meta property="og:type" content="article" />
-        <meta name="author" content={post.author} />
+        {isRedditPost && post.thumbnail && <meta property="og:image" content={post.thumbnail} />}
+        <meta name="author" content={isRedditPost ? `u/${post.author}` : post.author} />
+        <link rel="canonical" href={`${window.location.origin}${window.location.pathname}`} />
+        <meta property="og:url" content={`${window.location.origin}${window.location.pathname}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.seoTitle || post.title || post.author + " on SeeqMe"} />
+        <meta name="twitter:description" content={post.seoDesc || post.selftext?.substring(0, 160) || post.content?.substring(0, 160)} />
       </Helmet>
 
       {/* Top Bar */}
@@ -224,6 +208,22 @@ const PostPage: React.FC = () => {
           className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm shadow-slate-200/50"
         >
           {/* Header */}
+          {isRedditPost ? (
+            <div className="mb-5">
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100">
+                  <svg className="w-3.5 h-3.5 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="currentColor"/><path fill="white" d="M16.67 10a1.46 1.46 0 0 0-2.47-1 7.12 7.12 0 0 0-3.85-1.23l.65-3.07 2.13.45a1 1 0 1 0 1-.97.94.94 0 0 0-.68.28l-2.38-.5a.27.27 0 0 0-.32.2l-.73 3.44a7.14 7.14 0 0 0-3.89 1.23 1.46 1.46 0 1 0-1.61 2.39 2.87 2.87 0 0 0 0 .44c0 2.24 2.61 4.06 5.83 4.06s5.83-1.82 5.83-4.06a2.87 2.87 0 0 0 0-.44 1.46 1.46 0 0 0 .4-1.22zm-9.4 1.31a1 1 0 1 1 1 1 1 1 0 0 1-1-1zm5.58 2.63a3.55 3.55 0 0 1-2.85.79 3.55 3.55 0 0 1-2.85-.79.28.28 0 0 1 .39-.39 3.07 3.07 0 0 0 2.46.64 3.07 3.07 0 0 0 2.46-.64.28.28 0 1 1 .39.39zm-.17-1.63a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"/></svg>
+                  <span className="text-[10px] font-black text-orange-500 uppercase tracking-wider">r/{post.subreddit}</span>
+                </div>
+                <span className="text-xs text-slate-400">u/{post.author}</span>
+                <span className="flex items-center gap-1 text-xs text-orange-500 font-semibold">
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                  {post.score?.toLocaleString()} upvotes · {post.numComments} Reddit comments
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-slate-900 leading-snug">{post.title}</h1>
+            </div>
+          ) : (
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-black"
@@ -242,10 +242,11 @@ const PostPage: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
 
           {/* Content */}
           <p className="text-[15px] text-slate-700 font-medium leading-relaxed whitespace-pre-line mb-8">
-            {post.content}
+            {isRedditPost ? post.selftext : post.content}
           </p>
 
           {post.media && (
@@ -280,11 +281,19 @@ const PostPage: React.FC = () => {
             </a>
           )}
 
-          {/* Mesh Context */}
+          {/* Context row */}
+          {isRedditPost ? (
+            <a href={post.permalink} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 mb-8 p-4 rounded-2xl bg-orange-50/50 border border-orange-100 text-[11px] text-orange-600 font-semibold hover:bg-orange-50 transition-colors">
+              <ExternalLink className="w-4 h-4 text-orange-400" />
+              <span>View original thread on Reddit</span>
+            </a>
+          ) : (
           <div className="flex items-center gap-2 mb-8 p-4 rounded-2xl bg-teal-50/50 border border-teal-50 text-[11px] text-teal-700 font-semibold">
             <Network className="w-4 h-4 text-teal-500" />
             <span>Shared with you because of high professional similarity on SeeqMe Mesh.</span>
           </div>
+          )}
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-6 border-t border-slate-100">
@@ -307,8 +316,44 @@ const PostPage: React.FC = () => {
         {/* Comment Section */}
         <div className="mt-12 space-y-8">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">The Thread ({comments.length})</h2>
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">
+              {isRedditPost ? `Discussion (${ourComments.length} SeeqMe · ${post.numComments} Reddit)` : `The Thread (${comments.length})`}
+            </h2>
           </div>
+
+          {/* Reddit top comments (shown on Reddit post pages) */}
+          {isRedditPost && redditComments.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#FF4500"/><path fill="white" d="M16.67 10a1.46 1.46 0 0 0-2.47-1 7.12 7.12 0 0 0-3.85-1.23l.65-3.07 2.13.45a1 1 0 1 0 1-.97.94.94 0 0 0-.68.28l-2.38-.5a.27.27 0 0 0-.32.2l-.73 3.44a7.14 7.14 0 0 0-3.89 1.23 1.46 1.46 0 1 0-1.61 2.39 2.87 2.87 0 0 0 0 .44c0 2.24 2.61 4.06 5.83 4.06s5.83-1.82 5.83-4.06a2.87 2.87 0 0 0 0-.44 1.46 1.46 0 0 0 .4-1.22zm-9.4 1.31a1 1 0 1 1 1 1 1 1 0 0 1-1-1zm5.58 2.63a3.55 3.55 0 0 1-2.85.79 3.55 3.55 0 0 1-2.85-.79.28.28 0 0 1 .39-.39 3.07 3.07 0 0 0 2.46.64 3.07 3.07 0 0 0 2.46-.64.28.28 0 1 1 .39.39zm-.17-1.63a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"/></svg>
+                Top Reddit Comments
+              </p>
+              {redditComments.map(rc => (
+                <div key={rc.id} className="flex gap-3">
+                  <div className="w-9 h-9 rounded-full bg-orange-100 flex-shrink-0 flex items-center justify-center text-orange-500 text-sm font-black">
+                    {rc.author.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 bg-orange-50/60 border border-orange-100 rounded-3xl rounded-tl-none p-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-xs font-bold text-orange-600">u/{rc.author}</p>
+                      <span className="text-[10px] text-orange-400 flex items-center gap-1 font-semibold">
+                        <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                        {rc.score}
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-slate-700 leading-relaxed font-medium">{rc.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* SeeqMe member comments (for Reddit posts) */}
+          {isRedditPost && (
+            <div>
+              <p className="text-[9px] font-black text-teal-500 uppercase tracking-widest px-1 mb-3">SeeqMe Members Take</p>
+            </div>
+          )}
           
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm flex flex-col gap-3 ring-4 ring-slate-50">
             {replyTo && (
@@ -339,7 +384,7 @@ const PostPage: React.FC = () => {
           </div>
 
           <div className="space-y-8">
-            {comments.length > 0 ? comments.filter(c => !c.parentId).map((c) => (
+            {(isRedditPost ? ourComments : comments).length > 0 ? (isRedditPost ? ourComments : comments).filter((c: any) => !c.parentId).map((c: any) => (
               <div key={c.id} className="space-y-6">
                 <MotionDiv initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex gap-4 group">
                   <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-black shadow-sm" style={{ background: c.avatar || '#8b5cf6' }}>
@@ -360,7 +405,7 @@ const PostPage: React.FC = () => {
                 </MotionDiv>
 
                 {/* Nested Replies */}
-                {comments.filter(reply => reply.parentId === c.id).map(reply => (
+                {(isRedditPost ? ourComments : comments).filter((reply: any) => reply.parentId === c.id).map((reply: any) => (
                   <MotionDiv initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} key={reply.id} className="flex gap-4 ml-12">
                     <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[11px] font-black shadow-sm" style={{ background: reply.avatar || '#14b8a6' }}>
                       {reply.author.charAt(0)}

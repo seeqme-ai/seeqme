@@ -426,6 +426,32 @@ export const socialService = {
     const response = await apiClient.get('/social/trending');
     return response.data;
   },
+  getTrendingFeed: async () => {
+    const response = await apiClient.get('/social/feed/trending');
+    return response.data;
+  },
+
+  // ── Reddit ──
+  getRedditFeed: async (category = 'hot') => {
+    const response = await apiClient.get('/social/reddit/feed', { params: { category } });
+    return response.data;
+  },
+  getRedditPostBySlug: async (slug: string) => {
+    const response = await apiClient.get(`/social/reddit/post/${slug}`);
+    return response.data;
+  },
+  likeRedditPost: async (id: string) => {
+    const response = await apiClient.post(`/social/reddit/${id}/like`);
+    return response.data;
+  },
+  unlikeRedditPost: async (id: string) => {
+    const response = await apiClient.delete(`/social/reddit/${id}/like`);
+    return response.data;
+  },
+  commentOnRedditPost: async (id: string, content: string) => {
+    const response = await apiClient.post(`/social/reddit/${id}/comment`, { content });
+    return response.data;
+  },
 
   // ── User Activity ──
   getMyPosts: async () => {

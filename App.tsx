@@ -198,6 +198,7 @@ const App: React.FC = () => {
         <Route path="/app/feed" element={<FeedPage />} />
         <Route path="/app/network" element={<Navigate to="/app/mesh" replace />} />
         <Route path="/app/feed/post/:slug" element={<PostPage />} />
+        <Route path="/app/feed/reddit/:slug" element={<PostPage />} />
         <Route
           path="/app/social"
           element={

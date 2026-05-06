@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,7 @@ import (
 
 	"seeqmeai/backend/internal/database"
 	"seeqmeai/backend/internal/models"
+	"seeqmeai/backend/internal/services"
 	"seeqmeai/backend/internal/websocket"
 )
 
@@ -67,72 +69,6 @@ func triggerFCMNotification(token, title, body string) {
 	log.Printf("[FCM] Dispatching Push Notification -> Token: %s | Title: %s | Body: %s", token, title, body)
 }
 
-// SeedMockData populates the social mesh with professional engineered mock data.
-func (h *Handler) SeedMockData(c *gin.Context) {
-	db := database.Client.Database(database.DBName)
-
-	// Professional Mock User Profiles
-	mockUsers := []models.User{
-		{ID: primitive.NewObjectID(), Email: "sarah.eng@mesh.io", FullName: "Sarah Chen", Roles: []string{"user"}, IsMock: true, AuthProvider: "local", AvatarURL: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100", CreatedAt: time.Now()},
-		{ID: primitive.NewObjectID(), Email: "marcus.prod@mesh.io", FullName: "Marcus Thorne", Roles: []string{"user"}, IsMock: true, AuthProvider: "local", AvatarURL: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100", CreatedAt: time.Now()},
-		{ID: primitive.NewObjectID(), Email: "elena.ux@mesh.io", FullName: "Elena Rodriguez", Roles: []string{"user"}, IsMock: true, AuthProvider: "local", AvatarURL: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100", CreatedAt: time.Now()},
-		{ID: primitive.NewObjectID(), Email: "david.vc@mesh.io", FullName: "David Olatunji", Roles: []string{"user"}, IsMock: true, AuthProvider: "local", AvatarURL: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100", CreatedAt: time.Now()},
-	}
-
-	for _, u := range mockUsers {
-		db.Collection("users").UpdateOne(context.Background(), bson.M{"email": u.Email}, bson.M{"$setOnInsert": u}, options.Update().SetUpsert(true))
-	}
-
-	// High-Fidelity Social Content
-	posts := []struct {
-		AuthorIdx int
-		Content   string
-		Tag       string
-		Likes     int
-		Comments  []string
-	}{
-		{0, "The transition from SVG to Canvas for our 1,200-node mesh visualization was a game changer. Framer Motion is still handling the UI micro-interactions beautifully. 🚀 #webdev #performance", "Engineering", 42, []string{"Impressive! Are you using worker threads for the layout calculation?", "The smoothness is noticeable."}},
-		{1, "Most PMs ignore 'Internal Velocity' as a metric. If your engineers are fighting the codebase, they aren't fighting for the user. Fix the pipes first. 🛠️ #product #management", "Opinion", 128, []string{"Louder for the people in the back!", "Technical debt is high-interest debt."}},
-		{3, "Just finalized a seed round for a SeeqMe cluster in the fintech space. The networking density here is 3x higher than traditional platforms. 📈 #startup #funding", "Startup", 256, []string{"Big moves!", "The quality of nodes is the differentiator."}},
-	}
-
-	for _, p := range posts {
-		author := mockUsers[p.AuthorIdx]
-		postID := primitive.NewObjectID()
-		post := models.Post{
-			ID:        postID,
-			AuthorID:  author.ID,
-			Author:    author.FullName,
-			Role:      "Verified Professional",
-			Avatar:    author.AvatarURL,
-			Content:   p.Content,
-			Tag:       p.Tag,
-			Likes:     p.Likes,
-			Reposts:   p.Likes / 10,
-			IsMock:    true,
-			CreatedAt: time.Now().Add(-time.Duration(p.Likes) * time.Minute),
-		}
-		db.Collection("posts").UpdateOne(context.Background(), bson.M{"content": post.Content}, bson.M{"$setOnInsert": post}, options.Update().SetUpsert(true))
-
-		// Add realistic comments
-		for i, cText := range p.Comments {
-			commenter := mockUsers[(p.AuthorIdx+i+1)%len(mockUsers)]
-			comment := models.Comment{
-				ID:        primitive.NewObjectID(),
-				PostID:    postID,
-				AuthorID:  commenter.ID,
-				Author:    commenter.FullName,
-				Avatar:    commenter.AvatarURL,
-				Content:   cText,
-				CreatedAt: time.Now().Add(-time.Duration(i*10) * time.Minute),
-			}
-			db.Collection("comments").InsertOne(context.Background(), comment)
-			db.Collection("posts").UpdateOne(context.Background(), bson.M{"_id": postID}, bson.M{"$push": bson.M{"comments": comment}})
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Professional social mesh seeded with 1,200-node fidelity content."})
-}
 
 // fetchLinkPreview extracts OG tags from a URL
 func fetchLinkPreview(url string) *models.LinkPreview {
@@ -546,8 +482,8 @@ func (h *Handler) CreatePost(c *gin.Context) {
 		LinkPreview: fetchLinkPreview(req.Link),
 		Comments:    []models.Comment{},
 		SavedBy:     []string{},
-		Slug:        primitive.NewObjectID().Hex(), // Unique slug
-		SEOTitle:    user.FullName + " on SeeqMe Mesh",
+		Slug:        generatePostSlug(user.FullName, req.Content),
+		SEOTitle:    user.FullName + " on SeeqMe",
 		SEODesc:     req.Content,
 		Timestamp:  "Just now",
 		CreatedAt:  time.Now(),
@@ -827,6 +763,21 @@ func (h *Handler) MarkNotificationsRead(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// generatePostSlug creates a human-readable URL slug from author name and content.
+func generatePostSlug(author, content string) string {
+	re := regexp.MustCompile(`[^a-z0-9]+`)
+	words := strings.Fields(strings.ToLower(content))
+	limit := 6
+	if len(words) < limit {
+		limit = len(words)
+	}
+	slug := re.ReplaceAllString(strings.Join(words[:limit], "-"), "-")
+	slug = strings.Trim(slug, "-")
+	// Append short hex suffix for uniqueness
+	suffix := primitive.NewObjectID().Hex()[:7]
+	return slug + "-" + suffix
+}
+
 // GetTrending returns the latest trending tags and post counts
 func (h *Handler) GetTrending(c *gin.Context) {
 	var trending []models.TrendingItem
@@ -847,4 +798,177 @@ func (h *Handler) GetSuggested(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"suggested": suggested})
+}
+
+// GetTrendingFeed returns actual trending posts (hot in-app + Reddit hot).
+func (h *Handler) GetTrendingFeed(c *gin.Context) {
+	db := database.Client.Database(database.DBName)
+	ctx := context.Background()
+
+	// In-app hot posts: sort by likes desc, then reposts
+	var inAppPosts []models.Post
+	cursor, err := db.Collection("posts").Find(ctx, bson.M{},
+		options.Find().SetSort(bson.M{"likes": -1, "reposts": -1}).SetLimit(20))
+	if err == nil {
+		cursor.All(ctx, &inAppPosts)
+	}
+
+	// Reddit hot posts
+	var redditPosts []models.RedditPost
+	rcursor, err := db.Collection("reddit_posts").Find(ctx, bson.M{"category": "hot"},
+		options.Find().SetSort(bson.M{"score": -1}).SetLimit(20))
+	if err == nil {
+		rcursor.All(ctx, &redditPosts)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"posts":       inAppPosts,
+		"redditPosts": redditPosts,
+	})
+}
+
+// GetRedditFeed returns paginated Reddit posts from the cache.
+func (h *Handler) GetRedditFeed(c *gin.Context) {
+	category := c.DefaultQuery("category", "hot")
+	db := database.Client.Database(database.DBName)
+
+	filter := bson.M{}
+	if category != "all" {
+		filter["category"] = category
+	}
+
+	var posts []models.RedditPost
+	cursor, err := db.Collection("reddit_posts").Find(context.Background(), filter,
+		options.Find().SetSort(bson.M{"score": -1}).SetLimit(25))
+	if err == nil {
+		cursor.All(context.Background(), &posts)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"redditPosts": posts})
+}
+
+// GetRedditPostBySlug returns a single Reddit post with cached Reddit comments.
+func (h *Handler) GetRedditPostBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	db := database.Client.Database(database.DBName)
+
+	var post models.RedditPost
+	err := db.Collection("reddit_posts").FindOne(context.Background(), bson.M{"slug": slug}).Decode(&post)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	// Fetch top Reddit comments if we don't have any cached yet
+	if len(post.TopComments) == 0 {
+		comments, err := services.FetchRedditPostComments(context.Background(), post.Subreddit, post.RedditID)
+		if err == nil && len(comments) > 0 {
+			post.TopComments = comments
+			db.Collection("reddit_posts").UpdateOne(context.Background(),
+				bson.M{"_id": post.ID},
+				bson.M{"$set": bson.M{"topComments": comments}},
+			)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"post": post})
+}
+
+// LikeRedditPost toggles a like on a Reddit post for the authenticated user.
+func (h *Handler) LikeRedditPost(c *gin.Context) {
+	postID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	db := database.Client.Database(database.DBName)
+	_, err = db.Collection("reddit_posts").UpdateOne(context.Background(),
+		bson.M{"_id": postID},
+		bson.M{"$addToSet": bson.M{"ourLikes": authUser.ID}},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not like post"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "liked"})
+}
+
+// UnlikeRedditPost removes a like from a Reddit post.
+func (h *Handler) UnlikeRedditPost(c *gin.Context) {
+	postID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	db := database.Client.Database(database.DBName)
+	_, err = db.Collection("reddit_posts").UpdateOne(context.Background(),
+		bson.M{"_id": postID},
+		bson.M{"$pull": bson.M{"ourLikes": authUser.ID}},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not unlike post"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "unliked"})
+}
+
+// CommentOnRedditPost adds a SeeqMe user comment to a Reddit post.
+func (h *Handler) CommentOnRedditPost(c *gin.Context) {
+	postID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		return
+	}
+	authUser, ok := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	if !ok || authUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	authorID, _ := primitive.ObjectIDFromHex(authUser.ID)
+
+	var req struct {
+		Content string `json:"content" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	database.Client.Database(database.DBName).Collection("users").FindOne(
+		context.Background(), bson.M{"_id": authorID},
+	).Decode(&user)
+
+	comment := models.Comment{
+		ID:        primitive.NewObjectID(),
+		PostID:    postID,
+		AuthorID:  authorID,
+		Author:    user.FullName,
+		Avatar:    user.AvatarURL,
+		Content:   req.Content,
+		CreatedAt: time.Now(),
+	}
+
+	db := database.Client.Database(database.DBName)
+	_, err = db.Collection("reddit_posts").UpdateOne(context.Background(),
+		bson.M{"_id": postID},
+		bson.M{"$push": bson.M{"ourComments": comment}},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not add comment"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"comment": comment})
 }
