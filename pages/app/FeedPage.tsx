@@ -274,9 +274,7 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
           <div>
             <div className="flex items-center gap-2">
               <p className="text-sm font-bold text-slate-900">{post.author}</p>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-teal-50 text-teal-600 border border-teal-100 tabular-nums">
-                {post.similarity}% match
-              </span>
+              
             </div>
             <p className="text-[11px] text-slate-400 font-medium">{post.role} · {post.location} · {post.time || post.timestamp}</p>
           </div>
@@ -380,10 +378,7 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
             Save
           </button>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-bold text-slate-400 border border-slate-100">
-          <Network className="w-3 h-3 text-teal-400" />
-          {post.similarity}% Match
-        </div>
+        
       </div>
 
       {/* Threaded Comments */}

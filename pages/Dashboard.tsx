@@ -417,7 +417,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
               activeTab === 'posts' ? 'text-teal-600 border-teal-500' : 'text-slate-400 border-transparent hover:text-slate-600'
             }`}
           >
-            <FileText className="w-4 h-4" /> My Posts
+            <FileText className="w-4 h-4" />Posts
             {myPosts.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{myPosts.length}</span>}
           </button>
           <button
