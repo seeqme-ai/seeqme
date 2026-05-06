@@ -889,14 +889,14 @@ const FeedPage: React.FC = () => {
                       className="fixed sm:absolute right-0 sm:right-0 top-14 sm:top-auto sm:mt-2 left-0 sm:left-auto w-full sm:w-80 bg-white border-t sm:border border-slate-200 sm:rounded-xl z-50 overflow-hidden"
                       style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
                       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Cluster Pulse</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Notifications</p>
                         <button onClick={async () => { await socialService.markNotificationsRead(); setNotifications(prev => prev.map(n => ({ ...n, isRead: true }))); }} className="text-[10px] font-bold text-teal-500 hover:text-teal-600 transition-colors">Clear all</button>
                       </div>
                       <div className="max-h-72 overflow-y-auto">
                         {notifications.length === 0 ? (
                           <div className="p-8 text-center">
                             <Bell className="w-8 h-8 text-slate-100 mx-auto mb-2" />
-                            <p className="text-[11px] text-slate-400">Quiet in your mesh for now.</p>
+                            <p className="text-[11px] text-slate-400">No Notifications Yet.</p>
                           </div>
                         ) : notifications.map(n => (
                           <div key={n.id} className={`px-4 py-3 flex items-start gap-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors ${!n.isRead ? 'bg-teal-50/30' : ''}`}>

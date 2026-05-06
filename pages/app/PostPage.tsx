@@ -234,9 +234,7 @@ const PostPage: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <p className="text-base font-bold text-slate-900">{post.author}</p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-600 border border-teal-100">
-                    {post.similarity}% match
-                  </span>
+                  
                 </div>
                 <p className="text-xs text-slate-400 font-medium">{post.role} · {post.timestamp}</p>
               </div>
