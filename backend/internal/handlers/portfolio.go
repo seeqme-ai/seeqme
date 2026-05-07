@@ -160,6 +160,42 @@ func (h *Handler) GetPortfolios(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"portfolios": enriched})
 }
 
+// GetMyPublishedPortfolios retrieves all published portfolios for the authenticated user
+func (h *Handler) GetMyPublishedPortfolios(c *gin.Context) {
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	uOID, err := primitive.ObjectIDFromHex(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	filter := bson.M{
+		"userId": uOID,
+		"status": "completed", // Only fetch portfolios that have been successfully deployed
+	}
+
+	var portfolios []models.Portfolio
+	cursor, err := database.Client.Database(database.DBName).Collection("portfolios").Find(context.Background(), filter)
+	if err != nil {
+		log.Printf("[Portfolio] Error fetching published portfolios for user %v: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch published portfolios: " + err.Error()})
+		return
+	}
+	defer cursor.Close(context.Background())
+
+	if err = cursor.All(context.Background(), &portfolios); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode published portfolios"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"portfolios": portfolios})
+}
+
 // CreatePortfolio handles portfolio creation
 func (h *Handler) CreatePortfolio(c *gin.Context) {
 	var req CreatePortfolioRequest

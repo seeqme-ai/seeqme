@@ -297,6 +297,8 @@ type Post struct {
 	Link           string              `json:"link" bson:"link"`
 	LinkPreview    *LinkPreview        `json:"linkPreview" bson:"linkPreview"`
 	Likes          int                 `json:"likes" bson:"likes"`
+	LikedBy        []primitive.ObjectID `json:"likedBy" bson:"likedBy"`
+	Liked          bool                 `json:"liked" bson:"-"`
 	Comments       []Comment           `json:"comments" bson:"comments"`
 	Reposts        int                 `json:"reposts" bson:"reposts"`
 	SavedBy        []string            `json:"savedBy" bson:"savedBy"`

@@ -56,6 +56,14 @@ func main() {
 	mockWorker := services.NewMockContentWorker(8 * time.Hour)
 	go mockWorker.Start(context.Background())
 
+	// Start trending worker — refreshes trending tags + Reddit posts every hour
+	trendingWorker := services.NewTrendingWorker(
+		[]services.TrendingProvider{services.NewRedditProvider()},
+		1*time.Hour,
+		"global",
+	)
+	go trendingWorker.Start(context.Background())
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -122,6 +130,7 @@ func main() {
 		portfolios.Use(middleware.RequiredAuthMiddleware())
 		{
 			portfolios.GET("", h.GetPortfolios)
+			portfolios.GET("/my-published", h.GetMyPublishedPortfolios)
 			portfolios.POST("", h.CreatePortfolio)
 			portfolios.GET("/:id", h.GetPortfolio)
 			portfolios.PUT("/:id", h.UpdatePortfolio)
@@ -218,6 +227,8 @@ func main() {
 			social.DELETE("/feed/:id/like", middleware.RequiredAuthMiddleware(), h.UnlikePost)
 			social.POST("/feed/:id/repost", middleware.RequiredAuthMiddleware(), h.RepostPost)
 			social.POST("/feed/:id/save", middleware.RequiredAuthMiddleware(), h.SavePost)
+			social.GET("/feed/my-posts", middleware.RequiredAuthMiddleware(), h.GetMyPosts)
+			social.GET("/feed/saved", middleware.RequiredAuthMiddleware(), h.GetSavedPosts)
 			social.POST("/feed/:id/comment", middleware.RequiredAuthMiddleware(), h.CommentOnPost)
 			social.GET("/feed/post/:slug", h.GetPostBySlug)
 			social.GET("/trending", h.GetTrending)

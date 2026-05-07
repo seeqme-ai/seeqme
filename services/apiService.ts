@@ -67,6 +67,10 @@ export const portfolioService = {
     const response = await apiClient.get('/portfolios');
     return response.data;
   },
+  getMyPublishedPortfolios: async () => {
+    const response = await apiClient.get('/portfolios/my-published');
+    return response.data;
+  },
   getPortfolio: async (id: string) => {
     const response = await apiClient.get(`/portfolios/${id}`);
     return response.data;
@@ -426,8 +430,8 @@ export const socialService = {
     const response = await apiClient.get('/social/trending');
     return response.data;
   },
-  getTrendingFeed: async () => {
-    const response = await apiClient.get('/social/feed/trending');
+  getTrendingFeed: async (tag?: string) => {
+    const response = await apiClient.get('/social/feed/trending', { params: { tag } });
     return response.data;
   },
 
@@ -455,7 +459,7 @@ export const socialService = {
 
   // ── User Activity ──
   getMyPosts: async () => {
-    const response = await apiClient.get('/social/feed/me');
+    const response = await apiClient.get('/social/feed/my-posts');
     return response.data;
   },
   getSavedPosts: async () => {

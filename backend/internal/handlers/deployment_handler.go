@@ -365,6 +365,12 @@ func (h *Handler) DeployPortfolio(c *gin.Context) {
 		return
 	}
 
+	// Send FCM notification for deployment initiated
+	go h.sendFCMNotificationToUser(context.Background(), userIDObj,
+		"Portfolio Deployment Initiated",
+		fmt.Sprintf("Your portfolio '%s' is now building. We'll notify you when it's live!", subdomain),
+		map[string]string{"portfolioId": req.PortfolioID, "status": "building"})
+
 	// Trigger deployment
 	go h.triggerDeployment(req.PortfolioID, subdomain, req.CustomDomainID, deploymentID)
 
@@ -906,6 +912,12 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 	}
 	go h.Resend.SendEmail(userEmail, "Your portfolio is live!", "portfolio_published.html", emailData)
 
+	// Send FCM notification for deployment completed
+	go h.sendFCMNotificationToUser(context.Background(), userIDObj,
+		"Portfolio Live!",
+		fmt.Sprintf("Your portfolio '%s' has been successfully deployed and is now live at %s!", subdomain, finalURL),
+		map[string]string{"portfolioId": portfolioID, "status": "deployed", "url": finalURL})
+
 	// Increment User Deployment Count (For Limits)
 	// Check subscription status to ensure we are tracking correctly for free plan
 	subCollection := database.Client.Database(database.DBName).Collection("subscriptions")
@@ -948,6 +960,32 @@ func (h *Handler) triggerDeployment(portfolioID string, subdomain string, custom
 
 	// Ping search engines so they discover and index the new portfolio quickly
 	go pingSearchEngines(fmt.Sprintf("https://%s/sitemap.xml", fullDomain))
+}
+
+func (h *Handler) sendFCMNotificationToUser(ctx context.Context, userID primitive.ObjectID, title, body string, data map[string]string) {
+	if h.FCMService == nil {
+		log.Println("[FCM] FCM Service not initialized. Skipping notification.")
+		return
+	}
+
+	var user models.User
+	err := database.Client.Database(database.DBName).Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		log.Printf("[FCM] Failed to find user %s for notification: %v", userID.Hex(), err)
+		return
+	}
+
+	if user.FCMToken == "" || user.IsMock {
+		log.Printf("[FCM] User %s has no FCM token or is a mock user. Skipping notification.", userID.Hex())
+		return
+	}
+
+	err = h.FCMService.SendNotificationWithData(user.FCMToken, title, body, data)
+	if err != nil {
+		log.Printf("[FCM] Failed to send FCM notification to user %s (token %s): %v", userID.Hex(), user.FCMToken, err)
+	} else {
+		log.Printf("[FCM] Successfully sent FCM notification to user %s (token %s)", userID.Hex(), user.FCMToken)
+	}
 }
 
 // downloadFile fetches srcURL and writes the body to destPath.

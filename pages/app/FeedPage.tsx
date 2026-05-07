@@ -203,7 +203,7 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
   const toggleSave = async () => {
     const wasSaved = saved;
     setSaved(!wasSaved);
-    try { await socialService.savePost(post.id); toast.success(wasSaved ? 'Removed from bookmarks' : 'Saved to bookmarks'); }
+    try { await socialService.savePost(post.id);  }
     catch { setSaved(wasSaved); }
   };
 
@@ -230,8 +230,14 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
     try {
       const res = await socialService.commentOnPost(post.id, content, replyTo?.id);
       if (res?.comment) {
-        setComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
+        // Remove the optimistic comment and add the real one
+        setComments(prev => {
+          const filtered = prev.filter(c => c.id !== tempId);
+          return [...filtered, res.comment];
+        });
         toast.success('Thought shared');
+      } else {
+        throw new Error('No comment returned');
       }
     } catch { 
       toast.error('Could not add comment'); 
@@ -245,7 +251,7 @@ const PostCard: React.FC<{ post: Post; i: number; onDelete: (id: string) => void
       await socialService.updatePost(post.id, editContent);
       setIsEditing(false);
       post.content = editContent; // Optimistic update
-      toast.success('Broadcast updated');
+      
     } catch { toast.error('Update failed'); }
   };
 
@@ -780,7 +786,7 @@ const FeedPage: React.FC = () => {
       const res = await cloudinaryService.uploadFile(file);
       setMediaUrl(res.secureUrl);
       setShowAttach(true);
-      toast.success('Image optimized & uploaded');
+      
     } catch {
       toast.error('Upload failed');
     } finally {
@@ -1159,39 +1165,29 @@ const FeedPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Trending Topics */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trending</p>
-                <TrendingUp className="w-4 h-4 text-teal-500" />
-              </div>
-              <div className="space-y-4">
-                {trending.length > 0 ? trending.slice(0, 5).map(({ tag, posts }, i) => (
-                  <div key={tag} onClick={() => setActiveTab('Trending')} className="flex items-center justify-between group cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-black text-slate-200 group-hover:text-teal-300 transition-colors w-5">0{i + 1}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">#{tag}</p>
-                        <p className="text-[10px] text-slate-400 font-medium">{posts} posts</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all" />
-                  </div>
-                )) : (
-                  <div className="space-y-3">
-                    {['Design', 'Engineering', 'Startup', 'AI', 'Product'].map((t, i) => (
-                      <div key={t} className="flex items-center gap-3 opacity-40">
-                        <span className="text-xs font-black text-slate-400 w-5">0{i + 1}</span>
+            {/* Trending Topics — only shown when real data exists */}
+            {trending.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trending</p>
+                  <TrendingUp className="w-4 h-4 text-teal-500" />
+                </div>
+                <div className="space-y-4">
+                  {trending.slice(0, 5).map(({ tag, posts }, i) => (
+                    <div key={tag} onClick={() => setActiveTab('Trending')} className="flex items-center justify-between group cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-black text-slate-200 group-hover:text-teal-300 transition-colors w-5">0{i + 1}</span>
                         <div>
-                          <p className="text-sm font-semibold text-slate-500">#{t}</p>
-                          <p className="text-[10px] text-slate-400">— posts</p>
+                          <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">#{tag}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">{posts} posts</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Suggested Connections */}
             {suggested.length > 0 && (

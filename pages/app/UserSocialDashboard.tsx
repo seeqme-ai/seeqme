@@ -15,34 +15,6 @@ const Mv = motion.div as any;
 
 type Tab = 'posts' | 'saved' | 'connections';
 
-/* ── Fallback mock data (used when API returns empty) ── */
-const MOCK_MY_POSTS = [
-  {
-    id: 'mp1', slug: 'my-portfolio-launch', authorId: 'me',
-    content: "Just launched my new portfolio! It took weeks of iteration — from picking the right layout to getting the typography just right. Really happy with how it turned out. Check it out and let me know what you think!",
-    tag: 'Design', time: '3h ago', likes: 14, comments: [], reposts: 2,
-  },
-  {
-    id: 'mp2', slug: 'on-building-consistency', authorId: 'me',
-    content: "Something I've learned the hard way: consistency beats intensity every time. Shipping something small every day compounds faster than you'd expect. What's your daily practice?",
-    tag: 'Opinion', time: '2d ago', likes: 31, comments: [], reposts: 7,
-  },
-];
-
-const MOCK_SAVED_POSTS = [
-  {
-    id: 'sp1', slug: 'sarah-chen-design-tokens', authorId: 'a1',
-    author: 'Sarah Chen', avatar: '#8b5cf6',
-    content: "Just finished refactoring our design system's token architecture. Moving from static variables to a multi-tiered semantic system has reduced our UI debt by nearly 40%.",
-    tag: 'Design', time: '2h ago', likes: 124, comments: [],
-  },
-  {
-    id: 'sp2', slug: 'marcus-thorne-mesh-density', authorId: 'a2',
-    author: 'Marcus Thorne', avatar: '#0ea5e9',
-    content: "The future of networking isn't about having 500+ connections; it's about the density of your professional cluster. Quality over quantity is finally being mathematically enforced by the Mesh.",
-    tag: 'Product', time: '5h ago', likes: 245, comments: [],
-  },
-];
 
 /* ── Sub-components ── */
 const StatCard = ({ icon, label, value, loading, accent = 'teal' }: any) => {
@@ -152,12 +124,12 @@ const UserSocialDashboard: React.FC = () => {
         ]);
         const mp: any[] = myPostsRes?.posts || [];
         const sp: any[] = savedRes?.posts || [];
-        setMyPosts(mp.length ? mp : MOCK_MY_POSTS);
-        setSavedPosts(sp.length ? sp : MOCK_SAVED_POSTS);
+        setMyPosts(mp);
+        setSavedPosts(sp);
         setConnections(connRes?.accepted || []);
       } catch {
-        setMyPosts(MOCK_MY_POSTS);
-        setSavedPosts(MOCK_SAVED_POSTS);
+        setMyPosts([]);
+        setSavedPosts([]);
       } finally {
         setLoading(false);
       }

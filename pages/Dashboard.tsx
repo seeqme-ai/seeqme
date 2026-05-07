@@ -211,6 +211,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   const navigate = useNavigate();
   const { user } = useAuth();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [myPublishedPortfolios, setMyPublishedPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
@@ -245,6 +246,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
     };
     checkActiveSession();
     fetchSocialData();
+    fetchMyPublishedPortfolios();
   }, [navigate]);
 
   const fetchSocialData = async () => {
@@ -260,6 +262,15 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
       setConnections(connRes.accepted || []);
     } catch { /* ignore */ }
     finally { setSocialLoading(false); }
+  };
+
+  const fetchMyPublishedPortfolios = async () => {
+    try {
+      const data = await portfolioService.getMyPublishedPortfolios();
+      setMyPublishedPortfolios(data.portfolios || []);
+    } catch (error) {
+      console.error("Error fetching published portfolios:", error);
+    }
   };
 
   const fetchSubscription = async () => {
@@ -410,6 +421,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
             }`}
           >
             <Layers className="w-4 h-4" /> Portfolios
+            {myPublishedPortfolios.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{myPublishedPortfolios.length}</span>}
           </button>
           <button
             onClick={() => setActiveTab('posts')}
@@ -445,40 +457,40 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
           {activeTab === 'portfolios' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnimatePresence mode="popLayout">
-                {portfolios.map((p, idx) => (
-                  <PortfolioCard
-                    key={p.id}
-                    portfolio={p}
-                    idx={idx}
-                    onEdit={() => onEdit(p)}
-                    onDelete={() => setDeleteConfirm(p.id!)}
-                    onAnalytics={() => navigate(`/portfolio/${p.id}/analytics`)}
-                    onConnectDomain={() => handleConnectDomainClick(p)}
-                    onRollback={() => handleRollback(p)}
-                    onSwapTemplate={() => navigate(`/portfolio/${p.id}/template-preview`)}
-                    onCard={() => setCardPortfolio(p)}
-                  />
-                ))}
-              </AnimatePresence>
-
-              {portfolios.length === 0 && (
-                <div className="col-span-full py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
-                  <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
-                      <Layers className="w-8 h-8 text-teal-400" />
+                {myPublishedPortfolios.length === 0 ? (
+                  <div className="col-span-full py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
+                    <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
+                        <Layers className="w-8 h-8 text-teal-400" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900 mb-2">No Published Portfolios</h2>
+                    <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
+                      You haven't published any portfolios yet. Create one and make it live!
+                    </p>
+                    <button
+                      onClick={onNew}
+                      className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create New Portfolio
+                    </button>
                   </div>
-                  <h2 className="text-lg font-semibold text-slate-900 mb-2">Start your professional presence</h2>
-                  <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
-                    Upload your CV or describe what you do — AI builds your portfolio in under a minute.
-                  </p>
-                  <button
-                    onClick={onNew}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Create My Portfolio
-                  </button>
-                </div>
-              )}
+                ) : (
+                  myPublishedPortfolios.map((p, idx) => (
+                    <PortfolioCard
+                      key={p.id}
+                      portfolio={p}
+                      idx={idx}
+                      onEdit={() => onEdit(p)}
+                      onDelete={() => setDeleteConfirm(p.id!)}
+                      onAnalytics={() => navigate(`/portfolio/${p.id}/analytics`)}
+                      onConnectDomain={() => handleConnectDomainClick(p)}
+                      onRollback={() => handleRollback(p)}
+                      onSwapTemplate={() => navigate(`/portfolio/${p.id}/template-preview`)}
+                      onCard={() => setCardPortfolio(p)}
+                    />
+                  ))
+                )}
+              </AnimatePresence>
             </div>
           )}
 

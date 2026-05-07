@@ -45,6 +45,8 @@ type Config struct {
 	LinkedInEmail       string
 	LinkedInPassword    string
 	AnthropicAPIKey     string
+	FirebaseProjectID        string
+	FirebaseServiceAccountKeyJSON string
 }
 
 func Load() *Config {
@@ -76,8 +78,7 @@ func Load() *Config {
 		StripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET", ""),
 		RedisURL:            getEnv("REDIS_URL", ""),
 		Environment:         getEnv("ENVIRONMENT", "development"),
-		DNSProviderAPIKey:   getEnv("DNS_PROVIDER_API_KEY", ""),
-		DNSProviderDomain:   getEnv("DNS_PROVIDER_DOMAIN", ""),
+		DNSProviderAPIKey:   getEnv("DNS_PROVIDER_API_KEY", ""),		DNSProviderDomain:   getEnv("DNS_PROVIDER_DOMAIN", ""),
 		CloudinaryCloudName: getEnv("CLOUDINARY_CLOUD_NAME", ""),
 		CloudinaryAPIKey:    getEnv("CLOUDINARY_API_KEY", ""),
 		CloudinaryAPISecret: getEnv("CLOUDINARY_API_SECRET", ""),
@@ -102,6 +103,8 @@ func Load() *Config {
 		LinkedInEmail:       getEnv("LINKEDIN_EMAIL", ""),
 		LinkedInPassword:    getEnv("LINKEDIN_PASSWORD", ""),
 		AnthropicAPIKey:     getEnv("ANTHROPIC_API_KEY", ""),
+		FirebaseProjectID:        getEnv("FIREBASE_PROJECT_ID", ""),
+		FirebaseServiceAccountKeyJSON: getEnv("FIREBASE_SERVICE_ACCOUNT_KEY_JSON", ""),
 	}
 
 	log.Printf("Loaded MongoURI: %s", config.MongoURI)

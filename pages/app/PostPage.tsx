@@ -115,13 +115,28 @@ const PostPage: React.FC = () => {
       let res;
       if (isRedditPost) {
         res = await socialService.commentOnRedditPost(post.id, content);
-        if (res?.comment) setOurComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
+        if (res?.comment) {
+          setOurComments(prev => {
+            const filtered = prev.filter(c => c.id !== tempId);
+            return [...filtered, res.comment];
+          });
+        } else {
+          throw new Error('No comment returned from Reddit post comment');
+        }
       } else {
         res = await socialService.commentOnPost(post.id, content, replyTo?.id);
-        if (res?.comment) setComments(prev => prev.map(c => c.id === tempId ? res.comment : c));
+        if (res?.comment) {
+          setComments(prev => {
+            const filtered = prev.filter(c => c.id !== tempId);
+            return [...filtered, res.comment];
+          });
+        } else {
+          throw new Error('No comment returned from regular post comment');
+        }
       }
       toast.success('Thought added to the thread');
-    } catch {
+    } catch (error) {
+      console.error("Error adding comment:", error);
       toast.error('Could not add comment');
       if (isRedditPost) {
         setOurComments(prev => prev.filter(c => c.id !== tempId));

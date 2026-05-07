@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log" // Added log import
 	"net/http"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"seeqmeai/backend/internal/config"
 	"seeqmeai/backend/internal/database"
+	"seeqmeai/backend/internal/services" // Added services import
 	"seeqmeai/backend/pkg/geoip"
 	"seeqmeai/backend/pkg/resend"
 
@@ -22,6 +24,7 @@ import (
 type Handler struct {
 	Resend *resend.Resend
 	Config *config.Config
+	FCMService *services.FCMService // Added FCMService
 
 	googleOauthConfig *oauth2.Config
 	oauthStateString  string
@@ -36,9 +39,15 @@ func NewHandler(cfg *config.Config) *Handler {
 		Endpoint:     google.Endpoint,
 	}
 
+	fcmService, err := services.NewFCMService(cfg)
+	if err != nil {
+		log.Printf("Failed to initialize FCM Service: %v. FCM notifications will be disabled.", err)
+	}
+
 	return &Handler{
 		Resend: resend.New(cfg),
 		Config: cfg,
+		FCMService: fcmService, // Assigned FCMService
 
 		googleOauthConfig: googleOauthConfig,
 	}

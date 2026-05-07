@@ -622,12 +622,22 @@ const MeshPage: React.FC = () => {
         onTouchMove={e => { handleTouchMove(e); handleTouchMovePinch(e); }}
         onTouchEnd={() => { handleTouchEnd(); pinchRef.current = null; }}
       >
-        <svg className="w-full h-full" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
-          <motion.g
-            animate={{ x: pan.x, y: pan.y, scale: zoom }}
-            transition={{ type: 'spring', damping: 42, stiffness: 290, mass: 0.5 }}
-            style={{ transformOrigin: 'center' }}
-          >
+        {/* Pan/zoom via CSS transform on a div — screen-pixel coords match mouse deltas */}
+        <MotionDiv
+          style={{
+            position: 'absolute',
+            width: '1600px',
+            height: '1000px',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-800px',
+            marginTop: '-500px',
+            transformOrigin: '50% 50%',
+          }}
+          animate={{ x: pan.x, y: pan.y, scale: zoom }}
+          transition={{ type: 'spring', damping: 42, stiffness: 290, mass: 0.5 }}
+        >
+          <svg width="1600" height="1000">
             {/* Edges */}
             {visibleEdges.map((edge, i) => {
               const p1 = pos(edge.from); const p2 = pos(edge.to);
@@ -706,8 +716,8 @@ const MeshPage: React.FC = () => {
                 </g>
               );
             })}
-          </motion.g>
-        </svg>
+          </svg>
+        </MotionDiv>
 
         {/* ── Hover tooltip ── */}
         <AnimatePresence>
