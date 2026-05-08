@@ -249,17 +249,17 @@ const AnalyticsDashboard: React.FC = () => {
         return (
             <DashboardLayout>
                 <div className="min-h-screen flex items-center justify-center p-4">
-                    <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl p-8 sm:p-10 text-center shadow-sm">
-                        <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center">
-                            <TrendingUp className="w-6 h-6 text-teal-500" />
+                    <div className="w-full max-w-2xl py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
+                        <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
+                            <TrendingUp className="w-8 h-8 text-teal-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-zinc-900 mb-2">No Published Portfolio Yet</h2>
-                        <p className="text-sm text-zinc-500 leading-relaxed max-w-md mx-auto mb-7">
+                        <h2 className="text-lg font-semibold text-slate-900 mb-2">No Published Portfolios</h2>
+                        <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
                             Analytics becomes available after your first portfolio is published and starts receiving visitors.
                         </p>
                         <button
                             onClick={() => navigate('/builder', { state: { openFloatingPrompt: true, floatingMode: 'new' } })}
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-bold transition-colors"
+                            className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors"
                         >
                             Publish Your First Portfolio
                             <ArrowUpRight className="w-4 h-4" />
@@ -390,14 +390,22 @@ const AnalyticsDashboard: React.FC = () => {
                 </header>
 
                 {!data ? (
-                    <div className="py-20 text-center space-y-6 bg-zinc-50 rounded-[2.5rem] border border-dashed border-zinc-200">
-                        <div className="w-20 h-20 bg-white rounded-3xl shadow-xl mx-auto flex items-center justify-center">
-                            <Activity className="w-10 h-10 text-teal-500/20" />
+                    <div className="py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
+                        <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
+                            <Activity className="w-8 h-8 text-teal-400" />
                         </div>
-                        <div className="max-w-xs mx-auto">
-                            <h3 className="text-xl font-bold mb-2">No data yet</h3>
-                            <p className="text-sm text-zinc-500">Once your portfolio receives visitors, your analytics will appear here.</p>
-                        </div>
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">No analytics data yet</h3>
+                        <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
+                            Once your portfolio receives visitors, your analytics will appear here.
+                        </p>
+                        <button
+                            onClick={() => currentPortfolio?.subdomain && window.open(`https://${currentPortfolio.subdomain}.seeqme.com`, '_blank', 'noopener,noreferrer')}
+                            disabled={!currentPortfolio?.subdomain}
+                            className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-black text-white rounded-[50px] text-sm font-medium active:scale-95 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            View Portfolio
+                            <ArrowUpRight className="w-4 h-4" />
+                        </button>
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

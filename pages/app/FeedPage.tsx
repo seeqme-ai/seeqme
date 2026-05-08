@@ -958,10 +958,6 @@ const FeedPage: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-slate-500">
-              <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-              <span className="text-[11px] font-medium">Active</span>
-            </div>
           </div>
         </div>
       </div>

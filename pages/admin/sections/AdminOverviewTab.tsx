@@ -26,6 +26,24 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
   portfolios,
   canViewRevenueStats = false,
 }) => {
+  const userGrowthData = Array.isArray(stats?.userGrowth)
+    ? stats.userGrowth
+      .map((item: any, idx: number) => ({
+        _id: String(item?._id ?? idx + 1),
+        count: Number(item?.count ?? 0)
+      }))
+      .filter((item: any) => Number.isFinite(item.count))
+    : [];
+
+  const revenueGrowthData = Array.isArray(stats?.revenueGrowth)
+    ? stats.revenueGrowth
+      .map((item: any, idx: number) => ({
+        _id: String(item?._id ?? idx + 1),
+        total: Number(item?.total ?? 0)
+      }))
+      .filter((item: any) => Number.isFinite(item.total))
+    : [];
+
   return (
     <div className="space-y-4">
       <div className={`grid grid-cols-2 ${canViewRevenueStats ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-2`}>
@@ -78,7 +96,7 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
             </div>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.userGrowth}>
+                <AreaChart data={userGrowthData}>
                   <defs>
                     <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
@@ -89,7 +107,7 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
                   <XAxis dataKey="_id" hide />
                   <YAxis hide />
                   <RechartsTooltip />
-                  <Area type="monotone" dataKey="count" stroke="#0d9488" fillOpacity={1} fill="url(#userGradient)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="count" stroke="#0d9488" fillOpacity={1} fill="url(#userGradient)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -103,12 +121,12 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
               </div>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.revenueGrowth}>
+                  <BarChart data={revenueGrowthData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="_id" hide />
                     <YAxis hide />
                     <RechartsTooltip />
-                    <Bar dataKey="total" fill="#0f766e" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="total" fill="#0f766e" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -64,7 +64,7 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({
       if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
         const { content } = await uploadService.extractCV(file);
         setSelectedFile({ name: file.name, type: 'document', content });
-        toast.success('CV attached');
+       
       } else if (file.type.startsWith('image/')) {
         const { url } = await uploadService.uploadFile(file);
         setSelectedFile({ name: file.name, type: 'image', url });
