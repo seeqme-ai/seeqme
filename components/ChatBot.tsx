@@ -113,29 +113,27 @@ const ChatBot: React.FC = () => {
                 lastTimestamp: serverTimestamp(),
                 unreadCount: 0,
             });
-
-            const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
-            if (slackWebhookUrl) {
-                const slackPayload = {
-                    text: `*New Support Message from ${user.fullName}*`,
-                    blocks: [
-                        { type: "section", text: { type: "mrkdwn", text: `*${user.fullName}:*\n${textPayload}` } }
-                    ]
-                };
-
-                const slackResponse = await fetch(slackWebhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(slackPayload),
-                });
-
-                if (!slackResponse.ok) {
-                    const errText = await slackResponse.text().catch(() => '');
-                    console.error('Slack webhook failed:', slackResponse.status, errText);
-                }
-            }
         } catch (err: any) {
-            toast.error(`Error: ${err.message}`);
+            toast.error(err?.message || 'Could not send message');
+            return;
+        }
+
+        // Best-effort Slack forwarding; must never fail the user send flow.
+        const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+        if (slackWebhookUrl) {
+            const slackPayload = {
+                text: `*New Support Message from ${user.fullName}*`,
+                blocks: [
+                    { type: "section", text: { type: "mrkdwn", text: `*${user.fullName}:*\n${textPayload}` } }
+                ]
+            };
+            fetch(slackWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(slackPayload),
+            }).catch((err) => {
+                console.error('Slack webhook failed:', err);
+            });
         }
     };
 
@@ -277,14 +275,14 @@ const ChatBot: React.FC = () => {
                         </div>
 
                         {/* Input Area */}
-                        <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-slate-100">
-                            <div className="flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/10 transition-all">
+                        <form onSubmit={handleSendMessage} className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-white border-t border-slate-100">
+                            <div className="flex items-center gap-2 bg-slate-100/50 p-2 rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/10 transition-all">
                                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*,.pdf,.doc,.docx" />
                                 <button
                                     type="button"
                                     disabled={isUploading}
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-2 text-slate-400 hover:text-teal-600 transition-colors"
+                                    className="w-9 h-9 shrink-0 flex items-center justify-center text-slate-400 hover:text-teal-600 transition-colors"
                                 >
                                     {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
                                 </button>
@@ -298,7 +296,7 @@ const ChatBot: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={!message.trim() || isUploading}
-                                    className="p-2 bg-teal-500 text-white rounded-xl hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20 disabled:opacity-30 active:scale-90"
+                                    className="w-10 h-10 shrink-0 flex items-center justify-center bg-teal-500 text-white rounded-xl hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20 disabled:opacity-30 active:scale-90"
                                 >
                                     <Send className="w-5 h-5" />
                                 </button>
