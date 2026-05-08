@@ -16,6 +16,7 @@ const Templates: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [displayLimit, setDisplayLimit] = useState(12);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [isLaunchingTemplate, setIsLaunchingTemplate] = useState(false);
     const loaderRef = useRef<HTMLDivElement>(null);
     const [searchParams] = useSearchParams();
 
@@ -31,6 +32,7 @@ const Templates: React.FC = () => {
         if (templateIdFromUrl && templates.length > 0) {
             const template = templates.find(t => t.id === templateIdFromUrl);
             if (template) {
+                setIsLaunchingTemplate(true);
                 // Update document title for SEO
                 document.title = `${template.name} Template - Seeqme AI`;
 
@@ -51,6 +53,7 @@ const Templates: React.FC = () => {
                     replace: true // Replace history so back button goes to previous page, not /templates?id=...
                 });
             } else {
+                setIsLaunchingTemplate(false);
                 navigate('/templates', { replace: true });
             }
         }
@@ -93,11 +96,20 @@ const Templates: React.FC = () => {
     }, [selectedNiche, searchQuery]);
 
     const handleTempClick = (initialData?: { type: string; value: string; templateId?: string }) => {
+        setIsLaunchingTemplate(true);
         navigate("/builder", { state: { initialData } });
     };
 
     return (
         <MainLayout>
+            {isLaunchingTemplate && (
+                <div className="fixed inset-0 z-[120] bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-3">
+                        <Loader className="w-6 h-6 animate-spin text-teal-600" />
+                        <p className="text-sm font-semibold text-slate-600">Launching template…</p>
+                    </div>
+                </div>
+            )}
             <Helmet>
                 <title>Portfolio Templates — SeeqMe AI</title>
                 <meta name="description" content="Browse professional portfolio templates for engineers, designers, product managers, and more. Pick a starting point and let AI personalise it for you." />

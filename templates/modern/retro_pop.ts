@@ -130,13 +130,13 @@ export const RETRO_POP: Manifest = {
                     
                     <div class="grid grid-cols-2 gap-4 w-full max-w-md">
                         <div class="aspect-[9/16] bg-black rounded-xl overflow-hidden border-2 border-black relative rotate-[-1deg]">
-                             <img src="{{avatarImage}}" class="w-full h-full object-cover" />
+                             <img src="{{avatarImage}}" alt="Creator avatar" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600';" />
                              <div class="absolute inset-0 flex items-center justify-center">
                                 <i class="fab fa-tiktok text-white text-4xl drop-shadow-md"></i>
                              </div>
                         </div>
                          <div class="aspect-[9/16] bg-black rounded-xl overflow-hidden border-2 border-black relative rotate-[2deg]">
-                             <img src="{{backgroundImage}}" class="w-full h-full object-cover" />
+                             <img src="{{backgroundImage}}" alt="Creator background" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600';" />
                              <div class="absolute inset-0 flex items-center justify-center">
                                 <i class="fab fa-instagram text-white text-4xl drop-shadow-md"></i>
                              </div>
@@ -207,7 +207,7 @@ export const RETRO_POP: Manifest = {
                         {{#each projects}}
                         <div class="border-2 border-black rounded-2xl p-4 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer">
                              <div class="aspect-[9/16] bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
-                                <img src="{{image}}" class="w-full h-full object-cover" />
+                                <img src="{{image}}" alt="{{title}}" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556228578-8d4e927cfa12?w=600';" />
                                 <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
                                     <i class="fas fa-play text-white text-4xl drop-shadow-lg"></i>
                                 </div>
