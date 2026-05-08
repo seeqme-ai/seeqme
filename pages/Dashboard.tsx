@@ -211,7 +211,6 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
   const navigate = useNavigate();
   const { user } = useAuth();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [myPublishedPortfolios, setMyPublishedPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
@@ -246,7 +245,6 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
     };
     checkActiveSession();
     fetchSocialData();
-    fetchMyPublishedPortfolios();
   }, [navigate]);
 
   const fetchSocialData = async () => {
@@ -262,15 +260,6 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
       setConnections(connRes.accepted || []);
     } catch { /* ignore */ }
     finally { setSocialLoading(false); }
-  };
-
-  const fetchMyPublishedPortfolios = async () => {
-    try {
-      const data = await portfolioService.getMyPublishedPortfolios();
-      setMyPublishedPortfolios(data.portfolios || []);
-    } catch (error) {
-      console.error("Error fetching published portfolios:", error);
-    }
   };
 
   const fetchSubscription = async () => {
@@ -421,7 +410,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
             }`}
           >
             <Layers className="w-4 h-4" /> Portfolios
-            {myPublishedPortfolios.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{myPublishedPortfolios.length}</span>}
+            {portfolios.length > 0 && <span className="ml-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">{portfolios.length}</span>}
           </button>
           <button
             onClick={() => setActiveTab('posts')}
@@ -457,14 +446,14 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
           {activeTab === 'portfolios' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnimatePresence mode="popLayout">
-                {myPublishedPortfolios.length === 0 ? (
+                {portfolios.length === 0 ? (
                   <div className="col-span-full py-20 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-lg bg-white">
                     <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center mb-6">
                         <Layers className="w-8 h-8 text-teal-400" />
                     </div>
-                    <h2 className="text-lg font-semibold text-slate-900 mb-2">No Published Portfolios</h2>
+                    <h2 className="text-lg font-semibold text-slate-900 mb-2">No Portfolios Yet</h2>
                     <p className="text-sm text-slate-400 font-medium mb-8 max-w-xs">
-                      You haven't published any portfolios yet. Create one and make it live!
+                      You haven't created any portfolios yet. Create one to start building.
                     </p>
                     <button
                       onClick={onNew}
@@ -475,7 +464,7 @@ const Dashboard: React.FC<{ onNew: () => void; onEdit: (p: Portfolio) => void }>
                     </button>
                   </div>
                 ) : (
-                  myPublishedPortfolios.map((p, idx) => (
+                  portfolios.map((p, idx) => (
                     <PortfolioCard
                       key={p.id}
                       portfolio={p}

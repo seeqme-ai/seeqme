@@ -22,6 +22,17 @@ interface Plan {
   limits: { portfolios: number; customDomain: boolean };
 }
 
+interface RawPricingPlan {
+  id?: string;
+  name?: string;
+  tagline?: string;
+  price?: { usd?: number; ngn?: number };
+  features?: string[] | { text?: string; included?: boolean }[];
+  recommended?: boolean;
+  cta?: string;
+  limits?: { portfolios?: number; customDomain?: boolean };
+}
+
 const FREE_PLAN: Plan = {
   id: 'free',
   name: 'Free',
@@ -89,6 +100,42 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
   'api': <Code2 className="w-4 h-4" />,
 };
 
+const normalizePlanFromConfig = (raw: RawPricingPlan, fallback?: Plan): Plan => {
+  const normalizedFeatures = Array.isArray(raw?.features)
+    ? raw.features
+      .map((feature: any) => {
+        if (typeof feature === 'string') {
+          return { text: feature, included: true };
+        }
+        if (feature && typeof feature === 'object') {
+          return {
+            text: String(feature.text || ''),
+            included: feature.included !== false
+          };
+        }
+        return null;
+      })
+      .filter((f): f is { text: string; included: boolean } => !!f && !!f.text.trim())
+    : (fallback?.features || []);
+
+  return {
+    id: raw?.id || fallback?.id || '',
+    name: raw?.name || fallback?.name || 'Plan',
+    tagline: raw?.tagline || fallback?.tagline || '',
+    price: {
+      usd: Number(raw?.price?.usd ?? fallback?.price?.usd ?? 0),
+      ngn: Number(raw?.price?.ngn ?? fallback?.price?.ngn ?? 0),
+    },
+    features: normalizedFeatures,
+    recommended: Boolean(raw?.recommended ?? fallback?.recommended),
+    cta: raw?.cta || fallback?.cta || 'Choose Plan',
+    limits: {
+      portfolios: Number(raw?.limits?.portfolios ?? fallback?.limits?.portfolios ?? 0),
+      customDomain: Boolean(raw?.limits?.customDomain ?? fallback?.limits?.customDomain),
+    },
+  };
+};
+
 const Plans: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -114,7 +161,13 @@ const Plans: React.FC = () => {
       setIsLoadingPlans(true);
       try {
         const data = await configService.getPricing();
-        if (data?.pricingPlans?.length) setPaidPlans(data.pricingPlans);
+        if (Array.isArray(data?.pricingPlans) && data.pricingPlans.length) {
+          const fallbackById = new Map(DEFAULT_PAID_PLANS.map((plan) => [plan.id, plan]));
+          const normalized = data.pricingPlans
+            .map((plan: RawPricingPlan) => normalizePlanFromConfig(plan, plan?.id ? fallbackById.get(plan.id) : undefined))
+            .filter((plan: Plan) => !!plan.id);
+          if (normalized.length) setPaidPlans(normalized);
+        }
       } catch { /* use defaults */ } finally { setIsLoadingPlans(false); }
     };
     loadPlans();
