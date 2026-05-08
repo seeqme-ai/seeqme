@@ -119,7 +119,7 @@ const ChatBot: React.FC = () => {
         }
 
         // Best-effort Slack forwarding; must never fail the user send flow.
-        const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+        const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
         if (slackWebhookUrl) {
             const slackPayload = {
                 text: `*New Support Message from ${user.fullName}*`,
