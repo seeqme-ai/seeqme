@@ -288,14 +288,39 @@ const AdminDashboard: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [usersData, portfoliosData, statsData] = await Promise.all([
+            const [usersResult, portfoliosResult, statsResult] = await Promise.allSettled([
                 adminService.getUsers(),
                 adminService.getAllPortfolios(),
                 adminService.getStats()
             ]);
-            setUsers(usersData);
-            setPortfolios(portfoliosData);
-            setStats(statsData);
+
+            if (usersResult.status === 'fulfilled') {
+                setUsers(Array.isArray(usersResult.value) ? usersResult.value : []);
+            } else {
+                setUsers([]);
+            }
+
+            if (portfoliosResult.status === 'fulfilled') {
+                setPortfolios(Array.isArray(portfoliosResult.value) ? portfoliosResult.value : []);
+            } else {
+                setPortfolios([]);
+            }
+
+            if (statsResult.status === 'fulfilled') {
+                setStats(statsResult.value || {});
+            } else {
+                setStats({});
+            }
+
+            const failedCalls = [
+                usersResult.status === 'rejected' ? 'users' : null,
+                portfoliosResult.status === 'rejected' ? 'portfolios' : null,
+                statsResult.status === 'rejected' ? 'stats' : null,
+            ].filter(Boolean);
+
+            if (failedCalls.length > 0) {
+                toast.error(`Some admin data failed to load: ${failedCalls.join(', ')}`);
+            }
         } catch (err) {
             toast.error('Failed to load administrative data');
         } finally {
