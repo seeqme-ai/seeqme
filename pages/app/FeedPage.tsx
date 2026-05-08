@@ -850,7 +850,12 @@ const FeedPage: React.FC = () => {
     try {
       const res = await socialService.createPost(content, mUrl, tag, lUrl);
       if (res?.post) {
-        setAllPosts(prev => prev.map(p => p.id === tempId ? res.post : p));
+        setAllPosts(prev => {
+          const withoutTemp = prev.filter(p => p.id !== tempId);
+          const exists = withoutTemp.some(p => p.id === res.post.id || p.slug === res.post.slug);
+          if (exists) return withoutTemp;
+          return [res.post, ...withoutTemp];
+        });
         toast.success('Posted to your feed!');
       }
     } catch { 
