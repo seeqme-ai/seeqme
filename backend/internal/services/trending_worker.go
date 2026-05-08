@@ -80,7 +80,9 @@ func (r *RedditProvider) fetchListing(ctx context.Context, url string) (*redditL
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "SeeqMe-Trending/1.0 (professional network app)")
+	// Reddit expects a descriptive user-agent; generic agents are more likely to be throttled.
+	req.Header.Set("User-Agent", "windows:seeqme.backend:v1.0 (by /u/seeqme)")
+	req.Header.Set("Accept", "application/json")
 	resp, err := r.Client.Do(req)
 	if err != nil {
 		return nil, err
@@ -90,9 +92,19 @@ func (r *RedditProvider) fetchListing(ctx context.Context, url string) (*redditL
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		snippet := strings.TrimSpace(string(body))
+		if len(snippet) > 280 {
+			snippet = snippet[:280]
+		}
+		return nil, fmt.Errorf("reddit listing request failed: %d %s (%s)", resp.StatusCode, resp.Status, snippet)
+	}
 	var listing redditListing
 	if err := json.Unmarshal(body, &listing); err != nil {
 		return nil, err
+	}
+	if len(listing.Data.Children) == 0 {
+		return nil, fmt.Errorf("reddit listing returned no children for %s", url)
 	}
 	return &listing, nil
 }
@@ -257,7 +269,8 @@ func FetchRedditPostComments(ctx context.Context, subreddit, redditID string) ([
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "SeeqMe-Trending/1.0")
+	req.Header.Set("User-Agent", "windows:seeqme.backend:v1.0 (by /u/seeqme)")
+	req.Header.Set("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -266,6 +279,13 @@ func FetchRedditPostComments(ctx context.Context, subreddit, redditID string) ([
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 2<<20))
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		snippet := strings.TrimSpace(string(body))
+		if len(snippet) > 280 {
+			snippet = snippet[:280]
+		}
+		return nil, fmt.Errorf("reddit comments request failed: %d %s (%s)", resp.StatusCode, resp.Status, snippet)
 	}
 
 	var cr redditCommentsResponse

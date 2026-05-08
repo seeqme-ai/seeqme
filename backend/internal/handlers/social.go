@@ -954,12 +954,38 @@ func generatePostSlug(author, content string) string {
 // GetTrending returns the latest trending tags and post counts
 func (h *Handler) GetTrending(c *gin.Context) {
 	var trending []models.TrendingItem
-	cursor, err := database.Client.Database(database.DBName).Collection("trending").Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"posts": -1}).SetLimit(10))
+	db := database.Client.Database(database.DBName)
+	cursor, err := db.Collection("trending").Find(context.Background(), bson.M{}, options.Find().SetSort(bson.M{"posts": -1}).SetLimit(30))
 	if err == nil {
 		cursor.All(context.Background(), &trending)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"trending": trending})
+	// Only expose tags that currently map to at least one real in-app post.
+	// This prevents showing "empty" trending hashtags that render no content.
+	filtered := make([]models.TrendingItem, 0, 10)
+	for _, t := range trending {
+		tag := strings.TrimSpace(t.Tag)
+		if tag == "" {
+			continue
+		}
+		count, err := db.Collection("posts").CountDocuments(
+			context.Background(),
+			bson.M{
+				"isMock": false,
+				"tag":    bson.M{"$regex": "^" + regexp.QuoteMeta(tag) + "$", "$options": "i"},
+			},
+		)
+		if err != nil || count == 0 {
+			continue
+		}
+		t.Posts = int(count)
+		filtered = append(filtered, t)
+		if len(filtered) >= 10 {
+			break
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"trending": filtered})
 }
 
 // GetSuggested returns suggested connections for the user
@@ -998,6 +1024,13 @@ func (h *Handler) GetTrendingFeed(c *gin.Context) {
 	}
 
 	redditFilter := bson.M{"category": "hot"}
+	if tag != "" {
+		redditFilter["$or"] = []bson.M{
+			{"subreddit": bson.M{"$regex": tag, "$options": "i"}},
+			{"title": bson.M{"$regex": tag, "$options": "i"}},
+			{"selftext": bson.M{"$regex": tag, "$options": "i"}},
+		}
+	}
 
 	var redditPosts []models.RedditPost
 	rcursor, err := db.Collection("reddit_posts").Find(ctx, redditFilter,

@@ -693,6 +693,7 @@ const FeedPage: React.FC = () => {
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [redditPosts, setRedditPosts] = useState<RedditPost[]>([]);
   const [trending, setTrending] = useState<{ tag: string, posts: number }[]>([]);
+  const [selectedTrendingTag, setSelectedTrendingTag] = useState('');
   const [suggested, setSuggested] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('For You');
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -713,7 +714,7 @@ const FeedPage: React.FC = () => {
         if (activeTab === 'Following') {
           feedPromise = socialService.getFollowingFeed();
         } else if (activeTab === 'Trending') {
-          feedPromise = socialService.getTrendingFeed();
+          feedPromise = socialService.getTrendingFeed(selectedTrendingTag || undefined);
         } else {
           feedPromise = socialService.getFeed();
         }
@@ -776,7 +777,16 @@ const FeedPage: React.FC = () => {
       socketService.off('post_unliked', handleLikeUpdate);
       socketService.off('post_commented', handleCommentUpdate);
     };
-  }, [activeTab]);
+  }, [activeTab, selectedTrendingTag]);
+
+  const visibleTrending = useMemo(() => {
+    const available = new Set(
+      allPosts
+        .map((p) => (p.tag || '').trim().toLowerCase())
+        .filter(Boolean)
+    );
+    return trending.filter((t) => available.has((t.tag || '').trim().toLowerCase()));
+  }, [trending, allPosts]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1074,13 +1084,30 @@ const FeedPage: React.FC = () => {
               {['For You', 'Following', 'Trending'].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    if (tab !== 'Trending') setSelectedTrendingTag('');
+                  }}
                   className={`flex-1 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'}`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
+
+            {activeTab === 'Trending' && selectedTrendingTag && (
+              <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 flex items-center justify-between">
+                <p className="text-xs text-slate-600">
+                  Showing posts for <span className="font-bold text-slate-900">#{selectedTrendingTag}</span>
+                </p>
+                <button
+                  onClick={() => setSelectedTrendingTag('')}
+                  className="text-[11px] font-semibold text-teal-600 hover:text-teal-700"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
 
             {/* Feed Posts — interleave Reddit every 3 in-app posts */}
             <div className="space-y-4">
@@ -1166,15 +1193,22 @@ const FeedPage: React.FC = () => {
             </div>
 
             {/* Trending Topics — only shown when real data exists */}
-            {trending.length > 0 && (
+            {visibleTrending.length > 0 && (
               <div className="bg-white border border-slate-200 rounded-xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trending</p>
                   <TrendingUp className="w-4 h-4 text-teal-500" />
                 </div>
                 <div className="space-y-4">
-                  {trending.slice(0, 5).map(({ tag, posts }, i) => (
-                    <div key={tag} onClick={() => setActiveTab('Trending')} className="flex items-center justify-between group cursor-pointer">
+                  {visibleTrending.slice(0, 5).map(({ tag, posts }, i) => (
+                    <div
+                      key={tag}
+                      onClick={() => {
+                        setSelectedTrendingTag(tag);
+                        setActiveTab('Trending');
+                      }}
+                      className="flex items-center justify-between group cursor-pointer"
+                    >
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-black text-slate-200 group-hover:text-teal-300 transition-colors w-5">0{i + 1}</span>
                         <div>
