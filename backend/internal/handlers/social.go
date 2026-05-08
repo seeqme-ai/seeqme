@@ -990,10 +990,38 @@ func (h *Handler) GetTrending(c *gin.Context) {
 
 // GetSuggested returns suggested connections for the user
 func (h *Handler) GetSuggested(c *gin.Context) {
+	db := database.Client.Database(database.DBName)
 	var suggested []models.SuggestedUser
-	cursor, err := database.Client.Database(database.DBName).Collection("suggested_users").Find(context.Background(), bson.M{}, options.Find().SetLimit(10))
+	cursor, err := db.Collection("users").Find(
+		context.Background(),
+		bson.M{"isMock": bson.M{"$ne": true}},
+		options.Find().
+			SetProjection(bson.M{
+				"fullName": 1,
+				"country":  1,
+			}).
+			SetLimit(20),
+	)
 	if err == nil {
-		cursor.All(context.Background(), &suggested)
+		var users []models.User
+		cursor.All(context.Background(), &users)
+		for _, u := range users {
+			name := strings.TrimSpace(u.FullName)
+			if name == "" {
+				continue
+			}
+			suggested = append(suggested, models.SuggestedUser{
+				ID:         u.ID,
+				Name:       name,
+				Role:       "Member",
+				Location:   strings.TrimSpace(u.Country),
+				Avatar:     "#0ea5e9",
+				Similarity: 0,
+			})
+			if len(suggested) >= 10 {
+				break
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"suggested": suggested})

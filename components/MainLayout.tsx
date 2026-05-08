@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/auth-context';
 import {
-  Menu, X, Shield, Network, TrendingUp, Users,
+  Menu, X, Shield, Network, TrendingUp,
   LayoutDashboard, ChevronDown, LogOut, Settings,
 } from 'lucide-react';
 import ChatBot from './ChatBot';
@@ -21,7 +21,6 @@ const NAV_LINKS = [
   { label: 'Templates', href: '/templates',   icon: null        },
   { label: 'Feed',      href: '/app/feed',    icon: TrendingUp  },
   { label: 'Mesh',      href: '/app/mesh',    icon: Network     },
-  { label: 'Network',   href: '/app/mesh',    icon: Users       },
   { label: 'Plans',     href: '/plans',       icon: null        },
 ];
 

@@ -245,7 +245,6 @@ func (r *RedditProvider) FetchAndStoreRedditPosts(ctx context.Context) {
 						"ourComments": []models.Comment{},
 						"ourLikes":    []string{},
 						"topComments": []models.RedditComment{},
-						"fetchedAt":   post.FetchedAt,
 					},
 				}
 				_, err := coll.UpdateOne(ctx, bson.M{"redditId": p.ID}, update, opts)
