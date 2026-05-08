@@ -42,7 +42,7 @@ const PostPage: React.FC = () => {
             setOurComments(res.post.ourComments || []);
             const uid = user?.id || '';
             setLiked(res.post.ourLikes?.includes(uid) || false);
-            setLikeCount(res.post.ourLikes?.length || 0);
+            setLikeCount(res.post.score || 0);
           }
         } else {
           const res = await socialService.getPostBySlug(slug);
@@ -364,7 +364,7 @@ const PostPage: React.FC = () => {
           {/* SeeqMe member comments (for Reddit posts) */}
           {isRedditPost && (
             <div>
-              <p className="text-[9px] font-black text-teal-500 uppercase tracking-widest px-1 mb-3">SeeqMe Members Take</p>
+              <p className="text-[9px] font-black text-teal-500 uppercase tracking-widest px-1 mb-3">Comment Your Take</p>
             </div>
           )}
           

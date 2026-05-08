@@ -110,8 +110,15 @@ const UserSocialDashboard: React.FC = () => {
   const [removeConnTarget, setRemoveConnTarget] = useState<any | null>(null);
   const [removingConn, setRemovingConn] = useState(false);
 
-  const totalLikes = myPosts.reduce((s, p) => s + (p.likes || 0), 0);
-  const totalComments = myPosts.reduce((s, p) => s + (p.comments?.length || 0), 0);
+  const totalLikes = myPosts.reduce((s, p) => {
+    if (typeof p.likes === 'number' && p.likes > 0) return s + p.likes;
+    if (Array.isArray(p.likedBy)) return s + p.likedBy.length;
+    return s;
+  }, 0);
+  const totalComments = myPosts.reduce((s, p) => {
+    if (Array.isArray(p.comments)) return s + p.comments.length;
+    return s;
+  }, 0);
 
   useEffect(() => {
     const load = async () => {

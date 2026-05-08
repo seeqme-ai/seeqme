@@ -42,14 +42,21 @@ func (w *SitemapWorker) Start(ctx context.Context) {
 
 func (w *SitemapWorker) UpdateSitemap() {
 	log.Println("[Sitemap] Starting daily update...")
+	ctx := context.Background()
 
 	var posts []models.Post
-	cursor, err := database.Client.Database(database.DBName).Collection("posts").Find(context.Background(), bson.M{})
+	cursor, err := database.Client.Database(database.DBName).Collection("posts").Find(ctx, bson.M{"isMock": bson.M{"$ne": true}})
 	if err != nil {
 		log.Printf("[Sitemap] Error fetching posts: %v", err)
 		return
 	}
 	cursor.All(context.Background(), &posts)
+
+	var redditPosts []models.RedditPost
+	rcursor, rerr := database.Client.Database(database.DBName).Collection("reddit_posts").Find(ctx, bson.M{})
+	if rerr == nil {
+		rcursor.All(ctx, &redditPosts)
+	}
 
 	var portfolios []models.Portfolio
 	cursor, _ = database.Client.Database(database.DBName).Collection("portfolios").Find(context.Background(), bson.M{"isPublished": true})
@@ -58,13 +65,25 @@ func (w *SitemapWorker) UpdateSitemap() {
 	sitemapContent := `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url><loc>` + w.BaseURL + `</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-	<url><loc>` + w.BaseURL + `/feed</loc><changefreq>always</changefreq><priority>0.9</priority></url>
-	<url><loc>` + w.BaseURL + `/mesh</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>`
+	<url><loc>` + w.BaseURL + `/app/feed</loc><changefreq>always</changefreq><priority>0.9</priority></url>
+	<url><loc>` + w.BaseURL + `/app/mesh</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>`
 
 	// Add posts
 	for _, p := range posts {
-		sitemapContent += fmt.Sprintf("\n\t<url><loc>%s/feed/post/%s</loc><lastmod>%s</lastmod><changefreq>monthly</changefreq></url>",
+		if strings.TrimSpace(p.Slug) == "" {
+			continue
+		}
+		sitemapContent += fmt.Sprintf("\n\t<url><loc>%s/app/feed/post/%s</loc><lastmod>%s</lastmod><changefreq>monthly</changefreq></url>",
 			w.BaseURL, p.Slug, p.CreatedAt.Format("2006-01-02"))
+	}
+
+	// Add Reddit post pages
+	for _, rp := range redditPosts {
+		if strings.TrimSpace(rp.Slug) == "" {
+			continue
+		}
+		sitemapContent += fmt.Sprintf("\n\t<url><loc>%s/app/feed/reddit/%s</loc><lastmod>%s</lastmod><changefreq>daily</changefreq></url>",
+			w.BaseURL, rp.Slug, rp.FetchedAt.Format("2006-01-02"))
 	}
 
 	// Add portfolios

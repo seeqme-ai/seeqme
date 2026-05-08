@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/context/auth-context';
 import { portfolioService, socialService } from '@/services/apiService';
 import { toast } from 'sonner';
@@ -515,6 +516,25 @@ const MeshPage: React.FC = () => {
   /* ─── render ─── */
   return (
     <div className="h-[100dvh] flex flex-col bg-[#050b16] overflow-hidden">
+      <Helmet>
+        <title>Social Mesh — SeeqMe</title>
+        <meta name="description" content="Discover professional nodes and connections in the SeeqMe Social Mesh." />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href={`${window.location.origin}/app/mesh`} />
+        <meta property="og:title" content="Social Mesh — SeeqMe" />
+        <meta property="og:description" content="Discover professional nodes and connections in the SeeqMe Social Mesh." />
+        <meta property="og:url" content={`${window.location.origin}/app/mesh`} />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "SeeqMe Social Mesh",
+            url: `${window.location.origin}/app/mesh`,
+            description: "Interactive professional network graph of members and connections.",
+          })}
+        </script>
+      </Helmet>
       <ConfirmModal
         isOpen={showPublishPrompt}
         onClose={() => setShowPublishPrompt(false)}

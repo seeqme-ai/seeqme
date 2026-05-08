@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/context/auth-context';
 import { socialService } from '@/services/apiService';
 import { toast } from 'sonner';
@@ -875,6 +876,25 @@ const FeedPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Helmet>
+        <title>Professional Feed — SeeqMe</title>
+        <meta name="description" content="Explore trending professional insights, discussions, and posts on SeeqMe." />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href={`${window.location.origin}/app/feed`} />
+        <meta property="og:title" content="Professional Feed — SeeqMe" />
+        <meta property="og:description" content="Explore trending professional insights, discussions, and posts on SeeqMe." />
+        <meta property="og:url" content={`${window.location.origin}/app/feed`} />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "SeeqMe Feed",
+            url: `${window.location.origin}/app/feed`,
+            description: "Professional feed with trending posts and discussions.",
+          })}
+        </script>
+      </Helmet>
       <DeleteModal isOpen={!!deleteId} onConfirm={confirmDelete} onClose={() => setDeleteId(null)} />
 
       {/* Top bar */}

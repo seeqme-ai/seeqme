@@ -263,7 +263,7 @@ func (r *RedditProvider) FetchAndStoreRedditPosts(ctx context.Context) {
 // FetchRedditPostComments fetches top comments for a Reddit post and caches them.
 func FetchRedditPostComments(ctx context.Context, subreddit, redditID string) ([]models.RedditComment, error) {
 	client := &http.Client{Timeout: 8 * time.Second}
-	url := fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s.json?limit=10&depth=1", subreddit, redditID)
+	url := fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s.json?limit=50&depth=1", subreddit, redditID)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -303,7 +303,7 @@ func FetchRedditPostComments(ctx context.Context, subreddit, redditID string) ([
 			Body:   ch.Data.Body,
 			Score:  ch.Data.Score,
 		})
-		if len(comments) >= 5 {
+		if len(comments) >= 20 {
 			break
 		}
 	}
