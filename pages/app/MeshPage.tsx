@@ -540,7 +540,7 @@ const MeshPage: React.FC = () => {
         onClose={() => setShowPublishPrompt(false)}
         onConfirm={() => {
           setShowPublishPrompt(false);
-          navigate('/builder');
+          navigate('/builder', { state: { openFloatingPrompt: true, floatingMode: 'new' } });
         }}
         title="Publish Your First Portfolio"
         description="Publish your first portfolio to unlock full networking features and connect with professionals in the mesh."

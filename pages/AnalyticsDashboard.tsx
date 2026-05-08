@@ -47,17 +47,20 @@ const AnalyticsDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [fetchingAnalytics, setFetchingAnalytics] = useState(false);
     const [error, setError] = useState('');
+    const [hasPublishedPortfolio, setHasPublishedPortfolio] = useState(true);
 
     useEffect(() => {
         const init = async () => {
             try {
                 setLoading(true);
                 const { portfolios: pList } = await portfolioService.getPortfolios();
-                setPortfolios(pList || []);
+                const published = (pList || []).filter((p: any) => p?.isPublished || p?.status === 'completed' || p?.status === 'live');
+                setPortfolios(published);
+                setHasPublishedPortfolio(published.length > 0);
 
                 let targetId = id;
-                if (!targetId && pList && pList.length > 0) {
-                    targetId = pList[0].id;
+                if (!targetId && published && published.length > 0) {
+                    targetId = published[0].id;
                 }
 
                 if (targetId) {
@@ -241,6 +244,31 @@ const AnalyticsDashboard: React.FC = () => {
             </div>
         </DashboardLayout>
     );
+
+    if (!loading && !hasPublishedPortfolio) {
+        return (
+            <DashboardLayout>
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="w-full max-w-xl bg-white border border-zinc-200 rounded-3xl p-8 sm:p-10 text-center shadow-sm">
+                        <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-teal-500" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-zinc-900 mb-2">No Published Portfolio Yet</h2>
+                        <p className="text-sm text-zinc-500 leading-relaxed max-w-md mx-auto mb-7">
+                            Analytics becomes available after your first portfolio is published and starts receiving visitors.
+                        </p>
+                        <button
+                            onClick={() => navigate('/builder', { state: { openFloatingPrompt: true, floatingMode: 'new' } })}
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-bold transition-colors"
+                        >
+                            Publish Your First Portfolio
+                            <ArrowUpRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     const currentPortfolio = portfolios.find(p => p.id === selectedId);
 

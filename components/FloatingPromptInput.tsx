@@ -9,6 +9,7 @@ interface FloatingPromptInputProps {
   isGenerating: boolean;
   className?: string;
   onToggleTerminal?: () => void;
+  initialMode?: 'refine' | 'new';
 }
 
 const MotionDiv = motion.div as any;
@@ -33,10 +34,10 @@ const MODE_CONFIG = {
 } as const;
 
 const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({
-  onSubmit, isGenerating, className, onToggleTerminal,
+  onSubmit, isGenerating, className, onToggleTerminal, initialMode = 'refine',
 }) => {
   const [prompt, setPrompt] = useState('');
-  const [mode, setMode] = useState<'refine' | 'new'>('refine');
+  const [mode, setMode] = useState<'refine' | 'new'>(initialMode);
   const [selectedFile, setSelectedFile] = useState<{ name: string; type: string; content?: string; url?: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +49,10 @@ const FloatingPromptInput: React.FC<FloatingPromptInputProps> = ({
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
     }
   }, [prompt]);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

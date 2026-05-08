@@ -67,7 +67,11 @@ const PortfolioBuilder: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { initialData } = (location.state || {}) as { initialData?: { type: string; value: string; templateId?: string } };
+  const { initialData, openFloatingPrompt, floatingMode } = (location.state || {}) as {
+    initialData?: { type: string; value: string; templateId?: string };
+    openFloatingPrompt?: boolean;
+    floatingMode?: 'refine' | 'new';
+  };
   const portfolioIdFromState = initialData?.type === 'edit' ? initialData.value : undefined;
   const templateIdFromState = initialData?.type === 'template' ? (initialData.templateId || initialData.value) : undefined;
   const portfolioIdFromQuery = new URLSearchParams(location.search).get('id') || undefined;
@@ -80,6 +84,7 @@ const PortfolioBuilder: React.FC = () => {
   const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(true);
   const [isTerminalVisible, setIsTerminalVisible]     = useState(false);
   const [isFloatingPromptVisible, setIsFloatingPromptVisible] = useState(false);
+  const [floatingInitialMode, setFloatingInitialMode] = useState<'refine' | 'new'>('refine');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [refinementPrompt, setRefinementPrompt] = useState('');
@@ -121,6 +126,12 @@ const PortfolioBuilder: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  useEffect(() => {
+    if (!openFloatingPrompt) return;
+    setFloatingInitialMode(floatingMode === 'new' ? 'new' : 'refine');
+    setIsFloatingPromptVisible(true);
+  }, [openFloatingPrompt, floatingMode]);
 
   const handleTourComplete = (data: any) => {
     const { status } = data;
@@ -1434,6 +1445,7 @@ const PortfolioBuilder: React.FC = () => {
           onSubmit={handleFloatingSubmit}
           isGenerating={status === 'generating' || status === 'synthesizing'}
           onToggleTerminal={() => setIsTerminalCollapsed(prev => !prev)}
+          initialMode={floatingInitialMode}
         />
       )}
 
