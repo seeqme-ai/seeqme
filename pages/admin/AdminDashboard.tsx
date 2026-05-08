@@ -480,14 +480,6 @@ const AdminDashboard: React.FC = () => {
                 success: 'Email sent successfully.',
                 error: 'Failed to send email.'
             });
-            setNotificationSubject('');
-            setNotificationTitle('');
-            setNotificationBody('');
-            setNotificationCtaUrl('');
-            setNotificationCtaLabel('');
-            setNotificationFooterNote('');
-            setNotificationCustomEmails('');
-            setNotificationSelectedUsers([]);
         } finally {
             setIsNotificationSending(false);
         }
