@@ -247,21 +247,6 @@ const BuilderLoader: React.FC<BuilderLoaderProps> = ({ title, currentStep, total
               </MotionDiv>
             );
           })}
-
-          {/* Overall progress bar */}
-          <div className="mt-5 px-1">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">Overall</span>
-              <span className="text-[10px] font-black text-teal-400 tabular-nums">{progress}%</span>
-            </div>
-            <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
-              <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-teal-700 to-teal-400"
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.9, ease: 'easeOut' }}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
