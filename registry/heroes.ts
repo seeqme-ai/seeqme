@@ -35,7 +35,7 @@ const renderSocials = (socials: any[], className = 'flex items-center gap-4') =>
   </div>`;
 };
 
-const imgFallback = `onerror="this.onerror=null;this.style.background='linear-gradient(135deg,var(--primary)20,var(--surface))';this.style.display='flex';"`;
+const imgFallback = `onerror="this.onerror=null;this.style.background='linear-gradient(135deg,var(--primary) 20%,var(--surface))';this.style.display='block';this.style.minHeight='180px';this.style.objectFit='cover';"`;
 
 // ─── 1. HERO_MODERN_SPLIT ───────────────────────────────────
 export const HERO_MODERN_SPLIT = (content: any) => `

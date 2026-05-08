@@ -2,7 +2,7 @@
 // SEEQME PROJECT REGISTRY — World-class portfolio project sections
 // ============================================================
 
-const imgFallback = `onerror="this.onerror=null;this.style.background='linear-gradient(135deg,var(--primary)20,var(--surface))';"`;
+const imgFallback = `onerror="this.onerror=null;this.style.background='linear-gradient(135deg,var(--primary) 20%,var(--surface))';this.style.display='block';this.style.minHeight='140px';this.style.objectFit='cover';"`;
 
 const getTech = (item: any): string[] => {
   if (Array.isArray(item.tech)) return item.tech;
