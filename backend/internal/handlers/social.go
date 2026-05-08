@@ -137,42 +137,150 @@ func fetchLinkPreview(url string) *models.LinkPreview {
 
 // GetMeshNodes returns nodes and edges for the cluster visualization
 func (h *Handler) GetMeshNodes(c *gin.Context) {
-	var nodes []models.SocialNode
-	cursor, err := database.Client.Database(database.DBName).Collection("social_nodes").Find(context.Background(), bson.M{}, options.Find())
-	if err == nil {
-		cursor.All(context.Background(), &nodes)
+	db := database.Client.Database(database.DBName)
+	ctx := context.Background()
+
+	authUser, _ := c.Request.Context().Value(models.UserContextKey).(*models.AuthenticatedUser)
+	currentUserID := ""
+	if authUser != nil {
+		currentUserID = authUser.ID
 	}
 
-	// Dynamic edge generation logic
-	var edges []bson.M
-	if len(nodes) > 1 {
-		for i := 0; i < len(nodes); i++ {
-			for j := i + 1; j < len(nodes); j++ {
-				// Create an edge if they share at least one skill or are in the same group
-				sharedSkill := false
-				for _, s1 := range nodes[i].Skills {
-					for _, s2 := range nodes[j].Skills {
-						if s1 == s2 {
-							sharedSkill = true
-							break
-						}
-					}
-				}
-				if sharedSkill || nodes[i].Group == nodes[j].Group {
-					edges = append(edges, bson.M{
-						"source": nodes[i].ID,
-						"target": nodes[j].ID,
-						"value":  1,
-					})
-				}
+	// Build mesh nodes from real users (non-mock), including country + connection counts.
+	userFilter := bson.M{"isMock": bson.M{"$ne": true}}
+	cursor, err := db.Collection("users").Find(
+		ctx,
+		userFilter,
+		options.Find().
+			SetProjection(bson.M{
+				"fullName": 1,
+				"roles":    1,
+				"country":  1,
+			}).
+			SetLimit(200),
+	)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"nodes": []bson.M{}, "edges": []bson.M{}})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err := cursor.All(ctx, &users); err != nil {
+		c.JSON(http.StatusOK, gin.H{"nodes": []bson.M{}, "edges": []bson.M{}})
+		return
+	}
+
+	// Load accepted connections once; used for edge list + per-user connection totals.
+	connCursor, err := db.Collection("connections").Find(ctx, bson.M{"status": "accepted"})
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"nodes": []bson.M{}, "edges": []bson.M{}})
+		return
+	}
+	defer connCursor.Close(ctx)
+
+	var conns []models.Connection
+	_ = connCursor.All(ctx, &conns)
+
+	// Index users who have at least one published portfolio.
+	publishedOwners := map[string]bool{}
+	pCursor, pErr := db.Collection("portfolios").Find(
+		ctx,
+		bson.M{"isPublished": true},
+		options.Find().SetProjection(bson.M{"userId": 1}),
+	)
+	if pErr == nil {
+		var published []models.Portfolio
+		_ = pCursor.All(ctx, &published)
+		_ = pCursor.Close(ctx)
+		for _, p := range published {
+			if !p.UserID.IsZero() {
+				publishedOwners[p.UserID.Hex()] = true
 			}
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"nodes": nodes,
-		"edges": edges,
-	})
+	// Optional legacy skill source; only applied when user has a published portfolio.
+	skillsByUser := map[string][]string{}
+	snCursor, snErr := db.Collection("social_nodes").Find(
+		ctx,
+		bson.M{},
+		options.Find().SetProjection(bson.M{"userId": 1, "skills": 1}),
+	)
+	if snErr == nil {
+		var socialNodes []models.SocialNode
+		_ = snCursor.All(ctx, &socialNodes)
+		_ = snCursor.Close(ctx)
+		for _, sn := range socialNodes {
+			if strings.TrimSpace(sn.UserID) != "" && len(sn.Skills) > 0 {
+				skillsByUser[sn.UserID] = sn.Skills
+			}
+		}
+	}
+
+	connectionCount := map[string]int{}
+	for _, conn := range conns {
+		f := conn.FromUserID.Hex()
+		t := conn.ToUserID.Hex()
+		connectionCount[f]++
+		connectionCount[t]++
+	}
+
+	palette := []string{"#14b8a6", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ec4899"}
+	colorFor := func(seed string) string {
+		sum := 0
+		for _, ch := range seed {
+			sum += int(ch)
+		}
+		return palette[sum%len(palette)]
+	}
+
+	nodes := make([]bson.M, 0, len(users))
+	for _, u := range users {
+		name := strings.TrimSpace(u.FullName)
+		if name == "" {
+			name = "Member"
+		}
+		role := "Member"
+		if len(u.Roles) > 0 && strings.TrimSpace(u.Roles[0]) != "" {
+			role = strings.Title(strings.TrimSpace(u.Roles[0]))
+		}
+		country := strings.TrimSpace(u.Country)
+
+		uid := u.ID.Hex()
+		hasPublished := publishedOwners[uid]
+		skills := []string{}
+		if hasPublished {
+			if s, ok := skillsByUser[uid]; ok && len(s) > 0 {
+				skills = s
+			}
+		}
+		nodes = append(nodes, bson.M{
+			"id":                    uid,
+			"userId":                uid,
+			"label":                 name,
+			"role":                  role,
+			"location":              country,
+			"connections":           connectionCount[uid],
+			"skills":                skills,
+			"hasPublishedPortfolio": hasPublished,
+			"similarity":            func() float64 { if uid == currentUserID { return 1.0 }; return 0.65 }(),
+			"color":                 colorFor(uid),
+			"isYou":                 uid == currentUserID,
+		})
+	}
+
+	edges := make([]bson.M, 0, len(conns))
+	for _, conn := range conns {
+		edges = append(edges, bson.M{
+			"from":    conn.FromUserID.Hex(),
+			"to":      conn.ToUserID.Hex(),
+			"color":   "#334155",
+			"opacity": 0.28,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "edges": edges})
 }
 
 // SendConnectionRequest initiates a connection between users

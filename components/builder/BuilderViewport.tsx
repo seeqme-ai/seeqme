@@ -28,7 +28,10 @@ const BuilderViewport: React.FC<BuilderViewportProps> = ({
   status, data, progress, refinementPrompt,
   isIframeLoading, iframeRef, onIframeLoad,
 }) => {
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
+    if (typeof window === 'undefined') return 'desktop';
+    return window.innerWidth < 1024 ? 'mobile' : 'desktop';
+  });
   const isActivelyGenerating = status === 'synthesizing' || status === 'generating';
   const loaderTitle =
     status === 'generating'

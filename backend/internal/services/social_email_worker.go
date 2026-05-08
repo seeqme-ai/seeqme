@@ -47,7 +47,7 @@ func (w *SocialEmailWorker) ProcessTrendingBatch() {
 	var trendingPosts []models.Post
 	cursor, _ := database.Client.Database(database.DBName).Collection("posts").Find(
 		context.Background(),
-		bson.M{"likes": bson.M{"$gt": 3}},
+		bson.M{"likes": bson.M{"$gt": 3}, "isMock": bson.M{"$ne": true}},
 		options.Find().SetSort(bson.M{"likes": -1}).SetLimit(5),
 	)
 	cursor.All(context.Background(), &trendingPosts)
@@ -86,6 +86,7 @@ func (w *SocialEmailWorker) ProcessTrendingBatch() {
 	}
 	
 	count := 0
+	failCount := 0
 	for cursor.Next(context.Background()) && count < 100 {
 		var u models.User
 		cursor.Decode(&u)
@@ -106,8 +107,11 @@ func (w *SocialEmailWorker) ProcessTrendingBatch() {
 				bson.M{"$set": bson.M{"lastNotifiedAt": time.Now()}},
 			)
 			count++
+		} else {
+			failCount++
+			log.Printf("[SocialEmail] send failed for %s: %v", u.Email, err)
 		}
 	}
 
-	log.Printf("[SocialEmail] Batch completed. Sent to %d users.", count)
+	log.Printf("[SocialEmail] Batch completed. Sent=%d Failed=%d", count, failCount)
 }

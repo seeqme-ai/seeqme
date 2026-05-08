@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth-context';
-import { socialService } from '@/services/apiService';
+import { portfolioService, socialService } from '@/services/apiService';
 import { toast } from 'sonner';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import {
   Network, Search, X, ArrowLeft,
   MapPin, ExternalLink, UserPlus, UserMinus,
@@ -20,6 +21,7 @@ interface MeshNode {
   color: string; label?: string; role?: string;
   location?: string; skills?: string[];
   similarity?: number; connections?: number;
+  hasPublishedPortfolio?: boolean;
   dim?: boolean; isYou?: boolean;
   isBackground?: boolean; isMock?: boolean;
 }
@@ -207,6 +209,8 @@ const MeshPage: React.FC = () => {
   const [pendingConns, setPendingConns] = useState<any[]>([]);
   const [showPending, setShowPending]   = useState(false);
   const [serverLoaded, setServerLoaded] = useState(false);
+  const [hasPublishedPortfolio, setHasPublishedPortfolio] = useState(true);
+  const [showPublishPrompt, setShowPublishPrompt] = useState(false);
 
   const [pan, setPan]     = useState({ x: 0, y: 0 });
   const [zoom, setZoom]   = useState(0.82);
@@ -225,6 +229,13 @@ const MeshPage: React.FC = () => {
 
   const allNodes = useMemo(() => [...mainNodes, ...BACKGROUND_NODES], [mainNodes]);
 
+  useEffect(() => {
+    if (!user?.country) return;
+    setMainNodes(prev =>
+      prev.map(n => (n.isYou ? { ...n, location: user.country } : n))
+    );
+  }, [user?.country]);
+
   useEffect(() => { setTimeout(() => setHasEntered(true), 80); }, []);
 
   /* ── Fetch server nodes — merge with mock; never replace ── */
@@ -235,28 +246,70 @@ const MeshPage: React.FC = () => {
       const sn: MeshNode[] = res?.nodes || [];
       const se: MeshEdge[] = res?.edges || [];
       if (sn.length > 0) {
+        const normalizeCountry = (v?: string) => {
+          if (!v) return '';
+          const parts = v.split(',').map(s => s.trim()).filter(Boolean);
+          return parts.length > 0 ? parts[parts.length - 1] : v.trim();
+        };
+
+        const youFromServer = sn.find((n: MeshNode) => n.isYou);
+        if (youFromServer) {
+          setMainNodes(prev => prev.map(n =>
+            n.isYou
+              ? {
+                  ...n,
+                  ...youFromServer,
+                  id: 'you',
+                  isYou: true,
+                  location: normalizeCountry(youFromServer.location) || user?.country || n.location,
+                  connections: typeof youFromServer.connections === 'number' ? youFromServer.connections : n.connections,
+                }
+              : n
+          ));
+        }
+
         // Keep all mock nodes visible; add real users that aren't already in the mock set
         const mockIds = new Set(MOCK_NODES.map(n => n.id));
         const realNodes = sn
           .filter((n: MeshNode) => !mockIds.has(n.id) && !n.isYou)
           .map((n: MeshNode, i: number) => {
+            const normalized = {
+              ...n,
+              location: normalizeCountry(n.location),
+              connections: typeof n.connections === 'number' ? n.connections : 0,
+            };
             // Assign canvas position if the server didn't provide one
             if (!n.x || !n.y) {
               const angle = (i / Math.max(sn.length, 1)) * Math.PI * 2 - Math.PI / 2;
               const dist = 180 + (i % 3) * 70;
-              return { ...n, x: 800 + Math.cos(angle) * dist, y: 500 + Math.sin(angle) * dist, r: n.r || 10, color: n.color || '#14b8a6' };
+              return { ...normalized, x: 800 + Math.cos(angle) * dist, y: 500 + Math.sin(angle) * dist, r: n.r || 10, color: n.color || '#14b8a6' };
             }
-            return n;
+            return normalized;
           });
         if (realNodes.length > 0) {
           setMainNodes(prev => [...prev, ...realNodes]);
           setServerLoaded(true);
         }
       }
-      if (se.length > 0) setAllEdges(prev => [...prev, ...se]);
+      if (se.length > 0) {
+        const remapped = se.map((e: MeshEdge) => ({
+          ...e,
+          from: e.from === (user?.id || '') ? 'you' : e.from,
+          to: e.to === (user?.id || '') ? 'you' : e.to,
+        }));
+        setAllEdges(prev => [...prev, ...remapped]);
+      }
     }).catch(() => {});
 
     if (isAuthenticated) {
+      portfolioService.getMyPublishedPortfolios().then((res: any) => {
+        if (dead) return;
+        const count = Array.isArray(res?.portfolios) ? res.portfolios.length : 0;
+        setHasPublishedPortfolio(count > 0);
+      }).catch(() => {
+        if (!dead) setHasPublishedPortfolio(false);
+      });
+
       socialService.getConnections().then((res: any) => {
         if (dead) return;
         const states: Record<string, string> = {};
@@ -341,6 +394,10 @@ const MeshPage: React.FC = () => {
 
   /* ── Connection handlers ── */
   const handleConnect = async (node: MeshNode) => {
+    if (!hasPublishedPortfolio) {
+      setShowPublishPrompt(true);
+      return;
+    }
     if (node.isMock) {
       // Copy a shareable invite link — looks professional, works as a real feature
       const inviteUrl = `${window.location.origin}/auth/signup?ref=${encodeURIComponent(node.label || '')}`;
@@ -458,6 +515,19 @@ const MeshPage: React.FC = () => {
   /* ─── render ─── */
   return (
     <div className="h-[100dvh] flex flex-col bg-[#050b16] overflow-hidden">
+      <ConfirmModal
+        isOpen={showPublishPrompt}
+        onClose={() => setShowPublishPrompt(false)}
+        onConfirm={() => {
+          setShowPublishPrompt(false);
+          navigate('/builder');
+        }}
+        title="Publish Your First Portfolio"
+        description="Publish your first portfolio to unlock full networking features and connect with professionals in the mesh."
+        confirmText="Publish Now"
+        cancelText="Later"
+        variant="info"
+      />
 
       {/* CSS for node animations — no framer-motion scale on SVG to avoid origin issues */}
       <style>{`

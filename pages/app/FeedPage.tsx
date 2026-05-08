@@ -482,10 +482,11 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
   const { user } = useAuth();
   const navigate = useNavigate();
   const [liked, setLiked] = useState(post.ourLikes?.includes(user?.id || '') || false);
-  const [likeCount, setLikeCount] = useState(post.ourLikes?.length || 0);
+  const [likeCount, setLikeCount] = useState(post.score || 0);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [ourComments, setOurComments] = useState<Comment[]>(post.ourComments || []);
+  const [redditComments, setRedditComments] = useState<RedditComment[]>(post.topComments || []);
 
   const toggleLike = async () => {
     const wasLiked = liked;
@@ -522,7 +523,20 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
   };
 
   const hasImage = post.thumbnail && post.thumbnail.startsWith('http');
-  const isTextPost = !post.url.includes('reddit.com') === false || post.selftext;
+
+  const toggleComments = async () => {
+    const next = !showComments;
+    setShowComments(next);
+    if (!next) return;
+    if (redditComments.length > 0) return;
+    try {
+      const res = await socialService.getRedditPostBySlug(post.slug);
+      const fetched = res?.post?.topComments || [];
+      if (fetched.length > 0) setRedditComments(fetched);
+    } catch {
+      // Keep card usable even if background comment refresh fails.
+    }
+  };
 
   return (
     <MotionDiv
@@ -588,21 +602,12 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
           {likeCount}
         </button>
         <button
-          onClick={() => setShowComments(!showComments)}
+          onClick={toggleComments}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${showComments ? 'text-teal-500 bg-teal-50' : 'text-slate-400 hover:text-teal-400 hover:bg-teal-50/50'}`}
         >
           <MessageSquare className="w-4 h-4" />
-          {ourComments.length} <span className="text-[10px] opacity-60">+ {post.numComments} Reddit</span>
+          {post.numComments}
         </button>
-        <a
-          href={post.permalink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-orange-500 hover:bg-orange-50 transition-colors"
-        >
-          <ExternalLink className="w-3 h-3" />
-          View on Reddit
-        </a>
       </div>
 
       {/* Comments section */}
@@ -610,14 +615,14 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
         {showComments && (
           <MotionDiv initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-4 pt-4 border-t border-slate-50">
             {/* Reddit top comments */}
-            {post.topComments?.length > 0 && (
+            {redditComments.length > 0 && (
               <div className="mb-4">
                 <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                   <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#FF4500"/><path fill="white" d="M16.67 10a1.46 1.46 0 0 0-2.47-1 7.12 7.12 0 0 0-3.85-1.23l.65-3.07 2.13.45a1 1 0 1 0 1-.97.94.94 0 0 0-.68.28l-2.38-.5a.27.27 0 0 0-.32.2l-.73 3.44a7.14 7.14 0 0 0-3.89 1.23 1.46 1.46 0 1 0-1.61 2.39 2.87 2.87 0 0 0 0 .44c0 2.24 2.61 4.06 5.83 4.06s5.83-1.82 5.83-4.06a2.87 2.87 0 0 0 0-.44 1.46 1.46 0 0 0 .4-1.22zm-9.4 1.31a1 1 0 1 1 1 1 1 1 0 0 1-1-1zm5.58 2.63a3.55 3.55 0 0 1-2.85.79 3.55 3.55 0 0 1-2.85-.79.28.28 0 0 1 .39-.39 3.07 3.07 0 0 0 2.46.64 3.07 3.07 0 0 0 2.46-.64.28.28 0 1 1 .39.39zm-.17-1.63a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"/></svg>
                   Top Reddit Comments
                 </p>
                 <div className="space-y-2">
-                  {post.topComments.slice(0, 3).map(rc => (
+                  {redditComments.slice(0, 3).map(rc => (
                     <div key={rc.id} className="flex gap-2 p-2.5 rounded-xl bg-orange-50/50 border border-orange-100/50">
                       <div className="w-6 h-6 rounded-full bg-orange-100 flex-shrink-0 flex items-center justify-center text-orange-500 text-[9px] font-black">
                         {rc.author.charAt(0).toUpperCase()}
@@ -639,7 +644,7 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
             {/* Our platform comments */}
             {ourComments.length > 0 && (
               <div className="mb-3 space-y-2">
-                <p className="text-[9px] font-black text-teal-500 uppercase tracking-widest">SeeqMe Members</p>
+                <p className="text-[9px] font-black text-teal-500 uppercase tracking-widest">Comment your take</p>
                 {ourComments.map(c => (
                   <div key={c.id} className="flex gap-2 items-start">
                     <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[9px] font-black" style={{ background: c.avatar || '#14b8a6' }}>
@@ -845,7 +850,7 @@ const FeedPage: React.FC = () => {
       const res = await socialService.createPost(content, mUrl, tag, lUrl);
       if (res?.post) {
         setAllPosts(prev => prev.map(p => p.id === tempId ? res.post : p));
-        toast.success('Broadcasted to your cluster!');
+        toast.success('Posted to your feed!');
       }
     } catch { 
       toast.error('Could not post. Try again later.');
@@ -965,7 +970,7 @@ const FeedPage: React.FC = () => {
                           <div className="flex items-center gap-1.5 mb-2">
                             <p className="text-[11px] font-bold text-slate-800">{user?.fullName || 'You'}</p>
                             <span className="text-slate-200">·</span>
-                            <span className="text-[10px] text-teal-600 font-semibold">Broadcasting to cluster</span>
+                            <span className="text-[10px] text-teal-600 font-semibold">Posting to feed</span>
                           </div>
                         </MotionDiv>
                       )}
@@ -1071,7 +1076,7 @@ const FeedPage: React.FC = () => {
                     ) : (
                       <>
                         <Send className="w-3 h-3" />
-                        Broadcast
+                        Post
                       </>
                     )}
                   </button>
