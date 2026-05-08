@@ -5,9 +5,7 @@ import {
   AreaChart,
   Bar,
   BarChart,
-  CartesianGrid,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip,
   XAxis,
   YAxis
 } from 'recharts';
@@ -43,6 +41,8 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
       }))
       .filter((item: any) => Number.isFinite(item.total))
     : [];
+  const canRenderUserGrowthChart = userGrowthData.length > 0;
+  const canRenderRevenueChart = revenueGrowthData.length > 0;
 
   return (
     <div className="space-y-4">
@@ -95,21 +95,25 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
               <span className="text-[10px] font-bold text-slate-400 uppercase">Last 30 Days</span>
             </div>
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={userGrowthData}>
-                  <defs>
-                    <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="_id" hide />
-                  <YAxis hide />
-                  <RechartsTooltip />
-                  <Area type="monotone" dataKey="count" stroke="#0d9488" fillOpacity={1} fill="url(#userGradient)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
+              {canRenderUserGrowthChart ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={userGrowthData}>
+                    <defs>
+                      <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="_id" hide />
+                    <YAxis hide />
+                    <Area type="monotone" dataKey="count" stroke="#0d9488" fillOpacity={1} fill="url(#userGradient)" strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-xs text-slate-400 font-semibold">
+                  No user growth data yet
+                </div>
+              )}
             </div>
           </div>
 
@@ -120,15 +124,19 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Last 30 Days</span>
               </div>
               <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={revenueGrowthData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="_id" hide />
-                    <YAxis hide />
-                    <RechartsTooltip />
-                    <Bar dataKey="total" fill="#0f766e" radius={[6, 6, 0, 0]} isAnimationActive={false} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {canRenderRevenueChart ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={revenueGrowthData}>
+                      <XAxis dataKey="_id" hide />
+                      <YAxis hide />
+                      <Bar dataKey="total" fill="#0f766e" radius={6} isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-xs text-slate-400 font-semibold">
+                    No revenue growth data yet
+                  </div>
+                )}
               </div>
             </div>
           )}

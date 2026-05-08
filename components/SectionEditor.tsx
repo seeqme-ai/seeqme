@@ -1585,7 +1585,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
                                         );
                                     }) : (
                                         <div className="px-3 py-4 text-center">
-                                            <p className="text-[10px] text-slate-400">Legacy format — use the editor panel on the right.</p>
+                                           
                                         </div>
                                     )}
                                 </div>
@@ -1693,7 +1693,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
 
                         {/* ── FOOTER ── */}
                         <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex-shrink-0">
-                            <p className="text-[10px] text-slate-400">Changes auto-save as you type</p>
+                            <p className="text-[10px] text-slate-400">Changes auto-save</p>
                             <button
                                 onClick={handleSaveAndClose}
                                 className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-bold text-xs shadow-md shadow-teal-200 transition-all"
