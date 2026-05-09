@@ -18,6 +18,7 @@ import BuilderHeader from '@/components/builder/BuilderHeader';
 import BuilderSidebar from '@/components/builder/BuilderSidebar';
 import DeploymentModal from '@/components/builder/DeploymentModal';
 import BuildOnboardingDrawer from '@/components/builder/BuildOnboardingDrawer';
+import PhotoUploadModal from '@/components/builder/PhotoUploadModal';
 import Joyride, { Step } from 'react-joyride';
 import TemplateSelectorDrawer from '@/components/TemplateSelectorDrawer';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -110,6 +111,7 @@ const PortfolioBuilder: React.FC = () => {
   const [isDirty, setIsDirty] = useState(false);
   const [subscriptionPlanId, setSubscriptionPlanId] = useState<string>('free');
   const [isBuildOnboardingOpen, setIsBuildOnboardingOpen] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [isTemplateLockedForBuild, setIsTemplateLockedForBuild] = useState(false);
   const isPublishingRef = useRef(false);
 
@@ -664,6 +666,11 @@ const PortfolioBuilder: React.FC = () => {
         setIsBuildOnboardingOpen(true);
       }
 
+      const heroSection = completeData.structuredContent?.sections?.find((s: any) => s.type === 'hero');
+      if (!heroSection?.content?.image) {
+        setShowPhotoModal(true);
+      }
+
     } catch (error: any) {
       timeouts.forEach(clearTimeout);
       setProgress(0);
@@ -1121,6 +1128,19 @@ const PortfolioBuilder: React.FC = () => {
     setIsDirty(true);
   };
 
+  const updateHeroImage = (url: string) => {
+    if (!data?.structuredContent) return;
+    const updatedContent = {
+      ...data.structuredContent,
+      sections: (data.structuredContent.sections || []).map((section: any) =>
+        section.type === 'hero'
+          ? { ...section, content: { ...section.content, image: url } }
+          : section
+      ),
+    };
+    handleContentUpdate(updatedContent);
+  };
+
   const handleInjectBlock = (componentId: string) => {
     if (!data) return;
 
@@ -1502,6 +1522,15 @@ const PortfolioBuilder: React.FC = () => {
         isOpen={isBuildOnboardingOpen}
         onClose={() => setIsBuildOnboardingOpen(false)}
         onNeverShowAgain={handleNeverShowBuildOnboarding}
+      />
+      <PhotoUploadModal
+        isOpen={showPhotoModal}
+        onClose={() => setShowPhotoModal(false)}
+        onPhotoUploaded={(url) => {
+          updateHeroImage(url);
+          setShowPhotoModal(false);
+        }}
+        personName={data?.structuredContent?.sections?.find((s: any) => s.type === 'hero')?.content?.name || ''}
       />
 
       <ConfirmModal

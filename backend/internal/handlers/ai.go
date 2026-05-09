@@ -218,42 +218,67 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 		}
 	}
 
-	// Pick a random design persona/mission to ensure variety
-	rand.Seed(time.Now().UnixNano())
-	mission := DesignPersonas[rand.Intn(len(DesignPersonas))]
-	log.Printf("[AI] Selected Design Mission for this generation: %s", mission)
-	promptWithFiles += fmt.Sprintf("\n\n--- DESIGN MISSION ---\nApply this specific design vibe to the entire portfolio: %s\nEnsure the color palette and typography choices reflect this mission.", mission)
+	// === PHASE 1: STRUCTURED PROFILE EXTRACTION ===
+	// Extract a typed PersonProfile from the raw CV/prompt text so that Phase 2 receives
+	// pre-parsed, field-mapped data instead of free-form text. This eliminates content
+	// mismatches where the AI guesses wrong field names for each component's content object.
+	streamLog("Parsing professional profile from input...", "info")
+	profile, profileErr := services.ExtractPersonProfile(aiProvider, promptWithFiles)
 
-	// AUTO-DETECT NICHE from CV content if not explicitly provided
+	// === NICHE DETECTION ===
+	// Prefer profile-derived text (title + skills) over raw CV text for more accurate scoring.
 	detectedNiche := req.Niche
-	if detectedNiche == "" && len(promptWithFiles) > 0 {
-		detectedNiche = services.DetectNiche(promptWithFiles)
-		streamLog(fmt.Sprintf("Niche auto-detected: %s", detectedNiche), "info")
+	if detectedNiche == "" {
+		nicheInput := promptWithFiles
+		if profileErr == nil {
+			nicheInput = services.FlattenProfileForNiche(profile)
+		}
+		nicheResult := services.DetectNicheDetailed(nicheInput)
+		detectedNiche = nicheResult.Niche
+		streamLog(fmt.Sprintf("Niche detected: %s / %s", nicheResult.Niche, nicheResult.SubNiche), "info")
 	}
 
-	// Add niche and theme context to prompt
-	if detectedNiche != "" {
-		promptWithFiles += fmt.Sprintf("\n\nNiche/Profession: %s", detectedNiche)
+	// === DESIGN PERSONA ===
+	rand.Seed(time.Now().UnixNano())
+	mission := DesignPersonas[rand.Intn(len(DesignPersonas))]
+	log.Printf("[AI] Design persona: %s", mission)
 
-		// Add template-based architectural guidance
-		// Build template library from registry blueprints
+	// === BUILD PHASE 2 PROMPT ===
+	// If profile extraction succeeded, use structured JSON as the content source.
+	// Fall back to raw text only if extraction failed, to ensure graceful degradation.
+	var phase2Prompt string
+	if profileErr == nil {
+		phase2Prompt = services.BuildProfilePrompt(profile)
+		streamLog(fmt.Sprintf("Profile extracted: %s — %s", profile.Name, profile.Title), "success")
+	} else {
+		log.Printf("[AI] Profile extraction failed: %v — falling back to raw input", profileErr)
+		streamLog("Profile parse incomplete — proceeding with raw input.", "warn")
+		phase2Prompt = promptWithFiles
+	}
+
+	phase2Prompt += fmt.Sprintf(
+		"\n\n--- DESIGN MISSION ---\nApply this design vibe across the entire portfolio: %s\nReflect it in globalConfig colorPalette and typography choices.",
+		mission,
+	)
+
+	if detectedNiche != "" {
+		phase2Prompt += fmt.Sprintf("\n\nNiche/Profession: %s", detectedNiche)
 		templateLibrary := services.BuildTemplateLibraryFromRegistry()
 		if templateLibrary != nil && len(templateLibrary.Blueprints) > 0 {
-			templateGuidance := services.GenerateManifestGuidance(templateLibrary, detectedNiche)
-			promptWithFiles += fmt.Sprintf("\n\n%s", templateGuidance)
-			streamLog(fmt.Sprintf("Applied template-based architecture for %s using %d blueprints", detectedNiche, len(templateLibrary.Blueprints)), "info")
+			guidance := services.GenerateManifestGuidance(templateLibrary, detectedNiche, promptWithFiles)
+			phase2Prompt += fmt.Sprintf("\n\n%s", guidance)
+			streamLog(fmt.Sprintf("Architecture guidance applied for %s", detectedNiche), "info")
 		} else {
-			// Fallback to niche blueprint if template library not available
 			blueprint := services.GetNicheBlueprint(detectedNiche)
-			promptWithFiles += fmt.Sprintf("\n\n%s", blueprint)
-			streamLog(fmt.Sprintf("Applied niche-based guidance for %s", detectedNiche), "info")
+			phase2Prompt += fmt.Sprintf("\n\n%s", blueprint)
+			streamLog(fmt.Sprintf("Niche blueprint applied for %s", detectedNiche), "info")
 		}
 	}
 	if req.Theme != "" {
-		promptWithFiles += fmt.Sprintf("\n\nTheme Preference: %s", req.Theme)
+		phase2Prompt += fmt.Sprintf("\n\nTheme Preference: %s", req.Theme)
 	}
 
-	streamLog("Analyzing input and synthesizing portfolio...", "info")
+	streamLog("Synthesizing portfolio architecture...", "info")
 
 	var generatedCode string
 	subID, ok := c.Get("subjectId")
@@ -263,13 +288,12 @@ func (h *Handler) GeneratePortfolio(c *gin.Context) {
 	}
 	session := services.GlobalSessionManager.CreateSession(sessionUserID, portfolioID.Hex(), sessionID, "generation")
 
-	// Simplified generation call using centralized prompt from services
 	sysPrompt := services.PortfolioSystemPrompt
 	if req.SystemPrompt != "" {
 		sysPrompt = req.SystemPrompt
 	}
 
-	generatedCode, err = aiProvider.Generate(promptWithFiles, sysPrompt, func(chunk string) {
+	generatedCode, err = aiProvider.Generate(phase2Prompt, sysPrompt, func(chunk string) {
 		websocket.Manager.BroadcastToRoom("session:"+session.ID, "ai:chunk", chunk)
 	})
 

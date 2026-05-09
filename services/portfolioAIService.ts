@@ -53,7 +53,11 @@ const FALLBACK_COMPONENT_BY_TYPE: Record<string, string> = {
   logos: 'LOGOS_STRIP_CLEAN',
   process: 'PROCESS_STEPS_VERTICAL',
   gallery: 'GALLERY_MASONRY_GLASS',
-  team: 'TEAM_GRID_EDITORIAL'
+  team: 'TEAM_GRID_EDITORIAL',
+  education: 'EDUCATION_TIMELINE',
+  awards: 'AWARDS_SHOWCASE',
+  certifications: 'EDUCATION_CARDS_GRID',
+  achievements: 'AWARDS_COMPACT_LIST',
 };
 
 const INVALID_LITERAL_VALUES = new Set(['undefined', 'null', '[object object]', 'nan']);

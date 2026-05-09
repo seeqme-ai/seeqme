@@ -92,9 +92,10 @@ const ADD_SECTION_TYPES = [
 const DEFAULT_SECTION_CONTENT: Record<string, any> = {
     hero: {
         fullName: 'Your Name',
+        name: 'Your Name',
         title: 'Professional Title',
         bio: 'A brief tagline or bio about yourself.',
-        profileImage: '',
+        image: '',
         ctaText: 'Get in Touch',
         ctaLink: '#contact',
         location: '',
@@ -132,7 +133,7 @@ const DEFAULT_SECTION_CONTENT: Record<string, any> = {
     about: {
         title: 'About Me',
         content: 'Tell your story here.',
-        profileImage: '',
+        image: '',
         highlights: ['Highlight one', 'Highlight two'],
         stats: [{ value: '5+', label: 'Years Experience' }],
     },
@@ -146,7 +147,7 @@ const DEFAULT_SECTION_CONTENT: Record<string, any> = {
     testimonials: {
         title: 'What People Say',
         items: [
-            { quote: 'Amazing work and great to collaborate with!', author: 'Client Name', role: 'CEO, Company', avatar: '' },
+            { text: 'Amazing work and great to collaborate with!', author: 'Client Name', role: 'CEO, Company', avatar: '' },
         ],
     },
     services: {
@@ -565,7 +566,7 @@ const SocialLinksEditor: React.FC<{ links: any[]; onChange: (links: any[]) => vo
                         </select>
                         <input
                             type="text"
-                            value={link.url || ''}
+                            value={link.url || link.link || ''}
                             onChange={e => updateLink(i, 'url', e.target.value)}
                             placeholder="https://..."
                             className={inputBase + " flex-1 py-2"}
@@ -611,13 +612,13 @@ const HeroEditor: React.FC<{ content: any; onChange: (key: string, val: any) => 
             label="Professional Title" placeholder="Senior Product Designer" />
         <SmartInput path="bio" value={content.bio || ''} onContentChange={(_, v) => onChange('bio', v)}
             label="Bio / Tagline" rows={3} placeholder="A brief description of what you do…" />
-        <SmartInput path="profileImage" value={content.profileImage || ''} onContentChange={(_, v) => onChange('profileImage', v)}
+        <SmartInput path="image" value={content.image || content.profileImage || ''} onContentChange={(_, v) => onChange('image', v)}
             label="Profile Photo" />
         <Divider label="Call to Action" />
         <div className="grid grid-cols-2 gap-3">
-            <SmartInput path="ctaText" value={content.ctaText || ''} onContentChange={(_, v) => onChange('ctaText', v)}
+            <SmartInput path="ctaText" value={content.cta?.text || content.ctaText || ''} onContentChange={(_, v) => { onChange('cta.text', v); onChange('ctaText', v); }}
                 label="Button Text" placeholder="Get in Touch" />
-            <SmartInput path="ctaLink" value={content.ctaLink || ''} onContentChange={(_, v) => onChange('ctaLink', v)}
+            <SmartInput path="ctaLink" value={content.cta?.link || content.ctaLink || ''} onContentChange={(_, v) => { onChange('cta.link', v); onChange('ctaLink', v); }}
                 label="Button Link" icon={<LinkIcon className="w-3.5 h-3.5" />} placeholder="#contact" />
         </div>
         <SmartInput path="location" value={content.location || ''} onContentChange={(_, v) => onChange('location', v)}
@@ -798,7 +799,7 @@ const AboutEditor: React.FC<{ content: any; onChange: (key: string, val: any) =>
         <SectionFieldWrapper>
             <SmartInput path="title" value={content.title || content.sectionTitle || ''} onContentChange={(_, v) => onChange('title', v)} label="Section Title" />
             <SmartInput path="content" value={content.content || ''} onContentChange={(_, v) => onChange('content', v)} label="Content / Story" rows={5} />
-            <SmartInput path="profileImage" value={content.profileImage || ''} onContentChange={(_, v) => onChange('profileImage', v)} label="Profile Image" />
+            <SmartInput path="image" value={content.image || content.profileImage || ''} onContentChange={(_, v) => onChange('image', v)} label="Profile Image" />
             <TagListEditor label="Highlight Points" items={Array.isArray(content.highlights) ? content.highlights : []} onChange={v => onChange('highlights', v)} />
             <Divider label="Stats" />
             <div className="space-y-2">
@@ -846,7 +847,7 @@ const TestimonialsEditor: React.FC<{ content: any; onChange: (key: string, val: 
         const next = items.map((t: any, idx: number) => idx === i ? { ...t, [key]: val } : t);
         onChange(saveKey, next);
     };
-    const addItem = () => onChange(saveKey, [...items, { quote: '', author: '', role: '', avatar: '' }]);
+    const addItem = () => onChange(saveKey, [...items, { text: '', author: '', role: '', avatar: '' }]);
     const removeItem = (i: number) => { const next = [...items]; next.splice(i, 1); onChange(saveKey, next); };
     return (
         <SectionFieldWrapper>
@@ -860,7 +861,7 @@ const TestimonialsEditor: React.FC<{ content: any; onChange: (key: string, val: 
                             <button onClick={() => removeItem(i)} className="text-slate-400 hover:text-rose-500 transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                         <div className="p-3 space-y-3">
-                            <SmartInput path={`${saveKey}[${i}].quote`} value={t.quote || ''} onContentChange={(_, v) => updateItem(i, 'quote', v)} label="Quote" rows={3} />
+                            <SmartInput path={`${saveKey}[${i}].text`} value={t.text || t.quote || ''} onContentChange={(_, v) => updateItem(i, 'text', v)} label="Quote" rows={3} />
                             <div className="grid grid-cols-2 gap-3">
                                 <SmartInput path={`${saveKey}[${i}].author`} value={t.author || ''} onContentChange={(_, v) => updateItem(i, 'author', v)} label="Author" placeholder="Jane Doe" />
                                 <SmartInput path={`${saveKey}[${i}].role`} value={t.role || t.title || ''} onContentChange={(_, v) => updateItem(i, 'role', v)} label="Role / Company" placeholder="CEO, Acme Inc." />
@@ -905,6 +906,7 @@ const ServicesEditor: React.FC<{ content: any; onChange: (key: string, val: any)
                                 <SmartInput path={`${saveKey}[${i}].title`} value={s.title || ''} onContentChange={(_, v) => updateItem(i, 'title', v)} label="Title" />
                             </div>
                             <SmartInput path={`${saveKey}[${i}].description`} value={s.description || ''} onContentChange={(_, v) => updateItem(i, 'description', v)} label="Description" rows={2} />
+                            <SmartInput path={`${saveKey}[${i}].price`} value={s.price || ''} onContentChange={(_, v) => updateItem(i, 'price', v)} label="Price (optional)" placeholder="From $500 / mo" />
                         </div>
                     </div>
                 ))}

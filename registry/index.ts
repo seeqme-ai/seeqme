@@ -17,6 +17,15 @@ import { FAQRegistry } from './faq';
 import { ProcessRegistry } from './process';
 import { GalleryRegistry } from './gallery';
 import { TeamRegistry } from './team';
+import { ProjectExtendedRegistry } from './projects_extended';
+import { ExperienceExtendedRegistry } from './experience_extended';
+import { SkillsExtendedRegistry } from './skills_extended';
+import { AboutExtendedRegistry } from './about_extended';
+import { TestimonialsExtendedRegistry } from './testimonials_extended';
+import { StatsExtendedRegistry } from './stats_extended';
+import { ContactExtendedRegistry } from './contact_extended';
+import { EducationRegistry } from './education';
+import { AwardsRegistry } from './awards';
 
 export type RegistryComponent = (content: any) => string;
 
@@ -40,6 +49,15 @@ export const Registry: Record<string, RegistryComponent> = {
     ...ProcessRegistry,
     ...GalleryRegistry,
     ...TeamRegistry,
+    ...ProjectExtendedRegistry,
+    ...ExperienceExtendedRegistry,
+    ...SkillsExtendedRegistry,
+    ...AboutExtendedRegistry,
+    ...TestimonialsExtendedRegistry,
+    ...StatsExtendedRegistry,
+    ...ContactExtendedRegistry,
+    ...EducationRegistry,
+    ...AwardsRegistry,
 
     HERO_MODERN_SPLIT: HeroRegistry.HERO_MODERN_SPLIT,
     HERO_CENTERED_MINIMAL: HeroRegistry.HERO_CENTERED_MINIMAL,

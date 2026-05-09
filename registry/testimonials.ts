@@ -103,50 +103,50 @@ export const TESTIMONIALS_QUOTE_WALL = (content: any) => {
    `;
 };
 
-export const TESTIMONIALS_AGENCY_QUOTES = (content: any) => `
-    <section id="testimonials" data-section="testimonials" class="py-24 px-6 bg-red-600 text-white">
-         <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-16 items-center">
-            <div class="md:w-1/3">
-                <h2 class="text-4xl font-black mb-6" data-field="test-title">${content.title || 'Client Love'}</h2>
-                <p class="text-lg opacity-90" data-field="test-desc">${content.desc || "Don't just take my word for it. Here's what founders are saying."}</p>
-                <div class="mt-8 flex gap-2 text-2xl">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-            </div>
-            <div class="md:w-2/3 grid gap-8">
-                 ${(content.testimonials || []).map((t: any) => `
-                 <blockquote class="bg-white text-black p-8 rounded-2xl shadow-xl last:bg-black/20 last:backdrop-blur-lg last:border last:border-white/20 last:text-white">
-                    <p class="text-xl font-bold italic mb-6">"${t.quote}"</p>
-                    <cite class="flex items-center gap-4 not-italic">
-                        ${t.image ? `<img src="${t.image}" class="w-12 h-12 rounded-full border-2 border-red-100" />` : ''}
-                        <div>
-                            <div class="font-bold">${t.name}</div>
-                            <div class="text-xs uppercase tracking-wide opacity-70">${t.role}</div>
-                        </div>
-                    </cite>
-                 </blockquote>
-                 `).join('')}
-            </div>
-         </div>
-    </section>
-`;
+export const TESTIMONIALS_AGENCY_QUOTES = (content: any) => {
+    const items = Array.isArray(content.items) ? content.items : [];
+    return `
+<section id="testimonials" data-section="testimonials" class="py-24 px-6" style="background:var(--surface);">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-16 items-center">
+    <div class="md:w-1/3">
+      <h2 class="text-4xl font-black mb-6 text-[var(--heading)]" data-field="testimonials-title">${content.title || 'Client Love'}</h2>
+      <p class="text-lg text-[var(--text)] opacity-70">${content.description || "Don't just take my word for it. Here's what clients are saying."}</p>
+      <div class="mt-8 flex gap-2 text-2xl" style="color:var(--primary);">
+        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+      </div>
+    </div>
+    <div class="md:w-2/3 flex flex-col gap-6">
+      ${items.map((t: any, i: number) => `
+      <div class="p-8 rounded-2xl border transition-all duration-200 hover:shadow-lg" style="background:var(--bg);border-color:${i === items.length - 1 ? 'color-mix(in srgb,var(--primary) 30%,transparent)' : 'color-mix(in srgb,var(--text) 10%,transparent)'};">
+        <p class="text-xl font-bold italic mb-6 text-[var(--text)] opacity-80">"${t.text || t.quote || ''}"</p>
+        <cite class="flex items-center gap-4 not-italic">
+          ${(t.avatar || t.image) ? `<img src="${t.avatar || t.image}" class="w-12 h-12 rounded-full object-cover border-2" style="border-color:var(--primary);" />` : `<div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0" style="background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary);">${(t.author || t.name || 'U')[0].toUpperCase()}</div>`}
+          <div>
+            <div class="font-bold text-[var(--heading)]">${t.author || t.name || 'Anonymous'}</div>
+            <div class="text-xs uppercase tracking-wide text-[var(--text)] opacity-50">${t.role || ''}${t.company ? ` · ${t.company}` : ''}</div>
+          </div>
+        </cite>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`;
+};
 
-export const TESTIMONIALS_MINIMAL_SINGLE = (content: any) => `
-    <section id="testimonials" data-section="testimonials" class="py-20 px-6 bg-[#fafaf9]">
-        <div class="max-w-3xl mx-auto text-center">
-            <i class="fas fa-quote-left text-4xl text-stone-300 mb-8"></i>
-            ${(content.testimonials || []).map((t: any) => `
-            <div class="mb-12 last:mb-0">
-                <p class="text-2xl font-serif italic text-stone-800 mb-8 leading-relaxed">
-                    "${t.quote}"
-                </p>
-                <div class="font-bold text-stone-900">${t.name}</div>
-                <div class="text-sm text-stone-500">${t.role}</div>
-            </div>
-            `).join('')}
-        </div>
-    </section>
-`;
+export const TESTIMONIALS_MINIMAL_SINGLE = (content: any) => {
+    const items = Array.isArray(content.items) ? content.items : [];
+    return `
+<section id="testimonials" data-section="testimonials" class="py-20 px-6 bg-[var(--bg)]">
+  <div class="max-w-3xl mx-auto text-center">
+    <i class="fas fa-quote-left text-4xl mb-8 block" style="color:color-mix(in srgb,var(--text) 20%,transparent);"></i>
+    ${items.map((t: any) => `
+    <div class="mb-12 last:mb-0">
+      <p class="text-2xl font-serif italic text-[var(--text)] mb-8 leading-relaxed opacity-80">"${t.text || t.quote || ''}"</p>
+      <div class="font-bold text-[var(--heading)]">${t.author || t.name || 'Anonymous'}</div>
+      <div class="text-sm text-[var(--text)] opacity-50">${t.role || ''}${t.company ? ` · ${t.company}` : ''}</div>
+    </div>`).join('')}
+  </div>
+</section>`;
+};
 
 export const TestimonialRegistry: any = {
     TESTIMONIALS_BENTO,
