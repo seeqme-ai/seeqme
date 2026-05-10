@@ -42,9 +42,35 @@ type redditListing struct {
 				IsVideo     bool    `json:"is_video"`
 				Ups         int     `json:"ups"`
 				Ratio       float64 `json:"upvote_ratio"`
+				Preview     struct {
+					Images []struct {
+						Source struct {
+							URL string `json:"url"`
+						} `json:"source"`
+					} `json:"images"`
+				} `json:"preview"`
 			} `json:"data"`
 		} `json:"children"`
 	} `json:"data"`
+}
+
+func decodeRedditImageURL(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	replacer := strings.NewReplacer("&amp;", "&", "&#x2F;", "/", "&#47;", "/")
+	return replacer.Replace(raw)
+}
+
+func isLikelyImageURL(u string) bool {
+	lu := strings.ToLower(u)
+	return strings.Contains(lu, "i.redd.it/") ||
+		strings.Contains(lu, "preview.redd.it/") ||
+		strings.HasSuffix(lu, ".jpg") ||
+		strings.HasSuffix(lu, ".jpeg") ||
+		strings.HasSuffix(lu, ".png") ||
+		strings.HasSuffix(lu, ".webp") ||
+		strings.HasSuffix(lu, ".gif")
 }
 
 // redditCommentsResponse minimal shape for a post's comments
@@ -135,7 +161,10 @@ func (r *RedditProvider) FetchTrending(ctx context.Context, geo string) ([]model
 		}
 	}
 
-	type kv struct{ k string; v int }
+	type kv struct {
+		k string
+		v int
+	}
 	var arr []kv
 	for k, v := range counts {
 		arr = append(arr, kv{k, v})
@@ -202,6 +231,12 @@ func (r *RedditProvider) FetchAndStoreRedditPosts(ctx context.Context) {
 				if thumbnail == "self" || thumbnail == "default" || thumbnail == "nsfw" {
 					thumbnail = ""
 				}
+				thumbnail = decodeRedditImageURL(thumbnail)
+				if len(p.Preview.Images) > 0 && p.Preview.Images[0].Source.URL != "" {
+					thumbnail = decodeRedditImageURL(p.Preview.Images[0].Source.URL)
+				} else if thumbnail == "" && isLikelyImageURL(p.URL) {
+					thumbnail = decodeRedditImageURL(p.URL)
+				}
 
 				post := models.RedditPost{
 					RedditID:    p.ID,
@@ -228,20 +263,22 @@ func (r *RedditProvider) FetchAndStoreRedditPosts(ctx context.Context) {
 						"score":       post.Score,
 						"numComments": post.NumComments,
 						"category":    post.Category,
+						"thumbnail":   post.Thumbnail,
+						"url":         post.URL,
 						"fetchedAt":   post.FetchedAt,
 					},
 					"$setOnInsert": bson.M{
-						"redditId":  post.RedditID,
-						"subreddit": post.Subreddit,
-						"title":     post.Title,
-						"selftext":  post.Selftext,
-						"author":    post.Author,
-						"thumbnail": post.Thumbnail,
-						"url":       post.URL,
-						"permalink": post.Permalink,
-						"slug":      post.Slug,
-						"seoTitle":  post.SEOTitle,
-						"seoDesc":   post.SEODesc,
+						"redditId":    post.RedditID,
+						"subreddit":   post.Subreddit,
+						"title":       post.Title,
+						"selftext":    post.Selftext,
+						"author":      post.Author,
+						"thumbnail":   post.Thumbnail,
+						"url":         post.URL,
+						"permalink":   post.Permalink,
+						"slug":        post.Slug,
+						"seoTitle":    post.SEOTitle,
+						"seoDesc":     post.SEODesc,
 						"ourComments": []models.Comment{},
 						"ourLikes":    []string{},
 						"topComments": []models.RedditComment{},
@@ -312,17 +349,17 @@ func FetchRedditPostComments(ctx context.Context, subreddit, redditID string) ([
 
 // TrendingWorker periodically refreshes the trending collection using providers
 type TrendingWorker struct {
-	Providers    []TrendingProvider
-	Interval     time.Duration
-	Geo          string
+	Providers     []TrendingProvider
+	Interval      time.Duration
+	Geo           string
 	RedditFetcher *RedditProvider
 }
 
 func NewTrendingWorker(providers []TrendingProvider, interval time.Duration, geo string) *TrendingWorker {
 	return &TrendingWorker{
-		Providers:    providers,
-		Interval:     interval,
-		Geo:          geo,
+		Providers:     providers,
+		Interval:      interval,
+		Geo:           geo,
 		RedditFetcher: NewRedditProvider(),
 	}
 }
@@ -381,7 +418,10 @@ func (w *TrendingWorker) updateOnce(ctx context.Context) {
 		}
 	}
 
-	type kv struct{ k string; v int }
+	type kv struct {
+		k string
+		v int
+	}
 	var arr []kv
 	for k, v := range combined {
 		arr = append(arr, kv{k, v})

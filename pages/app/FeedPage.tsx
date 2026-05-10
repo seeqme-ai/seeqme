@@ -91,6 +91,18 @@ interface RedditPost {
   ourLikes: string[];
 }
 
+const isLikelyImageUrl = (url?: string) => {
+  if (!url) return false;
+  const normalized = url.toLowerCase().split('?')[0];
+  return normalized.includes('i.redd.it/') ||
+    normalized.includes('preview.redd.it/') ||
+    normalized.endsWith('.jpg') ||
+    normalized.endsWith('.jpeg') ||
+    normalized.endsWith('.png') ||
+    normalized.endsWith('.webp') ||
+    normalized.endsWith('.gif');
+};
+
 const CATEGORIES = ['Opinion', 'Case Study', 'Engineering', 'Startup', 'Design', 'Product', 'News'];
 
 /* ── Components ── */
@@ -523,7 +535,9 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
     }
   };
 
-  const hasImage = post.thumbnail && post.thumbnail.startsWith('http');
+  const mediaUrl = post.thumbnail?.startsWith('http')
+    ? post.thumbnail
+    : (isLikelyImageUrl(post.url) ? post.url : '');
 
   const toggleComments = async () => {
     const next = !showComments;
@@ -582,12 +596,12 @@ const RedditPostCard: React.FC<{ post: RedditPost; i: number }> = ({ post, i }) 
       )}
 
       {/* Thumbnail */}
-      {hasImage && (
-        <div className="mb-3 rounded-xl overflow-hidden border border-slate-100">
+      {mediaUrl && (
+        <div className="mb-3 rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
           <img
-            src={post.thumbnail}
+            src={mediaUrl}
             alt={post.title}
-            className="w-full h-40 object-cover"
+            className="w-full h-auto max-h-[420px] object-cover"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </div>
