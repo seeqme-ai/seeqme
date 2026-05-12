@@ -9,7 +9,7 @@ const normalizedEnvBase = envBackendUrl
 const isDev = import.meta.env.DEV;
 export const API_BASE_URL = normalizedEnvBase || (isDev ? 'http://localhost:8080/api/v1' : 'https://seeqme.com/api/v1');
 const apiClient = axios.create({
-  baseURL: 'https://seeqme-production.up.railway.app/api/v1',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
