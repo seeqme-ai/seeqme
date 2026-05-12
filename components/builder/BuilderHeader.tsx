@@ -22,19 +22,26 @@ const MotionDiv = motion.div as any;
 const ACTIVE_STATUSES: BuildStatus[] = ['generating', 'analyzing', 'styling', 'synthesizing'];
 
 const STATUS_CONFIG: Record<string, { dot: string; label: string; pulse: boolean }> = {
-  generating:   { dot: 'bg-amber-400',  label: 'Generating…',  pulse: true },
-  analyzing:    { dot: 'bg-amber-400',  label: 'Analyzing…',   pulse: true },
-  styling:      { dot: 'bg-amber-400',  label: 'Styling…',     pulse: true },
-  synthesizing: { dot: 'bg-amber-400',  label: 'Polishing…',   pulse: true },
-  deploying:    { dot: 'bg-blue-400',   label: 'Publishing…',  pulse: true },
-  ready:        { dot: 'bg-emerald-500', label: 'Ready',        pulse: false },
-  completed:    { dot: 'bg-emerald-500', label: 'Live',         pulse: false },
-  idle:         { dot: 'bg-slate-400',  label: 'Draft',         pulse: false },
+  generating: { dot: 'bg-amber-400', label: 'Generating...', pulse: true },
+  analyzing: { dot: 'bg-amber-400', label: 'Analyzing...', pulse: true },
+  styling: { dot: 'bg-amber-400', label: 'Styling...', pulse: true },
+  synthesizing: { dot: 'bg-amber-400', label: 'Polishing...', pulse: true },
+  deploying: { dot: 'bg-blue-400', label: 'Publishing...', pulse: true },
+  ready: { dot: 'bg-emerald-500', label: 'Ready', pulse: false },
+  completed: { dot: 'bg-emerald-500', label: 'Live', pulse: false },
+  idle: { dot: 'bg-slate-400', label: 'Draft', pulse: false },
 };
 
 const BuilderHeader: React.FC<BuilderHeaderProps> = ({
-  status, isPublishing, data, historyLength,
-  onRemix, onUndo, onDeploy, onOpenEditor, onGuide,
+  status,
+  isPublishing,
+  data,
+  historyLength,
+  onRemix,
+  onUndo,
+  onDeploy,
+  onOpenEditor,
+  onGuide,
 }) => {
   const navigate = useNavigate();
   const isGenerating = ACTIVE_STATUSES.includes(status);
@@ -43,19 +50,14 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
     () => localStorage.getItem('seeqme_guide_seen') === 'true'
   );
 
-  const handleGuideClick = () => {
-    if (!guideSeen) {
-      setGuideSeen(true);
-      localStorage.setItem('seeqme_guide_seen', 'true');
-    }
-    onGuide?.();
-  };
+ 
   const statusCfg = STATUS_CONFIG[isPublishing ? 'deploying' : status] ?? STATUS_CONFIG.idle;
 
-  const isDeployed = data && !data.id.startsWith('portfolio-') &&
+  const isDeployed =
+    data &&
+    !data.id.startsWith('portfolio-') &&
     ((data as any).url || (data as any).subdomain || (data as any).status === 'completed');
-  const deployLabel = isPublishing ? 'Publishing…' : isDeployed ? 'Redeploy' : 'Publish';
-
+  const deployLabel = isPublishing ? 'Publishing...' : isDeployed ? 'Redeploy' : 'Publish';
   const showUndo = historyLength > 0 || (data && !data.id?.startsWith('portfolio-'));
 
   return (
@@ -66,8 +68,6 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
       className="fixed top-0 w-full z-[100] bg-white/90 backdrop-blur-xl border-b border-slate-200/70 shadow-sm"
     >
       <div className="max-w-full px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3">
-
-        {/* Left: back + status */}
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => navigate(-1)}
@@ -88,7 +88,6 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: remix + undo */}
         <div className="flex items-center gap-2">
           <div className="relative group">
             <button
@@ -96,12 +95,10 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
               onClick={onRemix}
               disabled={isGenerating}
               className="flex items-center gap-1.5 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-3 py-2 rounded-full text-[11px] font-bold text-violet-700 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Generate a new layout — your content stays"
+              title="Generate a new layout - your content stays"
             >
-              {isGenerating
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <Wand2 className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">{isGenerating ? 'Working…' : 'Remix'}</span>
+              {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{isGenerating ? 'Working...' : 'Remix'}</span>
             </button>
             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
               <div className="bg-slate-900 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
@@ -122,25 +119,17 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
           )}
         </div>
 
-        {/* Right: guide + edit + publish */}
         <div className="flex items-center gap-2">
           {onGuide && (
             <div className="relative group">
-              {/* Pulse ring — shown until the user clicks Guide once */}
-              {!guideSeen && (
-                <span className="absolute -inset-1 rounded-full animate-ping bg-teal-400/30 pointer-events-none" />
-              )}
+              <span className="absolute -inset-1 rounded-full animate-ping bg-teal-400/30 pointer-events-none" />
               <button
-                onClick={handleGuideClick}
-                className={`relative flex items-center gap-1.5 border px-2.5 py-2 rounded-full text-[11px] font-semibold transition-all active:scale-95 ${
-                  guideSeen
-                    ? 'border-dashed border-slate-300 bg-white hover:bg-slate-50 hover:border-teal-400 text-slate-500 hover:text-teal-600'
-                    : 'border-teal-400 bg-teal-50 text-teal-600 hover:bg-teal-100'
-                }`}
+                onClick={onGuide}
+                className="relative flex items-center gap-1.5 border border-teal-400 bg-teal-50 text-teal-600 hover:bg-teal-100 px-2.5 py-2 rounded-full text-[10px] sm:text-[11px] font-semibold transition-all active:scale-95"
                 title="Take a tour of the builder"
               >
                 <Compass className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Guide</span>
+                <span>Guide</span>
               </button>
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
                 <div className="bg-slate-900 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
@@ -168,15 +157,17 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
               isPublishing
                 ? 'bg-amber-500 text-white'
                 : isDeployed
-                ? 'bg-slate-900 hover:bg-slate-700 text-white'
-                : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-600/20'
+                  ? 'bg-slate-900 hover:bg-slate-700 text-white'
+                  : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-600/20'
             }`}
           >
-            {isPublishing
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : isDeployed
-              ? <Globe className="w-3.5 h-3.5" />
-              : <Rocket className="w-3.5 h-3.5" />}
+            {isPublishing ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : isDeployed ? (
+              <Globe className="w-3.5 h-3.5" />
+            ) : (
+              <Rocket className="w-3.5 h-3.5" />
+            )}
             <span>{deployLabel}</span>
           </button>
         </div>
