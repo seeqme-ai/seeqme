@@ -17,9 +17,8 @@ import BuilderViewport from '@/components/builder/BuilderViewport';
 import BuilderHeader from '@/components/builder/BuilderHeader';
 import BuilderSidebar from '@/components/builder/BuilderSidebar';
 import DeploymentModal from '@/components/builder/DeploymentModal';
-import BuildOnboardingDrawer from '@/components/builder/BuildOnboardingDrawer';
+import BuilderTour, { BUILDER_TOUR_STEPS } from '@/components/builder/BuilderTour';
 import PhotoUploadModal from '@/components/builder/PhotoUploadModal';
-import Joyride, { Step } from 'react-joyride';
 import TemplateSelectorDrawer from '@/components/TemplateSelectorDrawer';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import PaymentRequiredModal from '@/components/PaymentRequiredModal';
@@ -28,41 +27,6 @@ import { renderManifest } from '@/utils/renderer';
 import { RegistryMetadata } from '@/registry/metadata';
 import FloatingPromptInput from '@/components/FloatingPromptInput';
 
-const TOUR_STEPS: Step[] = [
-  {
-    target: '[data-tour="template-drawer-btn"]',
-    content: 'Open this to browse different templates or inject specific premium blocks (Skills, Projects, etc.) into your current portfolio.',
-    disableBeacon: true,
-    placement: 'right',
-  },
-  {
-    target: '[data-tour="edit-section"]',
-    content: 'Click here to customize every detail. You can edit text, swap images, and change individual section settings in real-time.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="floating-input"]',
-    content: 'This is your AI command center. Ask it to "Redesign the hero" or "rewrite the bio to be more professional". Use "Build" mode to start a fresh portfolio from a prompt.',
-    placement: 'top',
-  },
-  {
-    target: '[data-tour="terminal-toggle"]',
-    content: 'Watch the AI thinking process live in the console, or switch to the "Source" tab to view and (if on Pro) edit the raw HTML/CSS/JS.',
-    placement: 'top',
-  },
-  {
-    target: '[data-tour="remix-button"]',
-    content: 'Not feeling the current look? Click Remix to let AI completely architecture a new visual design while keeping all your content.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="deploy-button"]',
-    content: 'When you are ready, launch your site to a live URL. Your portfolio is built for speed and SEO.',
-    placement: 'bottom',
-  },
-];
-
-const BUILD_ONBOARDING_NEVER_SHOW_KEY = 'seeqme_build_onboarding_never_show';
 
 const PortfolioBuilder: React.FC = () => {
   const { user } = useAuth();
@@ -107,10 +71,9 @@ const PortfolioBuilder: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isIframeLoading, setIsIframeLoading] = useState(false);
-  const [runTour, setRunTour] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [subscriptionPlanId, setSubscriptionPlanId] = useState<string>('free');
-  const [isBuildOnboardingOpen, setIsBuildOnboardingOpen] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [isTemplateLockedForBuild, setIsTemplateLockedForBuild] = useState(false);
   const isPublishingRef = useRef(false);
@@ -120,28 +83,10 @@ const PortfolioBuilder: React.FC = () => {
   }, [isPublishing]);
 
   useEffect(() => {
-    // Check if user has seen tour
-    const hasSeenTour = localStorage.getItem('seeqme_tour_seen');
-    if (!hasSeenTour) {
-      // Small delay to ensure UI is ready
-      const timer = setTimeout(() => setRunTour(true), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
     if (!openFloatingPrompt) return;
     setFloatingInitialMode(floatingMode === 'new' ? 'new' : 'refine');
     setIsFloatingPromptVisible(true);
   }, [openFloatingPrompt, floatingMode]);
-
-  const handleTourComplete = (data: any) => {
-    const { status } = data;
-    if (['finished', 'skipped'].includes(status)) {
-      localStorage.setItem('seeqme_tour_seen', 'true');
-      setRunTour(false);
-    }
-  };
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const layouts = Object.values(LayoutType);
@@ -363,11 +308,26 @@ const PortfolioBuilder: React.FC = () => {
         return;
       }
 
+      // Restore pending build state saved before auth redirect (CV upload → signup flow)
+      const pendingInput = sessionStorage.getItem('seeqme_pending_synthesis_input');
+      if (pendingInput && !synthesisInput) {
+        const pendingFileStr = sessionStorage.getItem('seeqme_pending_file');
+        sessionStorage.removeItem('seeqme_pending_synthesis_input');
+        sessionStorage.removeItem('seeqme_pending_file');
+        if (pendingFileStr) {
+          try { (window as any)._pendingFile = JSON.parse(pendingFileStr); } catch {}
+        }
+        setSynthesisInput(pendingInput);
+        return;
+      }
+
       // Check for explicit template selection or synthesis from Context
       if (synthesisInput) {
         const fileData = (window as any)._pendingFile;
-        handleBuild(synthesisInput, fileData ? [fileData] : undefined);
+        const inputSnapshot = synthesisInput;
+        setSynthesisInput('');
         delete (window as any)._pendingFile;
+        handleBuild(inputSnapshot, fileData ? [fileData] : undefined);
         return;
       }
 
@@ -562,11 +522,6 @@ const PortfolioBuilder: React.FC = () => {
       .filter((file) => !!file.content);
   };
 
-  const handleNeverShowBuildOnboarding = () => {
-    localStorage.setItem(BUILD_ONBOARDING_NEVER_SHOW_KEY, 'true');
-    setIsBuildOnboardingOpen(false);
-  };
-
   const handleBuild = async (customInput?: string, files?: any[]) => {
     // If we are in the middle of a build, don't start another one
     if (status === 'synthesizing' || status === 'generating') return;
@@ -660,11 +615,6 @@ const PortfolioBuilder: React.FC = () => {
       setIsTemplateLockedForBuild(false);
       addLog("Build complete! Your portfolio is ready.", "success");
       setIsTerminalCollapsed(true);
-
-      const neverShowBuildOnboarding = localStorage.getItem(BUILD_ONBOARDING_NEVER_SHOW_KEY) === 'true';
-      if (!neverShowBuildOnboarding) {
-        setIsBuildOnboardingOpen(true);
-      }
 
       const heroSection = completeData.structuredContent?.sections?.find((s: any) => s.type === 'hero');
       if (!heroSection?.content?.image) {
@@ -1434,6 +1384,7 @@ const PortfolioBuilder: React.FC = () => {
         onUndo={handleUndo}
         onDeploy={handleDeploy}
         onOpenEditor={() => setIsEditorOpen(true)}
+        onGuide={() => setIsGuideOpen(true)}
       />
 
       <div className="flex-1 mt-20 sm:mt-24 relative flex flex-col pl-12">
@@ -1451,7 +1402,6 @@ const PortfolioBuilder: React.FC = () => {
       <BuilderSidebar
         isTemplateSelectorOpen={isTemplateSelectorOpen}
         onOpenTemplateSelector={() => setIsTemplateSelectorOpen(true)}
-        onStartTour={() => setRunTour(true)}
         onOpenEditor={() => setIsEditorOpen(true)}
         onToggleFloatingPrompt={() => setIsFloatingPromptVisible(v => !v)}
         onToggleTerminal={() => setIsTerminalVisible(v => !v)}
@@ -1518,11 +1468,6 @@ const PortfolioBuilder: React.FC = () => {
         status={status === 'completed' ? 'completed' : status === 'deploying' ? 'deploying' : 'failed'}
         logs={logs.map(l => l.message)}
       />
-      <BuildOnboardingDrawer
-        isOpen={isBuildOnboardingOpen}
-        onClose={() => setIsBuildOnboardingOpen(false)}
-        onNeverShowAgain={handleNeverShowBuildOnboarding}
-      />
       <PhotoUploadModal
         isOpen={showPhotoModal}
         onClose={() => setShowPhotoModal(false)}
@@ -1567,59 +1512,11 @@ const PortfolioBuilder: React.FC = () => {
           navigate('/plans?redirect=/builder&autoDeploy=true');
         }}
       />
-      {/* <Joyride
-        steps={TOUR_STEPS}
-        run={runTour}
-        continuous={true}
-        showProgress={true}
-        showSkipButton={true}
-        callback={(data) => {
-          handleTourComplete(data);
-          if (data.status === 'finished' || data.status === 'skipped') {
-            localStorage.setItem('seeqme_onboarding_seen', 'true');
-          }
-        }}
-        styles={{
-          options: {
-            primaryColor: '#14b8a6', // teal-500
-            textColor: '#0f172a',    // slate-900
-            zIndex: 100000,
-          },
-          buttonNext: {
-            fontSize: '12px',
-            fontWeight: 'bold',
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            padding: '12px 24px',
-            borderRadius: '50px',
-          },
-          buttonBack: {
-            fontSize: '12px',
-            fontWeight: 'bold',
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            color: '#64748b',
-          },
-          tooltipContainer: {
-            textAlign: 'left',
-            borderRadius: '24px',
-            padding: '10px'
-          },
-          tooltipContent: {
-            padding: '10px 0',
-            fontSize: '14px',
-            lineHeight: '1.6',
-            fontWeight: 500,
-            color: '#475569'
-          },
-          tooltipTitle: {
-            fontSize: '18px',
-            fontWeight: 800,
-            letterSpacing: '-0.02em',
-            color: '#0f172a'
-          }
-        }}
-      /> */}
+      <BuilderTour
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        steps={BUILDER_TOUR_STEPS}
+      />
     </div>
   );
 };

@@ -143,7 +143,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
           icon={Pencil}
           label="Editor"
           onClick={() => onOpenEditor?.()}
-          tourAttr="edit-section"
+          tourAttr="sidebar-edit"
         />
 
         {/* 2. Blocks / Templates */}
@@ -152,7 +152,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
           label="Blocks"
           active={isExpanded}
           onClick={() => setIsExpanded(v => !v)}
-          tourAttr="template-drawer-btn"
+          tourAttr="sidebar-blocks"
         />
 
         {/* 3. AI Edit */}
@@ -161,6 +161,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
           label="AI Edit"
           active={isFloatingPromptVisible}
           onClick={() => onToggleFloatingPrompt?.()}
+          tourAttr="sidebar-ai"
         />
 
         {/* 4. Console */}
@@ -169,7 +170,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
           label="Console"
           active={isTerminalVisible}
           onClick={() => onToggleTerminal?.()}
-          tourAttr="terminal-toggle"
+          tourAttr="sidebar-console"
         />
 
         {/* Section count badge */}

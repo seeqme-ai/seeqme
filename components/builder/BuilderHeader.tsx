@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wand2, Undo2, Globe, Pencil, Loader2, Rocket } from 'lucide-react';
+import { ArrowLeft, Wand2, Undo2, Globe, Pencil, Loader2, Rocket, Compass } from 'lucide-react';
 import { BuildStatus, PortfolioData } from '@/types';
 
 interface BuilderHeaderProps {
@@ -13,6 +13,7 @@ interface BuilderHeaderProps {
   onUndo: () => void;
   onDeploy: () => void;
   onOpenEditor: () => void;
+  onGuide?: () => void;
   currentTheme?: 'dark' | 'light';
 }
 
@@ -33,10 +34,22 @@ const STATUS_CONFIG: Record<string, { dot: string; label: string; pulse: boolean
 
 const BuilderHeader: React.FC<BuilderHeaderProps> = ({
   status, isPublishing, data, historyLength,
-  onRemix, onUndo, onDeploy, onOpenEditor,
+  onRemix, onUndo, onDeploy, onOpenEditor, onGuide,
 }) => {
   const navigate = useNavigate();
   const isGenerating = ACTIVE_STATUSES.includes(status);
+
+  const [guideSeen, setGuideSeen] = useState(
+    () => localStorage.getItem('seeqme_guide_seen') === 'true'
+  );
+
+  const handleGuideClick = () => {
+    if (!guideSeen) {
+      setGuideSeen(true);
+      localStorage.setItem('seeqme_guide_seen', 'true');
+    }
+    onGuide?.();
+  };
   const statusCfg = STATUS_CONFIG[isPublishing ? 'deploying' : status] ?? STATUS_CONFIG.idle;
 
   const isDeployed = data && !data.id.startsWith('portfolio-') &&
@@ -109,8 +122,34 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
           )}
         </div>
 
-        {/* Right: edit + publish */}
+        {/* Right: guide + edit + publish */}
         <div className="flex items-center gap-2">
+          {onGuide && (
+            <div className="relative group">
+              {/* Pulse ring — shown until the user clicks Guide once */}
+              {!guideSeen && (
+                <span className="absolute -inset-1 rounded-full animate-ping bg-teal-400/30 pointer-events-none" />
+              )}
+              <button
+                onClick={handleGuideClick}
+                className={`relative flex items-center gap-1.5 border px-2.5 py-2 rounded-full text-[11px] font-semibold transition-all active:scale-95 ${
+                  guideSeen
+                    ? 'border-dashed border-slate-300 bg-white hover:bg-slate-50 hover:border-teal-400 text-slate-500 hover:text-teal-600'
+                    : 'border-teal-400 bg-teal-50 text-teal-600 hover:bg-teal-100'
+                }`}
+                title="Take a tour of the builder"
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Guide</span>
+              </button>
+              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                <div className="bg-slate-900 text-white text-[10px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+                  Take a tour
+                </div>
+              </div>
+            </div>
+          )}
+
           <button
             data-tour="edit-section"
             onClick={onOpenEditor}

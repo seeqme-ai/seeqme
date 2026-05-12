@@ -1542,7 +1542,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <ConfirmModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onConfirm={() => navigate('/auth/signup')}
+        onConfirm={() => {
+          const hasContent = !!(selectedFile || inputValue || linkedInUrl);
+          if (hasContent) {
+            let fullInput = inputValue;
+            if (selectedFile) {
+              sessionStorage.setItem('seeqme_pending_file', JSON.stringify({
+                filename: selectedFile.name,
+                content: selectedFile.content || selectedFile.url,
+                type: selectedFile.type,
+              }));
+              fullInput += '\n\n[Context: CV uploaded]';
+            }
+            if (linkedInUrl) fullInput += `\n\n[Context: LinkedIn Profile ${linkedInUrl}]`;
+            fullInput += `\n\n[Niche: ${selectedNiche}]`;
+            sessionStorage.setItem('seeqme_pending_synthesis_input', fullInput);
+            localStorage.setItem('redirectUrl', '/builder');
+            navigate('/auth/signup?redirect=/builder');
+          } else {
+            navigate('/auth/signup');
+          }
+        }}
         title="Sign in to continue"
         description="Create a free account to build and publish your portfolio in under a minute."
         confirmText="Create Account"

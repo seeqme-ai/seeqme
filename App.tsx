@@ -15,6 +15,7 @@ import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import SettingsPage from './pages/SettingsPage';
 import DomainsPage from './pages/DomainsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AboutPage from './pages/AboutPage';
 import ContactUs from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -119,6 +120,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<MainLayout hideFooter><LandingPage onGetStarted={handleGetStarted} /></MainLayout>} />
         <Route path="/templates" element={<Templates />} />
+        <Route path="/about" element={<MainLayout><AboutPage /></MainLayout>} />
         <Route path="/contact" element={<MainLayout><ContactUs /></MainLayout>} />
         <Route path="/privacy-policy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
         <Route path="/terms-of-service" element={<MainLayout><TermsOfService /></MainLayout>} />

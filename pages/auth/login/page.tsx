@@ -34,12 +34,14 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login } = useAuth();
+  const { checkAuth } = useAuth();
 
   const loginMutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: () => {
-      login(email, password);
+    onSuccess: (data) => {
+      localStorage.setItem("token", data.token);
+      localStorage.removeItem("redirectUrl");
+      checkAuth(data.token);
       toast.success("Logged in successfully!");
       const redirect = searchParams.get("redirect");
       navigate(redirect || "/dashboard");

@@ -5,45 +5,65 @@
   <!-- Core pages -->
   <url>
     <loc>https://seeqme.com/</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://seeqme.com/templates</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://seeqme.com/plans</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://seeqme.com/about</loc>
+    <lastmod>2026-05-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://seeqme.com/contact</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <!-- App pages -->
+  <url>
+    <loc>https://seeqme.com/app/feed</loc>
+    <lastmod>2026-05-12</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://seeqme.com/app/mesh</loc>
+    <lastmod>2026-05-12</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <!-- Legal -->
   <url>
     <loc>https://seeqme.com/privacy-policy</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://seeqme.com/terms-of-service</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://seeqme.com/monetary-policy</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
