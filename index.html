@@ -56,6 +56,13 @@
         overflow-x: hidden;
       }
 
+      /* Prevent iOS Safari from auto-zooming the viewport on input focus.
+         iOS zooms any input with font-size < 16px. Setting a 16px minimum
+         fixes the zoom without disabling user scaling (which harms accessibility). */
+      input, select, textarea {
+        font-size: max(16px, 1em);
+      }
+
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }

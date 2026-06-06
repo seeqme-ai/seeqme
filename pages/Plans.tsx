@@ -369,6 +369,13 @@ const Plans: React.FC = () => {
                     >
                       {plan.cta}
                     </button>
+                  ) : !user ? (
+                    <button
+                      onClick={() => navigate('/auth/login', { state: { from: '/plans' } })}
+                      className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 ${plan.recommended ? 'bg-teal-500 text-white hover:bg-teal-400 shadow-lg shadow-teal-500/30' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                    >
+                      {plan.cta}
+                    </button>
                   ) : paystackPublicKey ? (
                     <PaystackButton
                       {...({

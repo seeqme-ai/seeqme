@@ -25,7 +25,7 @@ const MotionText   = motion.text   as any;
 
 /* ── Constants ── */
 
-const INFRASTRUCTURE = ['OpenAI Embeddings', 'pgvector', 'Cloudflare CDN', 'Redis', 'Supabase', 'Resend'];
+const INFRASTRUCTURE = ['OpenAI Embeddings', 'pgvector', 'Cloudflare CDN', 'Redis', 'Hedera', 'Resend'];
 const PROOF_AVATARS  = ['bg-teal-400', 'bg-violet-400', 'bg-sky-400', 'bg-amber-400', 'bg-rose-400'];
 const HERO_SKILLS    = ['React', 'TypeScript', 'Node.js', 'Python', 'Figma', 'AWS'];
 
