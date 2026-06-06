@@ -15,9 +15,8 @@ import {
 } from '../services/hederaPaymentService';
 import { hederaService, type HederaConfig } from '../services/apiService';
 
-// ─── Brand Logos ──────────────────────────────────────────────────────────────
 
-const PaystackLogo: React.FC<{ className?: string }> = ({ className = 'h-8' }) => (
+const PaystackLogo: React.FC<{ className?: string }> = ({ className = 'h-7' }) => (
   <svg viewBox="0 0 132 36" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <rect x="0" y="2" width="36" height="32" rx="8" fill="#011B33" />
     <rect x="8" y="10" width="20" height="4.5" rx="2.25" fill="#00C3F7" />
@@ -28,7 +27,7 @@ const PaystackLogo: React.FC<{ className?: string }> = ({ className = 'h-8' }) =
   </svg>
 );
 
-const HederaLogo: React.FC<{ className?: string }> = ({ className = 'h-8' }) => (
+const HederaLogo: React.FC<{ className?: string }> = ({ className = 'h-7' }) => (
   <svg viewBox="0 0 116 36" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <rect x="0" y="2" width="36" height="32" rx="8" fill="#1D2029" />
     <text x="6" y="26" fontFamily="Georgia,'Times New Roman',serif" fontWeight="400" fontSize="22" fill="white">ℏ</text>
@@ -39,7 +38,7 @@ const HederaLogo: React.FC<{ className?: string }> = ({ className = 'h-8' }) => 
 
 const HashPackIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <rect width="40" height="40" rx="10" fill="#8259EF" />
+    <rect width="40" height="40" rx="10" fill="#0d9488" />
     <text x="8" y="28" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill="white">ℏ</text>
   </svg>
 );
@@ -56,7 +55,6 @@ const MetaMaskIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ModalStep = 'select' | 'hedera';
 type HederaStep = 'loading' | 'choose_wallet' | 'connecting' | 'connected' | 'paying' | 'verifying' | 'success' | 'error';
@@ -80,13 +78,13 @@ const GatewaySelector: React.FC<{
   hbarConfig: HederaConfig | null;
 }> = ({ onPaystack, onHedera, onClose, hbarConfig }) => {
   const hbarLabel = hbarConfig
-    ? `${hbarConfig.amountHbar} HBAR (≈ ₦${hbarConfig.amountNgn.toLocaleString()})`
+    ? `${hbarConfig.amountHbar} HBAR ≈ ₦${hbarConfig.amountNgn.toLocaleString()}`
     : 'Loading price…';
 
   return (
-    <div className="px-7 pb-8 pt-2 space-y-5">
+    <div className="px-4 sm:px-6 pb-6 pt-1 space-y-4">
       <div>
-        <h2 className="text-xl font-black text-slate-900 tracking-tight mb-1">Publish your portfolio</h2>
+        <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mb-0.5">Publish your portfolio</h2>
         <p className="text-sm text-slate-500 font-medium">Choose your payment method to go live.</p>
       </div>
 
@@ -94,9 +92,9 @@ const GatewaySelector: React.FC<{
         {/* Paystack */}
         <button
           onClick={onPaystack}
-          className="group w-full flex items-center gap-5 p-5 border-2 border-slate-100 rounded-2xl hover:border-[#00C3F7]/50 hover:bg-[#f0fbff] transition-all text-left"
+          className="group w-full flex items-center gap-3 sm:gap-4 p-4 border-2 border-slate-100 rounded-2xl hover:border-[#00C3F7]/50 hover:bg-[#f0fbff] transition-all text-left"
         >
-          <PaystackLogo className="h-7 shrink-0" />
+          <PaystackLogo className="h-6 sm:h-7 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-slate-900">Card or bank transfer</p>
             <p className="text-xs text-slate-500 font-medium mt-0.5 leading-relaxed">
@@ -109,44 +107,41 @@ const GatewaySelector: React.FC<{
         {/* Hedera HBAR */}
         <button
           onClick={onHedera}
-          className="group w-full flex items-center gap-5 p-5 border-2 border-violet-100 rounded-2xl hover:border-violet-300 hover:bg-violet-50/50 transition-all text-left relative"
+          className="group w-full flex items-center gap-3 sm:gap-4 p-4 border-2 border-teal-100 rounded-2xl hover:border-teal-300 hover:bg-teal-50/40 transition-all text-left"
         >
-          <div className="absolute -top-3 right-5 px-2.5 py-0.5 bg-gradient-to-r from-violet-600 to-purple-500 rounded-full shadow-sm shadow-violet-500/30">
-            <span className="text-[9px] font-bold text-white uppercase tracking-widest">Pay once · No subscription</span>
-          </div>
-          <HederaLogo className="h-7 shrink-0" />
+          <HederaLogo className="h-6 sm:h-7 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-900">Pay with HBAR</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-bold text-slate-900">Pay with HBAR</p>
+              <span className="text-[9px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                Pay once · No subscription
+              </span>
+            </div>
             <p className="text-xs text-slate-500 font-medium mt-0.5 leading-relaxed">
-              {hbarLabel} · pay once, deploy instantly. Verified on Hedera mainnet.
+              {hbarLabel} · deploy instantly. Verified on Hedera mainnet.
             </p>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">~3s finality</span>
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">~3s finality</span>
               <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">HashPack · MetaMask</span>
               {hbarConfig?.liveRate && (
                 <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">Live rate</span>
               )}
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-violet-300 group-hover:text-violet-500 shrink-0 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-teal-300 group-hover:text-teal-500 shrink-0 transition-colors" />
         </button>
       </div>
 
       <div className="flex items-center justify-between pt-1">
-        <button onClick={onClose} className="text-sm font-semibold text-slate-400 hover:text-slate-700 transition-colors">Cancel</button>
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-          <svg viewBox="0 0 14 14" className="w-3 h-3" fill="none">
-            <rect width="14" height="14" rx="3" fill="#1D2029" />
-            <text x="2" y="11" fontFamily="Georgia,serif" fontSize="10" fill="white">ℏ</text>
-          </svg>
-          Powered by Hedera Hashgraph
-        </div>
+        <button onClick={onClose} className="text-sm font-semibold text-slate-400 hover:text-slate-700 transition-colors">
+          Cancel
+        </button>
+        <span className="text-[10px] text-slate-400 font-medium">Secured · x402 protocol</span>
       </div>
     </div>
   );
 };
 
-// ─── Hedera Payment View ──────────────────────────────────────────────────────
 
 const HederaPayView: React.FC<{
   onBack: () => void;
@@ -159,7 +154,6 @@ const HederaPayView: React.FC<{
   const [txRef, setTxRef] = useState('');
   const [config, setConfig] = useState<HederaConfig | null>(null);
 
-  // Fetch live HBAR config from backend
   useEffect(() => {
     let cancelled = false;
     setStep('loading');
@@ -223,20 +217,20 @@ const HederaPayView: React.FC<{
   const explorerBase = network === 'mainnet' ? 'https://hashscan.io/mainnet' : 'https://hashscan.io/testnet';
 
   return (
-    <div className="px-7 pb-8 pt-2 space-y-5">
+    <div className="px-4 sm:px-6 pb-6 pt-1 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
-        <div>
-          <HederaLogo className="h-7" />
+        <div className="min-w-0">
+          <HederaLogo className="h-6 sm:h-7" />
           {config ? (
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Pay <span className="font-bold text-violet-700">{config.amountHbar} HBAR</span>
+              Pay <span className="font-bold text-teal-700">{config.amountHbar} HBAR</span>
               <span className="text-slate-400"> (≈ ₦{config.amountNgn.toLocaleString()})</span>
               {' '}to deploy
             </p>
@@ -252,7 +246,7 @@ const HederaPayView: React.FC<{
         {step === 'loading' && (
           <MotionDiv key="load" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex flex-col items-center py-8 gap-3">
-            <div className="w-10 h-10 rounded-full border-4 border-violet-100 border-t-violet-500 animate-spin" />
+            <div className="w-10 h-10 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin" />
             <p className="text-xs text-slate-400 font-medium">Fetching live HBAR rate…</p>
           </MotionDiv>
         )}
@@ -260,7 +254,6 @@ const HederaPayView: React.FC<{
         {/* Wallet choice */}
         {step === 'choose_wallet' && config && (
           <MotionDiv key="choose" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-            {/* Live rate badge */}
             <div className="flex items-center justify-between mb-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Select your wallet</p>
               <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
@@ -271,25 +264,25 @@ const HederaPayView: React.FC<{
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => connect('hashpack')}
-                className="flex flex-col items-center gap-2.5 p-4 border-2 border-slate-100 rounded-2xl hover:border-violet-300 hover:bg-violet-50/40 transition-all group"
+                className="flex flex-col items-center gap-2 p-3 sm:p-4 border-2 border-slate-100 rounded-2xl hover:border-teal-200 hover:bg-teal-50/40 transition-all"
               >
-                <HashPackIcon className="w-10 h-10" />
+                <HashPackIcon className="w-9 h-9 sm:w-10 sm:h-10" />
                 <div className="text-center">
                   <p className="text-xs font-bold text-slate-900">HashPack</p>
                   <p className="text-[10px] text-slate-400 font-medium">Hedera native</p>
                 </div>
-                <span className="text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">Recommended</span>
+                <span className="text-[9px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">Recommended</span>
               </button>
               <button
                 onClick={() => connect('metamask')}
-                className="flex flex-col items-center gap-2.5 p-4 border-2 border-slate-100 rounded-2xl hover:border-orange-200 hover:bg-orange-50/30 transition-all group"
+                className="flex flex-col items-center gap-2 p-3 sm:p-4 border-2 border-slate-100 rounded-2xl hover:border-orange-200 hover:bg-orange-50/30 transition-all"
               >
-                <MetaMaskIcon className="w-10 h-10" />
+                <MetaMaskIcon className="w-9 h-9 sm:w-10 sm:h-10" />
                 <div className="text-center">
                   <p className="text-xs font-bold text-slate-900">MetaMask</p>
                   <p className="text-[10px] text-slate-400 font-medium">Hedera EVM</p>
                 </div>
-                <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">Fallback</span>
+                <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">EVM</span>
               </button>
             </div>
           </MotionDiv>
@@ -299,7 +292,7 @@ const HederaPayView: React.FC<{
         {step === 'connecting' && (
           <MotionDiv key="conn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex flex-col items-center py-8 gap-4">
-            <div className="w-14 h-14 rounded-full border-4 border-violet-100 border-t-violet-500 animate-spin" />
+            <div className="w-12 h-12 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin" />
             <div className="text-center">
               <p className="text-sm font-bold text-slate-900">Connecting wallet…</p>
               <p className="text-xs text-slate-400 font-medium mt-1">Approve the connection in your wallet</p>
@@ -309,9 +302,9 @@ const HederaPayView: React.FC<{
 
         {/* Connected — payment summary */}
         {(step === 'connected' || step === 'paying' || step === 'verifying') && wallet && config && (
-          <MotionDiv key="pay" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="space-y-4">
+          <MotionDiv key="pay" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="space-y-3">
             {/* Wallet badge */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
+            <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
               <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
@@ -322,29 +315,28 @@ const HederaPayView: React.FC<{
                 </p>
                 <p className="text-xs text-slate-600 font-mono truncate">{wallet.displayAddress}</p>
               </div>
-              <button onClick={reset} className="text-[10px] text-slate-400 hover:text-slate-600 font-medium underline">Change</button>
+              <button onClick={reset} className="text-[10px] text-slate-400 hover:text-slate-600 font-medium underline shrink-0">Change</button>
             </div>
 
             {/* Payment summary */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-slate-600 font-medium">Portfolio deployment</span>
                 <div className="text-right">
-                  <p className="text-xl font-black text-slate-900">{config.amountHbar} HBAR</p>
+                  <p className="text-lg sm:text-xl font-black text-slate-900">{config.amountHbar} HBAR</p>
                   <p className="text-xs text-slate-400 font-medium">≈ ₦{config.amountNgn.toLocaleString()}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+              <div className="flex items-center justify-between border-t border-slate-100 pt-3 flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                  <svg viewBox="0 0 12 12" className="w-3 h-3" fill="none">
+                  <svg viewBox="0 0 12 12" className="w-3 h-3 shrink-0" fill="none">
                     <rect width="12" height="12" rx="2.5" fill="#1D2029" />
                     <text x="1.5" y="9.5" fontFamily="Georgia,serif" fontSize="9" fill="white">ℏ</text>
                   </svg>
                   Hedera {network} · ~3s finality
                 </div>
                 <span className="text-[10px] text-slate-400 font-medium">
-                  1 HBAR = ₦{config.hbarNgnRate.toFixed(0)}
-                  {config.liveRate ? ' (live)' : ' (est.)'}
+                  1 HBAR = ₦{config.hbarNgnRate.toFixed(0)}{config.liveRate ? ' (live)' : ' (est.)'}
                 </span>
               </div>
             </div>
@@ -352,10 +344,10 @@ const HederaPayView: React.FC<{
             <button
               onClick={pay}
               disabled={step === 'paying' || step === 'verifying'}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-sm font-bold shadow-xl shadow-violet-500/25 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl bg-teal-500 hover:bg-teal-600 text-white text-sm font-bold shadow-lg shadow-teal-500/25 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {step === 'paying' ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Waiting for wallet approval…</>
+                <><Loader2 className="w-4 h-4 animate-spin" /> Waiting for wallet…</>
               ) : step === 'verifying' ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Verifying on Hedera…</>
               ) : (
@@ -368,7 +360,7 @@ const HederaPayView: React.FC<{
                 href={`${explorerBase}/transaction/${encodeURIComponent(txRef)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 text-xs text-violet-500 hover:text-violet-700 font-medium transition-colors"
+                className="flex items-center justify-center gap-1.5 text-xs text-teal-500 hover:text-teal-700 font-medium transition-colors"
               >
                 <ExternalLink className="w-3 h-3" />
                 Track on HashScan
@@ -403,8 +395,10 @@ const HederaPayView: React.FC<{
               <div>
                 <p className="text-sm font-bold text-red-700 mb-0.5">Something went wrong</p>
                 <p className="text-xs text-red-500 font-medium leading-relaxed">{error}</p>
-                <button onClick={step === 'error' && !config ? () => { setStep('loading'); hederaService.getConfig(planId).then(cfg => { setConfig(cfg); setStep('choose_wallet'); }).catch(() => setStep('error')); } : reset}
-                  className="mt-2 text-xs font-bold text-red-600 hover:text-red-800 underline">
+                <button
+                  onClick={!config ? () => { setStep('loading'); hederaService.getConfig(planId).then(cfg => { setConfig(cfg); setStep('choose_wallet'); }).catch(() => setStep('error')); } : reset}
+                  className="mt-2 text-xs font-bold text-red-600 hover:text-red-800 underline"
+                >
                   Try again
                 </button>
               </div>
@@ -415,19 +409,11 @@ const HederaPayView: React.FC<{
 
       {/* Footer */}
       <div className="flex items-center justify-center gap-1.5 pt-1">
-        <svg viewBox="0 0 14 14" className="w-3.5 h-3.5" fill="none">
-          <rect width="14" height="14" rx="3" fill="#1D2029" />
-          <text x="2" y="11" fontFamily="Georgia,serif" fontSize="10" fill="white">ℏ</text>
-        </svg>
-        <span className="text-[10px] text-slate-400 font-medium">Secured by Hedera Hashgraph</span>
-        <span className="text-[10px] text-slate-300 mx-1">·</span>
-        <span className="text-[10px] text-slate-400 font-medium">x402 protocol</span>
+        <span className="text-[10px] text-slate-400 font-medium">Secured · x402 protocol · Hedera mainnet</span>
       </div>
     </div>
   );
 };
-
-// ─── Main Modal ───────────────────────────────────────────────────────────────
 
 const DeploymentPaymentModal: React.FC<Props> = ({
   isOpen, onClose, onPaystackProceed, onHederaSuccess, planId = 'pro',
@@ -435,7 +421,6 @@ const DeploymentPaymentModal: React.FC<Props> = ({
   const [step, setStep] = useState<ModalStep>('select');
   const [hbarConfig, setHbarConfig] = useState<HederaConfig | null>(null);
 
-  // Pre-fetch HBAR config when the modal opens so the gateway selector shows live pricing
   useEffect(() => {
     if (!isOpen) return;
     hederaService.getConfig(planId).then(setHbarConfig).catch(() => {});
@@ -446,19 +431,25 @@ const DeploymentPaymentModal: React.FC<Props> = ({
   return (
     <AnimatePresence>
       {isOpen && (
+        // On mobile: bottom sheet. On sm+: centered dialog.
         <div
-          className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
           onClick={handleClose}
         >
           <MotionDiv
-            initial={{ opacity: 0, scale: 0.96, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 16 }}
-            transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-            className="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-slate-900/20 overflow-hidden"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl shadow-slate-900/20 overflow-hidden max-h-[92vh] overflow-y-auto"
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            <div className="flex justify-end px-7 pt-6 pb-1">
+            {/* Drag handle on mobile */}
+            <div className="flex sm:hidden justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-slate-200" />
+            </div>
+
+            <div className="flex justify-end px-4 sm:px-6 pt-3 sm:pt-5 pb-1">
               <button
                 onClick={handleClose}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
