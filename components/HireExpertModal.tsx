@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Loader2, Zap } from 'lucide-react';
 import { useAuth } from '../context/auth-context';
 import { toast } from 'sonner';
+import { SLACK_WEBHOOK_URL } from '../lib/env';
 
 interface HireExpertModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export const HireExpertModal: React.FC<HireExpertModalProps> = ({ isOpen, onClos
     }
     setIsSubmitting(true);
 
-    const webhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+    const webhookUrl = SLACK_WEBHOOK_URL;
     const payload = {
       text: `*New Expert Design Request*`,
       blocks: [

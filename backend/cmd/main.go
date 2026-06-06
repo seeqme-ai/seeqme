@@ -170,6 +170,13 @@ func main() {
 		api.GET("/deployment/status/:id", middleware.RequiredAuthMiddleware(), h.GetDeploymentStatus)
 		api.POST("/deployment/rollback/:id", middleware.RequiredAuthMiddleware(), h.RollbackDeployment)
 
+		// Hedera x402 payment
+		api.GET("/hedera/config", h.GetHederaConfig)
+		api.POST("/hedera/verify-payment", middleware.RequiredAuthMiddleware(), h.VerifyHederaPayment)
+
+		// Hedera MCP Agent — called internally after x402 payment verification
+		api.POST("/agent/deploy-portfolio", h.AgentDeployPortfolio)
+
 		// Session Management
 		api.GET("/sessions/active", middleware.RequiredAuthMiddleware(), h.GetActiveSession)
 		api.GET("/sessions/:id", middleware.RequiredAuthMiddleware(), h.GetSession)

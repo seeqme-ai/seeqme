@@ -45,8 +45,14 @@ type Config struct {
 	LinkedInEmail       string
 	LinkedInPassword    string
 	AnthropicAPIKey     string
-	FirebaseProjectID        string
+	FirebaseProjectID             string
 	FirebaseServiceAccountKeyJSON string
+	// Internal agent secret (shared between hedera-agent and this backend)
+	AgentSecret string
+	// Hedera x402 payment
+	HederaNetwork           string
+	HederaPaymentAccountId  string // Hedera account ID e.g. "0.0.12345" (HashConnect / native HBAR)
+	HederaPaymentEvmAddress string // EVM address e.g. "0x..." (MetaMask on Hedera EVM)
 }
 
 func Load() *Config {
@@ -103,8 +109,12 @@ func Load() *Config {
 		LinkedInEmail:       getEnv("LINKEDIN_EMAIL", ""),
 		LinkedInPassword:    getEnv("LINKEDIN_PASSWORD", ""),
 		AnthropicAPIKey:     getEnv("ANTHROPIC_API_KEY", ""),
-		FirebaseProjectID:        getEnv("FIREBASE_PROJECT_ID", ""),
+		FirebaseProjectID:             getEnv("FIREBASE_PROJECT_ID", ""),
 		FirebaseServiceAccountKeyJSON: getEnv("FIREBASE_SERVICE_ACCOUNT_KEY_JSON", ""),
+		AgentSecret:             getEnv("AGENT_SECRET", ""),
+		HederaNetwork:           getEnv("HEDERA_NETWORK", "mainnet"),
+		HederaPaymentAccountId:  getEnv("HEDERA_PAYMENT_ACCOUNT_ID", ""),
+		HederaPaymentEvmAddress: getEnv("HEDERA_PAYMENT_EVM_ADDRESS", ""),
 	}
 
 	log.Printf("Loaded MongoURI: %s", config.MongoURI)
@@ -139,3 +149,4 @@ func getEnv(key, defaultValue string) string {
 	}
 	return defaultValue
 }
+

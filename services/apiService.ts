@@ -229,12 +229,14 @@ export const deploymentService = {
     });
     return response.data;
   },
-  deployPortfolio: async (portfolioId: string, subdomain?: string, customDomainId?: string) => {
+  deployPortfolio: async (portfolioId: string, subdomain?: string, customDomainId?: string, hederaTxHash?: string) => {
+    const headers: Record<string, string> = {};
+    if (hederaTxHash) headers['X-Hedera-Payment'] = hederaTxHash;
     const response = await apiClient.post('/deployment/deploy', {
       portfolioId,
       subdomain,
       customDomainId,
-    });
+    }, { headers });
     return response.data;
   },
   getDeploymentStatus: async (portfolioId: string) => {
@@ -487,6 +489,36 @@ export const sessionService = {
   getSession: async (id: string) => {
     const response = await apiClient.get(`/sessions/${id}`);
     return response.data;
+  },
+};
+
+export interface HederaConfig {
+  recipientAccountId: string;
+  recipientEvmAddress: string;
+  amountHbar: number;
+  amountNgn: number;
+  hbarNgnRate: number;
+  network: string;
+  planId: string;
+  liveRate: boolean;
+  rateSource: 'coingecko' | 'fallback';
+  rateRefreshSeconds: number;
+}
+
+export const hederaService = {
+  /** Fetch the HBAR payment config for a specific plan. Amount is computed from live rate. */
+  getConfig: async (planId = 'pro'): Promise<HederaConfig> => {
+    const response = await apiClient.get(`/hedera/config?plan=${planId}`);
+    return response.data;
+  },
+  /** Verify a base64-encoded x402 payment receipt against the plan's live HBAR price. */
+  verifyPayment: async (encodedPayment: string, planId = 'pro'): Promise<{ success: boolean; amountHbar?: number; error?: string }> => {
+    try {
+      const response = await apiClient.post('/hedera/verify-payment', { encodedPayment, planId });
+      return response.data;
+    } catch (err: any) {
+      return { success: false, error: err?.response?.data?.error ?? 'Verification failed' };
+    }
   },
 };
 

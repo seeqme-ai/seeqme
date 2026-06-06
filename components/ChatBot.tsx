@@ -12,6 +12,7 @@ import { useAuth } from '@/context/auth-context';
 import { cloudinaryService } from '@/services/cloudinaryService';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom';
+import { SLACK_WEBHOOK_URL } from '@/lib/env';
 
 interface Message {
     id: string;
@@ -119,7 +120,7 @@ const ChatBot: React.FC = () => {
         }
 
         // Best-effort Slack forwarding; must never fail the user send flow.
-        const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/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';
+        const slackWebhookUrl = SLACK_WEBHOOK_URL;
         if (slackWebhookUrl) {
             const slackPayload = {
                 text: `*New Support Message from ${user.fullName}*`,

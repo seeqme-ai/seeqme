@@ -21,7 +21,7 @@ import BuilderTour, { BUILDER_TOUR_STEPS } from '@/components/builder/BuilderTou
 import PhotoUploadModal from '@/components/builder/PhotoUploadModal';
 import TemplateSelectorDrawer from '@/components/TemplateSelectorDrawer';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import PaymentRequiredModal from '@/components/PaymentRequiredModal';
+import DeploymentPaymentModal from '@/components/DeploymentPaymentModal';
 import { socketService } from '@/services/socketService';
 import { renderManifest } from '@/utils/renderer';
 import { RegistryMetadata } from '@/registry/metadata';
@@ -70,6 +70,7 @@ const PortfolioBuilder: React.FC = () => {
   const [isDeletingExisting, setIsDeletingExisting] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [hederaPaymentTx, setHederaPaymentTx] = useState<string | null>(null);
   const [isIframeLoading, setIsIframeLoading] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -852,6 +853,18 @@ const PortfolioBuilder: React.FC = () => {
     setIsDeployModalOpen(true);
   };
 
+  const handleHederaPaymentSuccess = async (txHash: string) => {
+    setHederaPaymentTx(txHash);
+    if (!data || !user) return;
+    try {
+      const domainsData = await domainService.getDomains();
+      setAvailableDomains(domainsData.domains || []);
+    } catch (_) { /* non-fatal */ }
+    const slug = data.subdomain || user.fullName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    setChosenSubdomain(slug);
+    setIsDeployModalOpen(true);
+  };
+
   const confirmDeploy = async (subdomain: string) => {
     if (!data || !user) return;
 
@@ -962,10 +975,11 @@ const PortfolioBuilder: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (useSubdomain) {
-        await deploymentService.deployPortfolio(portfolioId as string, subdomain);
+        await deploymentService.deployPortfolio(portfolioId as string, subdomain, undefined, hederaPaymentTx ?? undefined);
       } else if (customDomain) {
-        await deploymentService.deployPortfolio(portfolioId as string, undefined, selectedDomainId);
+        await deploymentService.deployPortfolio(portfolioId as string, undefined, selectedDomainId, hederaPaymentTx ?? undefined);
       }
+      setHederaPaymentTx(null); // consume the token
 
       addLog(`Deployment workflow initiated.`, 'info');
 
@@ -1504,13 +1518,15 @@ const PortfolioBuilder: React.FC = () => {
         variant="info"
       />
 
-      <PaymentRequiredModal
+      <DeploymentPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        onProceed={() => {
+        onPaystackProceed={() => {
           setIsPaymentModalOpen(false);
           navigate('/plans?redirect=/builder&autoDeploy=true');
         }}
+        onHederaSuccess={handleHederaPaymentSuccess}
+        planId={subscriptionPlanId === 'free' ? 'pro' : subscriptionPlanId}
       />
       <BuilderTour
         isOpen={isGuideOpen}

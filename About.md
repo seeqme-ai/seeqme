@@ -1,5 +1,5 @@
 
-## 1. Product Vision (Refined)
+## 1. About
 
 Seeqme is a **professional identity network** where your CV-generated website is your node in a living mesh. The mesh surfaces similarity, enables discovery, and grows through posts — all without manual networking. You don't search for people. You *attract* them.
 

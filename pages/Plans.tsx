@@ -8,6 +8,7 @@ import { PaystackButton } from 'react-paystack';
 import { useAuth } from '../context/auth-context';
 import { toast } from 'sonner';
 import { Loader, Check, X as XIcon, Zap, Globe, BarChart3, Shield, Headphones, Code2 } from 'lucide-react';
+import { PAYSTACK_PUBLIC_KEY } from '../lib/env';
 
 const MotionDiv = motion.div as any;
 
@@ -150,7 +151,7 @@ const Plans: React.FC = () => {
   const [paidPlans, setPaidPlans] = useState<Plan[]>(DEFAULT_PAID_PLANS);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
-  const paystackPublicKey = import.meta.env.VITE_PAYSTACK_TEST_PK || 'pk_live_3c875aee389f6ee11841c33b6500adf5d94a8bff';
+  const paystackPublicKey = PAYSTACK_PUBLIC_KEY;
 
   useEffect(() => {
     setCurrency(user?.country === 'Nigeria' ? 'NGN' : 'USD');

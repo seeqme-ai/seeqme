@@ -223,32 +223,47 @@ func (h *Handler) DeployPortfolio(c *gin.Context) {
 
 	status, _ := portfolio["status"].(string)
 
-	// Enforce plan limits server-side to prevent bypassing frontend checks.
-	var subscription models.Subscription
-	subErr := database.Client.Database(database.DBName).Collection("subscriptions").
-		FindOne(context.Background(), bson.M{"userId": userIDObj, "status": "active"}).
-		Decode(&subscription)
+	// Check Hedera x402 payment as an alternative to subscription.
+	// If a valid Hedera payment exists for this user, allow the deployment regardless of plan.
+	hederaPaid := ConsumeHederaPayment(c, userIDObj)
 
-	planID := "free"
-	if subErr == nil && subscription.PlanID != "" {
-		planID = strings.ToLower(subscription.PlanID)
-	}
+	if !hederaPaid {
+		// Enforce plan limits server-side to prevent bypassing frontend checks.
+		var subscription models.Subscription
+		subErr := database.Client.Database(database.DBName).Collection("subscriptions").
+			FindOne(context.Background(), bson.M{"userId": userIDObj, "status": "active"}).
+			Decode(&subscription)
 
-	if planID == "pro" && status != "completed" {
-		deployedCount, countErr := collection.CountDocuments(context.Background(), bson.M{
-			"userId": userIDObj,
-			"status": "completed",
-		})
-		if countErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate plan limits"})
-			return
+		planID := "free"
+		if subErr == nil && subscription.PlanID != "" {
+			planID = strings.ToLower(subscription.PlanID)
 		}
-		if deployedCount >= 1 {
+
+		if planID == "free" {
 			c.JSON(http.StatusPaymentRequired, gin.H{
-				"error": "Professional plan allows only one deployed portfolio. Upgrade to Premium to deploy more.",
+				"error": "A paid plan or Hedera payment is required to deploy your portfolio.",
 			})
 			return
 		}
+
+		if planID == "pro" && status != "completed" {
+			deployedCount, countErr := collection.CountDocuments(context.Background(), bson.M{
+				"userId": userIDObj,
+				"status": "completed",
+			})
+			if countErr != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate plan limits"})
+				return
+			}
+			if deployedCount >= 1 {
+				c.JSON(http.StatusPaymentRequired, gin.H{
+					"error": "Professional plan allows only one deployed portfolio. Upgrade to Premium to deploy more.",
+				})
+				return
+			}
+		}
+	} else {
+		log.Printf("[Deploy] Hedera payment accepted for user %s — skipping subscription check", userIDObj.Hex())
 	}
 
 	log.Printf("[Deploy] Found portfolio: %s", req.PortfolioID)
