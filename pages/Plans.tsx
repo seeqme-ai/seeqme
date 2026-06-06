@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ICONS } from '../constants';
 import { configService, subscriptionService } from '../services/apiService';
-import { PaystackButton } from 'react-paystack';
+import { usePaystackPayment } from 'react-paystack';
 import { useAuth } from '../context/auth-context';
 import { toast } from 'sonner';
 import { Loader, Check, X as XIcon, Zap, Globe, BarChart3, Shield, Headphones, Code2 } from 'lucide-react';
 import { PAYSTACK_PUBLIC_KEY } from '../lib/env';
+import DeploymentPaymentModal from '../components/DeploymentPaymentModal';
 
 const MotionDiv = motion.div as any;
 
@@ -144,12 +145,16 @@ const Plans: React.FC = () => {
   const queryParams = new URLSearchParams(window.location.search);
   const redirectUrl = queryParams.get('redirect');
   const autoDeploy = queryParams.get('autoDeploy');
+  const isBuilderCheckout = Boolean(redirectUrl || autoDeploy);
 
   const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [isSyncing, setIsSyncing] = useState(false);
   const [paidPlans, setPaidPlans] = useState<Plan[]>(DEFAULT_PAID_PLANS);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPaymentPlan, setSelectedPaymentPlan] = useState<Plan | null>(null);
+  const [paystackLaunchPlan, setPaystackLaunchPlan] = useState<Plan | null>(null);
 
   const paystackPublicKey = PAYSTACK_PUBLIC_KEY;
 
@@ -186,6 +191,94 @@ const Plans: React.FC = () => {
     } catch {
       toast.error('Payment received but verification failed. Contact support with your reference.');
     } finally { setIsSyncing(false); }
+  };
+
+  const paystackConfig = {
+    reference: paystackLaunchPlan ? `${Date.now()}` : '0',
+    email: user?.email || '',
+    amount: paystackLaunchPlan
+      ? Math.round(((currency === 'USD' ? paystackLaunchPlan.price.usd : paystackLaunchPlan.price.ngn) * (billingCycle === 'yearly' ? 10 : 1)) * 1.075) * 100
+      : 0,
+    publicKey: paystackPublicKey || '',
+    currency,
+  };
+
+  const initializePaystackPayment = usePaystackPayment(paystackConfig as any);
+
+  const handleSubscriptionSuccess = async (
+    paymentReference: string,
+    planId: string,
+    gateway: 'paystack' | 'hedera',
+  ) => {
+    setIsSyncing(true);
+    const plan = paidPlans.find(p => p.id === planId);
+    const basePrice = currency === 'USD' ? plan?.price.usd : plan?.price.ngn;
+    const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 10 : (basePrice || 0);
+    try {
+      await subscriptionService.verifyPayment(paymentReference, planId, gateway, billingCycle, finalPrice, currency);
+      toast.success('Your subscription is now active â€” welcome to SeeqMe!');
+      navigate(redirectUrl ? `${redirectUrl}${autoDeploy ? `?autoDeploy=${autoDeploy}` : ''}` : '/dashboard');
+    } catch {
+      toast.error('Payment received but verification failed. Contact support with your reference.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!paystackLaunchPlan) return;
+    if (!paystackPublicKey) {
+      toast.error('Paystack is unavailable right now. Please try another gateway.');
+      setPaystackLaunchPlan(null);
+      return;
+    }
+
+    initializePaystackPayment(
+      (reference: any) => {
+        const plan = paystackLaunchPlan;
+        setPaystackLaunchPlan(null);
+        if (plan) {
+          handleSubscriptionSuccess(reference?.reference || '', plan.id, 'paystack');
+        }
+      },
+      () => {
+        toast.info('Payment cancelled');
+        setPaystackLaunchPlan(null);
+      }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paystackLaunchPlan]);
+
+  const handlePlanClick = (plan: Plan) => {
+    if (plan.id === 'free') {
+      navigate('/dashboard');
+      return;
+    }
+
+    if (!user) {
+      navigate('/auth/login', { state: { from: '/plans' } });
+      return;
+    }
+
+    if (isBuilderCheckout && paystackPublicKey) {
+      setPaystackLaunchPlan(plan);
+      return;
+    }
+
+    setSelectedPaymentPlan(plan);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleGatewayModalPaystack = () => {
+    if (!selectedPaymentPlan) return;
+    setIsPaymentModalOpen(false);
+    setPaystackLaunchPlan(selectedPaymentPlan);
+  };
+
+  const handleGatewayModalHedera = async (encodedReceipt: string) => {
+    if (!selectedPaymentPlan) return;
+    setIsPaymentModalOpen(false);
+    await handleSubscriptionSuccess(encodedReceipt, selectedPaymentPlan.id, 'hedera');
   };
 
   const allPlans = [FREE_PLAN, ...paidPlans];
@@ -359,42 +452,15 @@ const Plans: React.FC = () => {
                   </div>
 
                   {/* CTA */}
-                  {isFree ? (
-                    <button
-                      onClick={() => navigate('/dashboard')}
-                      className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${plan.recommended
-                          ? 'bg-teal-500 text-white hover:bg-teal-400'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                        }`}
-                    >
-                      {plan.cta}
-                    </button>
-                  ) : !user ? (
-                    <button
-                      onClick={() => navigate('/auth/login', { state: { from: '/plans' } })}
-                      className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 ${plan.recommended ? 'bg-teal-500 text-white hover:bg-teal-400 shadow-lg shadow-teal-500/30' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                    >
-                      {plan.cta}
-                    </button>
-                  ) : paystackPublicKey ? (
-                    <PaystackButton
-                      {...({
-                        className: `w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 ${plan.recommended ? 'bg-teal-500 text-white hover:bg-teal-400 shadow-lg shadow-teal-500/30' : 'bg-slate-900 text-white hover:bg-slate-800'}`,
-                        publicKey: paystackPublicKey,
-                        email: user?.email || '',
-                        amount: vatPrice * 100,
-                        currency,
-                        metadata: { custom_fields: [{ display_name: 'Plan', variable_name: 'plan', value: plan.id }] },
-                        text: plan.cta,
-                        onSuccess: (ref: any) => handlePaystackSuccess(ref, plan.id),
-                        onClose: () => toast.info('Payment cancelled'),
-                      } as any)}
-                    />
-                  ) : (
-                    <button disabled className="w-full py-3.5 rounded-2xl text-sm font-bold bg-slate-100 text-slate-400 cursor-not-allowed">
-                      Payments unavailable
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handlePlanClick(plan)}
+                    className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 ${plan.recommended
+                        ? 'bg-teal-500 text-white hover:bg-teal-400 shadow-lg shadow-teal-500/30'
+                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                      }`}
+                  >
+                    {plan.cta}
+                  </button>
 
                   {!isFree && (
                     <p className={`text-center text-[10px] font-medium mt-3 ${plan.recommended ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -421,6 +487,17 @@ const Plans: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <DeploymentPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false);
+          setSelectedPaymentPlan(null);
+        }}
+        onPaystackProceed={handleGatewayModalPaystack}
+        onHederaSuccess={handleGatewayModalHedera}
+        planId={selectedPaymentPlan?.id || 'pro'}
+      />
     </div>
   );
 };
