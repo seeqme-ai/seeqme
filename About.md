@@ -1,7 +1,7 @@
 
 ## 1. About
 
-Seeqme is a **professional identity network** where your CV-generated website is your node in a living mesh. The mesh surfaces similarity, enables discovery, and grows through posts — all without manual networking. You don't search for people. You *attract* them.
+SeeqMe is a **professional identity network** that turns your CV, LinkedIn, or a simple prompt into a live, Google-indexed portfolio — deployed instantly with a shareable link. Every portfolio is a node in a discovery mesh: HR teams, recruiters, and collaborators find you based on your actual skills and work, not who you know. You don't chase opportunities. You get found.
 
 ---
 
@@ -21,9 +21,9 @@ Seeqme is a **professional identity network** where your CV-generated website is
          │                  │                  │
          └──────────────────┴──────────────────┘
                             │
-                    PostgreSQL + pgvector
+                    Mongodb 
                     Redis (cache + realtime)
-                    S3 (assets)
+                    cloudinary (assets)
 ```
 
 ---

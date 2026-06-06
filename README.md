@@ -1,8 +1,32 @@
-# SeeqMe: High-End AI Portfolio Builder
+# SeeqMe: Professional identity network
 
-SeeqMe is an AI platform that transforms professional DNA into stunning, high-converting portfolios — deployed live in under 60 seconds. Built on a manifest-driven architecture with native Hedera blockchain payments via the x402 protocol.
+SeeqMe is a **professional identity network** that turns your CV, LinkedIn, or a simple prompt into a live, Google-indexed portfolio — deployed instantly with a shareable link. Every portfolio is a node in a discovery mesh: HR teams, recruiters, and collaborators find you based on your actual skills and work, not who you know. You don't chase opportunities. You get found.
 
-## Architecture
+Built on a manifest-driven architecture with native Hedera blockchain payments via the x402 protocol.
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    SEEQME PLATFORM                   │
+├─────────────────┬───────────────────┬────────────────┤
+│   CV PIPELINE   │   MESH ENGINE     │  SOCIAL LAYER  │
+│                 │                   │                │
+│ Upload CV       │ Embedding Store   │ Posts          │
+│ Parse & Extract │ Similarity Graph  │ Reactions      │
+│ Generate Site   │ Cluster Detection │ Connections    │
+│ Publish         │ Feed Ranking      │ Notifications  │
+└─────────────────┴───────────────────┴────────────────┘
+         │                  │                  │
+         └──────────────────┴──────────────────┘
+                            │
+                    Mongodb 
+                    Redis (cache + realtime)
+                    cloudinary (assets)
+```
+
+---
+
 
 ### Core Stack
 - **Frontend**: React 18 + Vite + Tailwind CSS + Framer Motion + TanStack Query
@@ -138,4 +162,4 @@ HBAR amounts, account IDs, and EVM addresses are fetched from the backend at run
 
 ---
 
-*SeeqMe — Professional Identity, Reimagined.*
+*SeeqMe — GET SEEN | GET HIRED.*
