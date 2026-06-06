@@ -407,10 +407,7 @@ const HederaPayView: React.FC<{
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <div className="flex items-center justify-center gap-1.5 pt-1">
-        <span className="text-[10px] text-slate-400 font-medium">Secured · x402 protocol · Hedera mainnet</span>
-      </div>
+      
     </div>
   );
 };
