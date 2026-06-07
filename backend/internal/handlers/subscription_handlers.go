@@ -52,7 +52,7 @@ func (h *Handler) GetSubscription(c *gin.Context) {
 type VerifySubscriptionRequest struct {
 	Reference string  `json:"reference"`
 	Plan      string  `json:"plan"`
-	Gateway   string  `json:"gateway"`  // "paystack" or "stripe"
+	Gateway   string  `json:"gateway"`  // "paystack" or "hedera"
 	Period    string  `json:"period"`   // "monthly" or "yearly"
 	Amount    float64 `json:"amount"`   // e.g., 5 or 5000
 	Currency  string  `json:"currency"` // "USD" or "NGN"
@@ -76,13 +76,38 @@ func (h *Handler) VerifySubscription(c *gin.Context) {
 		return
 	}
 
-	// relying on client-side onSuccess callback without secondary verification.
-	// Proceeding to update subscription in DB.
-	verified := true
+	// For Hedera payments: consume the verified payment record to prevent replay attacks.
+	// The record was created by VerifyHederaPayment; consuming it here ties it to exactly one subscription upgrade.
+	if req.Gateway == "hedera" {
+		decoded, err := decodeX402Payment(req.Reference)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Hedera payment reference"})
+			return
+		}
+		txRef := decoded.Payload.TransactionID
+		if txRef == "" {
+			txRef = decoded.Payload.EvmTransactionHash
+		}
 
-	if !verified {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Payment verification failed"})
-		return
+		coll := database.Client.Database(database.DBName).Collection("hedera_payments")
+		var payment HederaPayment
+		if err := coll.FindOne(context.Background(), bson.M{
+			"txRef":  txRef,
+			"userId": userObjectID,
+			"used":   false,
+		}).Decode(&payment); err != nil {
+			c.JSON(http.StatusPaymentRequired, gin.H{"error": "Hedera payment not found or already used"})
+			return
+		}
+		if time.Now().After(payment.ExpiresAt) {
+			c.JSON(http.StatusPaymentRequired, gin.H{"error": "Hedera payment has expired — please pay again"})
+			return
+		}
+		_, _ = coll.UpdateOne(context.Background(),
+			bson.M{"_id": payment.ID},
+			bson.M{"$set": bson.M{"used": true, "usedAt": time.Now()}},
+		)
+		log.Printf("[Subscription] Hedera payment consumed for subscription — txRef=%s user=%s plan=%s", txRef, userID.(string), req.Plan)
 	}
 
 	// Update User Subscription in DB

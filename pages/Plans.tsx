@@ -179,20 +179,6 @@ const Plans: React.FC = () => {
     loadPlans();
   }, []);
 
-  const handlePaystackSuccess = async (reference: any, planId: string) => {
-    setIsSyncing(true);
-    const plan = paidPlans.find(p => p.id === planId);
-    const basePrice = currency === 'USD' ? plan?.price.usd : plan?.price.ngn;
-    const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 10 : (basePrice || 0);
-    try {
-      await subscriptionService.verifyPayment(reference.reference, planId, 'paystack', billingCycle, finalPrice, currency);
-      toast.success('Your subscription is now active — welcome to SeeqMe!');
-      navigate(redirectUrl ? `${redirectUrl}${autoDeploy ? `?autoDeploy=${autoDeploy}` : ''}` : '/dashboard');
-    } catch {
-      toast.error('Payment received but verification failed. Contact support with your reference.');
-    } finally { setIsSyncing(false); }
-  };
-
   const paystackConfig = {
     reference: paystackLaunchPlan ? `${Date.now()}` : '0',
     email: user?.email || '',
@@ -216,7 +202,7 @@ const Plans: React.FC = () => {
     const finalPrice = billingCycle === 'yearly' ? (basePrice || 0) * 10 : (basePrice || 0);
     try {
       await subscriptionService.verifyPayment(paymentReference, planId, gateway, billingCycle, finalPrice, currency);
-      toast.success('Your subscription is now active â€” welcome to SeeqMe!');
+      toast.success('Your subscription is now active — welcome to SeeqMe!');
       navigate(redirectUrl ? `${redirectUrl}${autoDeploy ? `?autoDeploy=${autoDeploy}` : ''}` : '/dashboard');
     } catch {
       toast.error('Payment received but verification failed. Contact support with your reference.');
@@ -475,7 +461,7 @@ const Plans: React.FC = () => {
           {/* Trust row */}
           <div className="flex flex-wrap items-center justify-center gap-8 text-xs text-slate-400 font-medium pt-4">
             {[
-              { icon: <Shield className="w-4 h-4" />, label: 'Secured by Paystack' },
+              { icon: <Shield className="w-4 h-4" />, label: 'Paystack · HBAR accepted' },
               { icon: <Globe className="w-4 h-4" />, label: 'Global CDN delivery' },
               { icon: <Zap className="w-4 h-4" />, label: 'Instant activation' },
             ].map(({ icon, label }) => (
