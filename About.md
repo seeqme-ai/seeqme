@@ -25,7 +25,6 @@ SeeqMe is a **professional identity network** that turns your CV, LinkedIn, or a
                     Redis (cache + realtime)
                     cloudinary (assets)
 ```
-
 ---
 
 ## 3. Data Types & Formats
@@ -100,7 +99,7 @@ type Skill = {
 type Experience = {
   company: string
   role: string
-  startDate: string             // "2021-03"
+  startDate: string           
   endDate: string | 'present'
   description: string
   highlights: string[]
