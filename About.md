@@ -114,7 +114,6 @@ type Project = {
   impact?: string
 }
 ```
-
 ### 3.3 Portfolio Site
 
 ```typescript
