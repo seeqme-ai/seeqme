@@ -146,8 +146,9 @@ const GatewaySelector: React.FC<{
 const HederaPayView: React.FC<{
   onBack: () => void;
   onSuccess: (encodedReceipt: string) => void;
+  onConnectingChange?: (v: boolean) => void;
   planId: string;
-}> = ({ onBack, onSuccess, planId }) => {
+}> = ({ onBack, onSuccess, onConnectingChange, planId }) => {
   const [step, setStep] = useState<HederaStep>('loading');
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [error, setError] = useState('');
@@ -173,6 +174,7 @@ const HederaPayView: React.FC<{
   const connect = useCallback(async (method: 'hashpack' | 'metamask') => {
     setStep('connecting');
     setError('');
+    onConnectingChange?.(true);
     try {
       const connected = method === 'hashpack' ? await connectHashPack() : await connectMetaMask();
       setWallet(connected);
@@ -180,8 +182,10 @@ const HederaPayView: React.FC<{
     } catch (e: any) {
       setError(e.message ?? 'Connection failed');
       setStep('error');
+    } finally {
+      onConnectingChange?.(false);
     }
-  }, []);
+  }, [onConnectingChange]);
 
   const pay = useCallback(async () => {
     if (!wallet || !config) return;
@@ -295,7 +299,8 @@ const HederaPayView: React.FC<{
             <div className="w-12 h-12 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin" />
             <div className="text-center">
               <p className="text-sm font-bold text-slate-900">Connecting wallet…</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">Approve the connection in your wallet</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">A wallet prompt will appear — approve the connection</p>
+              <p className="text-[10px] text-slate-400 font-medium mt-1">On mobile, switch to your wallet app if prompted</p>
             </div>
           </MotionDiv>
         )}
@@ -417,21 +422,27 @@ const DeploymentPaymentModal: React.FC<Props> = ({
 }) => {
   const [step, setStep] = useState<ModalStep>('select');
   const [hbarConfig, setHbarConfig] = useState<HederaConfig | null>(null);
+  // When a wallet pairing modal (WalletConnect/HashPack) is open we must lower
+  // our backdrop z-index so the injected wallet UI appears above it and can be
+  // tapped freely — especially critical on mobile.
+  const [walletConnecting, setWalletConnecting] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     hederaService.getConfig(planId).then(setHbarConfig).catch(() => {});
   }, [isOpen, planId]);
 
-  const handleClose = () => { setStep('select'); onClose(); };
+  const handleClose = () => { setStep('select'); setWalletConnecting(false); onClose(); };
 
   return (
     <AnimatePresence>
       {isOpen && (
         // On mobile: bottom sheet. On sm+: centered dialog.
+        // z-index steps DOWN to z-10 while the wallet pairing modal is open so
+        // the injected WalletConnect UI (z-index ~99999) is fully visible.
         <div
-          className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
-          onClick={handleClose}
+          className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 ${walletConnecting ? 'z-10' : 'z-[9999]'}`}
+          onClick={walletConnecting ? undefined : handleClose}
         >
           <MotionDiv
             initial={{ opacity: 0, y: 40 }}
@@ -470,6 +481,7 @@ const DeploymentPaymentModal: React.FC<Props> = ({
                   <HederaPayView
                     onBack={() => setStep('select')}
                     onSuccess={(encoded) => { handleClose(); onHederaSuccess(encoded); }}
+                    onConnectingChange={setWalletConnecting}
                     planId={planId}
                   />
                 </MotionDiv>
